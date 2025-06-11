@@ -1,0 +1,144 @@
+---
+title: "RMST-Based Sample Size Estimation"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{RMST-Based Sample Size Estimation}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{rmarkdown::html_vignette}
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+library(survRM2)
+library(survival)
+library(ggplot2)
+# Load your package
+# devtools::load_all(".")
+```
+
+## Introduction
+
+This vignette demonstrates how to use the `RMSTSampleSize` package for sample size estimation using the **Restricted Mean Survival Time (RMST)**. RMST offers an interpretable and robust alternative to hazard-based endpoints in survival analysis.
+
+## Simulated Data Example
+
+```{r sim-data}
+set.seed(123)
+n <- 200
+lambda <- 0.1
+T_true <- rexp(n, rate = lambda)
+C <- runif(n, min = 0, max = 20)
+time <- pmin(T_true, C)
+status <- as.numeric(T_true <= C)
+group <- sample(c(0, 1), n, replace = TRUE)
+
+df <- data.frame(time = time, status = status, group = group)
+
+fit <- survfit(Surv(time, status) ~ group, data = df)
+plot(fit, col = c("blue", "red"), lty = 1:2,
+     main = "Kaplan-Meier Curve by Group",
+     xlab = "Time", ylab = "Survival Probability")
+legend("topright", legend = c("Group 0", "Group 1"), col = c("blue", "red"), lty = 1:2)
+```
+
+## Estimating RMST Difference
+
+```{r rmst-diff}
+tau <- 15  # Truncation time
+rmst_result <- rmst2(time, status, arm = group, tau = tau)
+rmst_result$unadjusted.result
+```
+
+## Sample Size Calculation (Simulated Example)
+
+```{r sample-size-sim}
+alpha <- 0.05
+z_alpha <- qnorm(1 - alpha / 2)
+
+rmst_diff <- rmst_result$unadjusted.result[1, "Est."]
+
+# Calculate StdErr from the 95% CI
+lower <- rmst_result$unadjusted.result[1, "lower .95"]
+upper <- rmst_result$unadjusted.result[1, "upper .95"]
+
+rmst_se <- (upper - lower) / (2 * z_alpha)
+
+desired_power <- 0.8
+z_beta <- qnorm(desired_power)
+
+n_required <- 2 * (z_alpha + z_beta)^2 * (rmst_se^2) / (rmst_diff^2)
+ceiling(n_required)
+
+```
+
+---
+
+## Real-Life Example: Veteran Dataset
+
+```{r real-data}
+data(veteran, package = "survival")
+veteran$group <- ifelse(veteran$trt == 1, 1, 0)
+
+fit2 <- survfit(Surv(time, status) ~ group, data = veteran)
+plot(fit2, col = c("blue", "darkgreen"), lty = 1:2,
+     main = "Kaplan-Meier Curve (Veteran Data)",
+     xlab = "Time", ylab = "Survival Probability")
+legend("topright", legend = c("Standard", "Test"), col = c("blue", "darkgreen"), lty = 1:2)
+```
+
+```{r rmst-real}
+rmst_vet <- rmst2(veteran$time, veteran$status, veteran$group, tau = 100)
+rmst_vet$unadjusted.result
+```
+
+---
+
+## Using the Sample Size Function from the Package
+
+```{r sample-size-fn}
+sample_size_rmst <- function(effect_size, sd, alpha = 0.05, power = 0.8) {
+  z_alpha <- qnorm(1 - alpha / 2)
+  z_beta <- qnorm(power)
+  n <- 2 * (z_alpha + z_beta)^2 * sd^2 / effect_size^2
+  ceiling(n)
+}
+
+# Example usage
+sample_size_rmst(effect_size = 2, sd = 3)
+```
+
+---
+
+## Pooled Variance Function
+
+```{r pooled-var}
+pooled_variance <- function(var_vec, n_vec) {
+  if(length(var_vec) != length(n_vec)) stop("Length mismatch.")
+  num <- sum((n_vec - 1) * var_vec)
+  denom <- sum(n_vec) - length(n_vec)
+  num / denom
+}
+
+# Example
+pooled_variance(c(0.5, 0.6), c(80, 120))
+```
+
+---
+
+## Summary
+
+This vignette demonstrates:
+
+- RMST estimation using `survRM2::rmst2()`
+- Sample size estimation based on RMST difference
+- Use of simulated and real-world datasets
+- Utility functions like `sample_size_rmst()` and `pooled_variance()`
+
+---
+
+## References
+
+- Uno et al. (2014), *Moving beyond the hazard ratio in quantifying the between-group difference in survival analysis*.
+- survRM2 package documentation: https://cran.r-project.org/web/packages/survRM2/

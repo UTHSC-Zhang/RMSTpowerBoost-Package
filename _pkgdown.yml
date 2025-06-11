@@ -1,0 +1,7 @@
+template:
+  bootstrap: 5
+
+articles:
+  - title: "Vignettes"
+    contents:
+      - RMSTSS_Package_Vignette
