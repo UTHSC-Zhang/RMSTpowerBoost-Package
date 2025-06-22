@@ -6,16 +6,18 @@ Authors@R:
     person(given = "Arnab", family = "Aich", role = c("aut", "cre"), 
            email = "arnab.aich99@gmail.com", 
            comment = c(ORCID = "0009-0005-7801-6701"))
-Description: Provides functions to calculate sample size based on restricted mean survival time (RMST), simulate stratified survival data, and estimate pooled variance for RMST comparisons.
-Depends: 
-    R (>= 4.0.0)
-Imports:
-    survival,
-    survRM2
+Description: This package provides functions for estimating model parameters and
+    calculating statistical power and sample size for tests related to Restricted
+    Mean Survival Time (RMST) and dynamic prediction models. It includes utilities
+    for simulating survival and treatment data for power analysis.
 License: MIT + file LICENSE
 Encoding: UTF-8
-LazyData: true
+Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+Imports:
+    survival,
+    dplyr,
+    geepack
 Suggests:
     testthat (>= 3.0.0)
 Config/testthat/edition: 3

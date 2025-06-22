@@ -2,6 +2,9 @@
 
 export(RMSt.power)
 export(RMSt.sample.size)
+export(calculate_dp_power)
+export(calculate_dp_sample_size)
+export(dp)
 export(estimate_rmst)
 export(pooled_variance)
 export(rmst_sample_size)
