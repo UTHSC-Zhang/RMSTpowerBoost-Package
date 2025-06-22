@@ -1,4 +1,4 @@
-Package: RMSTSS
+Package: RMSTdesign
 Type: Package
 Title: Sample Size Calculation Using RMST for Survival Data
 Version: 0.1.0
@@ -6,18 +6,32 @@ Authors@R:
     person(given = "Arnab", family = "Aich", role = c("aut", "cre"), 
            email = "arnab.aich99@gmail.com", 
            comment = c(ORCID = "0009-0005-7801-6701"))
-Description: This package provides functions for estimating model parameters and
-    calculating statistical power and sample size for tests related to Restricted
-    Mean Survival Time (RMST) and dynamic prediction models. It includes utilities
-    for simulating survival and treatment data for power analysis.
+Description: A toolkit for designing studies with a restricted mean survival 
+    time (RMST) endpoint. This package provides functions to perform 
+    bootstrap-based power and sample size calculations for two-arm studies,
+    implementing several modern, direct RMST modeling approaches from the 
+    biostatistical literature. Users can select a method based on their 
+    study's design and assumptions, including flexible additive models with 
+    splines (Zhang & Schaubel, 2024), simple linear models with IPCW for 
+    independent censoring (Tian et al., 2014), efficient multiplicative models 
+    for high-dimensional stratification (Wang et al., 2019), and models for 
+    handling dependent censoring or competing risks (Wang & Schaubel, 2018).
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
-Imports:
+Imports: 
     survival,
-    dplyr,
-    geepack
+    mgcv,
+    ggplot2,
+    stats,
+    tidyr,
+    dplyr
 Suggests:
+    knitr,
+    rmarkdown,
+    here,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+VignetteBuilder: knitr,
+                 rmarkdown

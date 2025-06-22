@@ -1,0 +1,389 @@
+---
+title: "RMSTdesign"
+output: rmarkdown::html_vignette
+author: Arnab Aich
+vignette: >
+  %\VignetteIndexEntry{RMSTdesign}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+bibliography: references.bib
+biblio-style: apalike
+link-citations: yes
+---
+```{r setup, include=FALSE}
+# This setup chunk configures the vignette's appearance and loads necessary packages.
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.align = 'center',
+  fig.width = 8,
+  fig.height = 5
+)
+
+# Load all necessary libraries for the vignette
+library(survival)
+library(dplyr)
+library(tidyr)
+library(knitr)
+library(ggplot2)
+library(mgcv)
+
+source(here::here("R/RMSTdesign.R"))
+```
+
+# 1. Introduction
+
+The Restricted Mean Survival Time (RMST) is an increasingly prominent endpoint in modern clinical trials, offering a robust and clinically intuitive alternative to traditional time-to-event metrics. Unlike the hazard ratio derived from a Cox model, the RMST is not dependent on the proportional hazards (PH) assumption, which often does not hold in real-world clinical data. The RMST, defined as the area under the survival curve up to a pre-specified time point $\tau$, has a direct interpretation as the average event-free time within that window. The difference in RMST between study arms thus represents the average time gained or lost due to an intervention, a measure that is highly valued by clinicians and patients.
+
+However, designing a trial with an RMST-based endpoint presents unique challenges. Power and sample size calculations must be able to accommodate the specific statistical models used for RMST analysis, which can include complex adjustments for covariates, non-linear effects, stratification, and competing risks.
+
+The `RMSTdesign` package is a comprehensive solution for this critical design phase. Its core strengths are:
+
+* **Flexibility:** It moves beyond simple two-group comparisons to support a variety of advanced regression models tailored to RMST analysis.
+
+* **Simulation-Based Power:** By using a bootstrap methodology on pilot data, the package provides empirical estimates of power that inherently respect the complex correlation structures and data distributions observed in a relevant patient population. This is often more realistic than relying on purely parametric assumptions.
+
+* **Ease of Use:** It automates the complex simulation procedures, including the implementation of parallel computing via the `future` and `future.apply` packages to dramatically reduce runtime for intensive calculations.
+
+This vignette provides a detailed walkthrough of the package's functionalities, grounded in the statistical theory behind each method and demonstrated with real-world data applications.
+
+***A Note on Simulations:*** *For the examples in this guide, we use a low number of simulations (`n_sim`) to ensure the code runs quickly. For rigorous study planning, a much larger number, such as `n_sim = 1000` or higher, is essential for stable and reliable estimates.*
+
+
+# 2. Direct Linear Model with IPCW
+
+## 2.1. Theoretical Background
+
+This approach, based on the work of @tian2014, models the RMST directly as a linear function of the treatment assignment and other covariates. It is particularly useful when a direct and easily interpretable measure of the covariate-adjusted RMST difference is desired.
+
+#### Mathematical Model
+The model assumes a direct linear relationship for the RMST of the $i$-th subject:
+$$\text{RMST}_i = \beta_0 + \beta_1 \cdot \text{Treatment}_i + \mathbf{X}_i^T\boldsymbol{\beta} + \epsilon_i$$
+where $\text{Treatment}_i$ is an indicator for the treatment arm (1 for treatment, 0 for control), $\mathbf{X}_i$ is a vector of baseline covariates, and $\beta_1$ is the primary parameter of interest, representing the average difference in RMST between the two arms after adjusting for covariates.
+
+#### Estimation Procedure
+This method addresses right-censoring using **Inverse Probability of Censoring Weights (IPCW)**. The procedure involves two main stages:
+
+1.  **Censoring Model:** The probability of a subject remaining uncensored over time, $\hat{G}(t)$, is estimated non-parametrically using the Kaplan-Meier estimator on the censoring events.
+
+2.  **Weighted Regression:** A standard weighted least squares regression is fitted. Each observed event at time $T_i$ is weighted by the inverse of its probability of being observed ($w_i = 1/\hat{G}(T_i)$).
+
+#### Package Implementation
+The `design_rmst_linear_ipcw()` function implements this by fitting a `survival::survfit` model to compute the weights and then using `stats::lm` to fit the final weighted model.
+
+#### Power and Sample Size Calculation
+Power is estimated empirically through bootstrap simulation:
+
+1.  A new dataset of size $N$ is sampled with replacement from the pilot data.
+
+2.  The full IPCW estimation procedure is applied.
+
+3.  The p-value for the treatment coefficient ($\beta_1$) is extracted.
+
+4.  Steps 1-3 are repeated `n_sim` times. Power is the proportion of simulations where p-value < `alpha`.
+
+## 2.2. Data Preparation for `lung` Dataset
+
+We will demonstrate this function with the `lung` dataset from the `survival` package. We first prepare the data by recoding the `status` and `sex` columns (used here as the treatment arm) to the required 0/1 format.
+
+```{r lung_data_prep, include=TRUE}
+lung_pilot <- lung %>%
+  dplyr::mutate(
+    # Recode status: 2 (dead) becomes 1 (event), 1 (censored) becomes 0.
+    status = ifelse(status == 2, 1, 0),
+    # Recode sex to be the 0/1 arm variable.
+    sex = ifelse(sex == 2, 1, 0)
+  ) %>%
+  tidyr::drop_na(time, status, sex, age, ph.ecog, inst, ph.karno, pat.karno, meal.cal, wt.loss)
+
+
+# Set a clinically relevant truncation time of 2 years (approx. 730 days)
+lung_tau <-quantile(lung$time,0.75)
+```
+
+## 2.3. Application: `design_rmst_linear_ipcw()`
+
+### 2.3.1. Example 1: Power Calculation with Covariates
+
+```{r linear_power, include=TRUE}
+# Note: Low n_sim for speed. Increase for real analysis.
+system.time(
+  results_power_linear <- design_rmst_linear_ipcw(
+    pilot_data = lung_pilot,
+    time_var = "time",
+    status_var = "status",
+    arm_var = "sex",
+    sample_sizes = c(100, 150, 200),
+    tau = lung_tau,
+    n_sim = 500
+  )
+)
+results_power_linear
+```
+
+### 2.3.2. Example 2: Sample Size Calculation (Unadjusted)
+
+```{r linear_n_parallel, include=TRUE}
+# Set parallel.cores > 1 to enable parallel processing for more intensive searches.
+# system.time(
+#   results_n_linear <- design_rmst_linear_ipcw(
+#     pilot_data = lung_pilot,
+#     time_var = "time",
+#     status_var = "status",
+#     arm_var = "sex",
+#     target_powers = c(0.20, 0.30),
+#     linear_terms = NULL,
+#     tau = lung_tau,
+#     n_sim = 200,
+#     parallel.cores = 10
+#   )
+# )
+# results_n_linear
+```
+
+# 3. Additive Model with Pseudo-Observations
+
+## 3.1. Theoretical Background
+
+When covariate effects on RMST are suspected to be non-linear, a standard linear model can be misspecified and lead to biased estimates. The additive modeling approach, adapted from methods like those in @zhang2024, provides a flexible semi-parametric alternative using **Generalized Additive Models (GAMs)**.
+
+#### Mathematical Model
+Instead of assuming a strict linear form, a GAM allows for non-parametric smooth functions for some or all continuous covariates:
+$$\text{E}[\text{RMST}_i] = \beta_0 + \beta_1 \cdot \text{Treatment}_i + s_1(X_{i1}) + s_2(X_{i2}) + \dots + \mathbf{Z}_i^T\boldsymbol{\gamma}$$
+Here, $s_k(\cdot)$ represents a smooth, data-driven function (typically a spline) for a continuous covariate $X_k$, while $\mathbf{Z}_i$ represents covariates assumed to have a linear effect.
+
+#### Estimation Procedure
+This method relies on **jackknife pseudo-observations**.
+
+1.  **Pseudo-observations:** The RMST is first calculated for the full sample. Then, it is repeatedly re-calculated for samples where each subject, one at a time, has been removed. The pseudo-observation for each subject is derived from these leave-one-out estimates, serving as a suitable response variable.
+
+2.  **GAM Fitting:** A GAM is fitted to these pseudo-observations as the outcome.
+
+#### Package Implementation
+The `design_rmst_additive_gam()` function automates this process by containing an internal helper function to calculate pseudo-observations and then fitting the model using `mgcv::gam`.
+
+#### Power and Sample Size Calculation
+The power and sample size estimation follows the same bootstrap paradigm: a loop is run `n_sim` times where each iteration involves (1) resampling the pilot data, (2) calculating pseudo-observations, (3) fitting the GAM model, and (4) checking the p-value of the treatment term for significance.
+
+## 3.2. Data Preparation for `pbc` Dataset
+
+For this and subsequent examples, we use the `pbc` dataset. We prepare the data by recoding the `status` and `trt` columns. For this model, we treat the competing risk of liver transplant (`status = 1`) as censoring.
+
+```{r pbc_data_prep_simple, include=TRUE}
+pbc_pilot_simple <- pbc %>%
+  dplyr::mutate(
+    # Recode status: 2 (death) becomes 1, others (0=censored, 1=transplant) become 0.
+    status = ifelse(status == 2, 1, 0),
+    # Recode trt: 1 (D-penicillamine) becomes 1, 2 (placebo) becomes 0.
+    trt = ifelse(trt == 1, 1, 0)
+  ) %>%
+  tidyr::drop_na(time, status, trt, age, bili, edema)
+
+# Set a truncation time of 10 years (3652.5 days)
+pbc_tau <- 3652.5
+```
+
+## 3.3. Application: `design_rmst_additive_gam()`
+
+### 3.3.1. Example 1: Power Calculation with Smooth & Linear Terms
+
+We model the effect of `bili` non-linearly while adjusting for `age` linearly.
+
+```{r gam_power, include=FALSE}
+system.time(
+  results_power_gam <- design_rmst_additive_gam(
+    pilot_data = pbc_pilot_simple,
+    time_var = "time",
+    status_var = "status",
+    arm_var = "trt",
+    sample_sizes = c(150, 200, 250),
+    linear_terms = c("age"),
+    smooth_terms = c("bili"),
+    tau = pbc_tau,
+    n_sim = 50
+  )
+)
+results_power_gam
+```
+
+### 3.3.2. Example 2: Sample Size Calculation with Smooth & Linear Terms
+```{r gam_n, include=FALSE}
+system.time(
+  results_n_gam <- design_rmst_additive_gam(
+    pilot_data = pbc_pilot_simple,
+    time_var = "time",
+    status_var = "status",
+    arm_var = "trt",
+    target_powers = c(0.5, 0.6, 0.7),
+    linear_terms = c("age"),
+    smooth_terms = c("bili"),
+    tau = pbc_tau,
+    n_sim = 50
+  )
+)
+results_n_gam
+```
+
+
+# 4. Multiplicative Model for Stratified Trials
+
+## 4.1. Theoretical Background
+
+The multiplicative model, as described by @wang2019, is designed for stratified trials (e.g., multi-center trials). It models the **logarithm of the RMST**, implying a multiplicative effect on the original RMST scale.
+
+#### Mathematical Model
+The model uses pseudo-observations on a log scale:
+$$\log(\text{pseudo-obs}_{ij}) = \alpha_i + \beta_i \cdot \text{Treatment}_j + \mathbf{X}_{ij}^T\boldsymbol{\gamma} + \epsilon_{ij}$$
+where $i$ denotes the stratum. The model includes a stratum-specific intercept ($\alpha_i$) and treatment effect ($\beta_i$). The exponentiated coefficient, $\exp(\beta_i)$, is interpreted as the **RMST Ratio**.
+
+#### Estimation Procedure
+
+1.  **Pseudo-observations:** Jackknife pseudo-observations for RMST are calculated for each stratum.
+
+2.  **Log Transformation:** The logarithm of these pseudo-observations is taken.
+
+3.  **Linear Model Fitting:** A standard linear model (`stats::lm`) is fitted with `log(pseudo-observation)` as the response.
+
+#### Package Implementation
+The `design_rmst_multiplicative_stratified()` function implements this by calculating pseudo-observations within each stratum, log-transforming them, and fitting an `lm` with an interaction term (e.g., `strata_var:arm_var`).
+
+#### Power and Sample Size Calculation
+Power is estimated via bootstrap simulation. In each iteration, the model is fitted and the p-value for the interaction term(s) is checked. Power is the proportion of simulations where a significant treatment effect is detected.
+
+## 4.2. Application: `design_rmst_multiplicative_stratified()`
+
+We use the same `pbc_pilot_simple` data prepared in the previous section and stratify by the `edema` variable.
+
+### 4.2.1. Example 1: Sample Size Calculation
+
+We calculate the required sample size per stratum to achieve various levels of power.
+
+```{r stratified_n, include=TRUE}
+# A higher n_sim is recommended here to get stable power estimates.
+system.time(
+  results_n_strat <- design_rmst_multiplicative_stratified(
+    pilot_data = pbc_pilot_simple,
+    time_var = "time",
+    status_var = "status",
+    arm_var = "trt",
+    strata_var = "edema",
+    target_powers = c(0.2, 0.3, 0.5),
+    linear_terms = c("age"),
+    tau = pbc_tau,
+    n_sim = 200,
+    parallel.cores = 1
+  )
+)
+results_n_strat
+```
+
+### 4.2.2. Example 2: Power Calculation
+```{r stratified_power, include=TRUE}
+system.time(
+  results_power_strat <- design_rmst_multiplicative_stratified(
+    pilot_data = pbc_pilot_simple,
+    time_var = "time",
+    status_var = "status",
+    arm_var = "trt",
+    strata_var = "edema",
+    sample_sizes = c(100, 150, 200),
+    linear_terms = c("age"),
+    tau = pbc_tau,
+    n_sim = 50
+  )
+)
+results_power_strat
+```
+
+
+# 5. Model for Dependent Censoring (Competing Risks)
+
+## 5.1. Theoretical Background
+
+Standard survival analysis assumes that censoring is "independent." This is violated in the presence of **competing risks**, where an event (e.g., transplant) prevents the primary event (e.g., death) from occurring. The method by @wang2018 provides an unbiased approach for analyzing RMST in this setting.
+
+#### Estimation Procedure
+The key innovation is a **double-weighting scheme**:
+
+1.  **Administrative Censoring:** A model (e.g., Cox) is fitted for standard censoring (e.g., loss to follow-up).
+
+2.  **Competing Event Process:** A second, separate model is fitted for the competing event itself.
+
+The final weight applied to each observation is the product of the inverse probabilities from both models, yielding an unbiased estimate of the treatment effect on the primary endpoint.
+
+#### Package Implementation
+The `design_rmst_dependent_censoring()` function automates this by fitting two `survival::coxph` models to derive the weights, then fitting a final weighted `stats::lm`.
+
+#### Power and Sample Size Calculation
+The power calculation follows the bootstrap paradigm, performing the full double-weighting procedure in each of `n_sim` iterations.
+
+## 5.2. Data Preparation for Competing Risks
+
+This function uniquely requires a separate indicator for the competing event. We create a dedicated `pbc_pilot_comp_risk` dataset.
+
+```{r pbc_data_prep_comp_risk, include=TRUE}
+pbc_pilot_comp_risk <- pbc %>%
+  dplyr::mutate(
+    # Create the 'transplant' indicator for the competing event (status = 1)
+    transplant = ifelse(status == 1, 1, 0),
+    # Recode 'status' to represent only the primary event (death, status = 2)
+    status = ifelse(status == 2, 1, 0),
+    # Recode 'trt' to the required 0/1 format
+    trt = ifelse(trt == 1, 1, 0)
+  ) %>%
+  tidyr::drop_na(time, status, trt, transplant, age, bili)
+```
+
+## 5.3. Application: `design_rmst_dependent_censoring()`
+
+### 5.3.1. Example 1: Power Calculation
+
+We calculate power, correctly accounting for liver transplant as a competing risk for death.
+
+```{r comp_risk_power, include=TRUE}
+system.time(
+  results_power_cr <- design_rmst_dependent_censoring(
+    pilot_data = pbc_pilot_comp_risk,
+    time_var = "time",
+    status_var = "status",
+    arm_var = "trt",
+    dep_cens_status_var = "transplant",
+    linear_terms = c("age", "bili"),
+    sample_sizes = c(200, 250, 300),
+    tau = pbc_tau,
+    n_sim = 50
+  )
+)
+results_power_cr
+```
+
+### 5.3.2. Example 2: Sample Size Calculation
+```{r comp_risk_n, include=TRUE}
+system.time(
+  results_sample_cr <- design_rmst_dependent_censoring(
+    pilot_data = pbc_pilot_comp_risk,
+    time_var = "time",
+    status_var = "status",
+    arm_var = "trt",
+    dep_cens_status_var = "transplant",
+    linear_terms = c("age", "bili"),
+    target_powers = c(0.5,0.6,0.80),
+    tau = pbc_tau,
+    n_sim = 50
+  )
+)
+results_power_cr
+
+```
+
+# 6. Conclusion
+
+The `RMSTdesign` package offers a powerful and flexible suite of tools for designing modern clinical trials that use the RMST as a primary endpoint. By providing simulation-based methods for power and sample size analysis, it moves beyond simple two-group comparisons to handle complex, realistic scenarios involving covariate adjustment, non-linear effects, trial stratification, and competing risks.
+
+The ability to leverage pilot data and accelerate computations with parallel processing makes `RMSTdesign` a practical tool for statisticians and clinical trialists. By enabling more accurate and nuanced study planning, this package aims to contribute to the design of more efficient and robust clinical trials.
+
+# 7. References
+```{r, echo=FALSE, results='asis',eval=TRUE}
+ knitr::knit_print(bibtex::read.bib("references.bib"))
+```
