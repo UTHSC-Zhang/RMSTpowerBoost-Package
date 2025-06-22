@@ -145,7 +145,7 @@ rmst_sample_size <- function(data, tau, effect_size, alpha = 0.05, power = 0.8, 
 #' @param sigma Estimated common standard deviation of RMST.
 #' @param n_total Total sample size (evenly split between groups).
 #' @param alpha Type I error rate (default is 0.05).
-#'
+#' @importFrom stats rnorm pnorm qnorm
 #' @return Power of the test (probability of rejecting null if true difference is `delta`)
 #' @examples
 #' RMSt.power(delta = 1.2, sigma = 2, n_total = 100, alpha = 0.05)

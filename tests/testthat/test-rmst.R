@@ -1,19 +1,4 @@
-# This file is part of the standard setup for testthat.
-# It is recommended that you do not modify it.
-#
-# Where should you do additional test configuration?
-# Learn more about the roles of various files in:
-# * https://r-pkgs.org/testing-design.html#sec-tests-files-overview
-# * https://testthat.r-lib.org/articles/special-files.html
 
-# No source() command is needed when running tests in a package context.
-# The `devtools::test()` or RStudio's "Test" button will handle loading
-# all functions from your R/ directory automatically.
-
-library(testthat)
-library(survival)
-source(here::here("R", "rmst.R"))
-# ... (the rest of your test code remains the same)
 
 # Helper function to check if a value is between 0 and 1
 expect_between <- function(object, lower, upper) {

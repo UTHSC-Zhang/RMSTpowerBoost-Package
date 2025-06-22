@@ -1,144 +1,262 @@
 ---
-title: "RMST-Based Sample Size Estimation"
+title: "RMSTSS Package Vignette"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{RMST-Based Sample Size Estimation}
+  %\VignetteIndexEntry{RMSTSS Package Vignette}
+  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
-  %\VignetteEngine{rmarkdown::html_vignette}
-editor_options: 
-  chunk_output_type: console
 ---
+
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
-library(survRM2)
+knitr::opts_chunk$set(echo = TRUE,comment = NA, warning = FALSE)
+library(RMSTSS)
 library(survival)
-library(ggplot2)
-# Load your package
-# devtools::load_all(".")
+# --- Source the functions ---
+source(here::here("R", "rmst.R"))
+source(here::here("R", "rmst-dp.R"))
 ```
 
-## Introduction
+# Abstract
 
-This vignette demonstrates how to use the `RMSTSampleSize` package for sample size estimation using the **Restricted Mean Survival Time (RMST)**. RMST offers an interpretable and robust alternative to hazard-based endpoints in survival analysis.
+This vignette introduces a suite of R functions for performing power and sample size analysis in time-to-event studies. It covers two primary analytical frameworks: Restricted Mean Survival Time (RMST) and Dynamic Prediction (DP). For RMST, we provide tools to estimate the measure, calculate power for a two-sample comparison, and determine the required sample size, including extensions for stratified analysis. For Dynamic Prediction, we present a sophisticated modeling framework that uses inverse probability weighting to estimate treatment effects on survival outcomes updated over time. The vignette details the underlying statistical theory for both methods, including the use of Kaplan-Meier estimators for RMST and sandwich variance estimators for DP models. We provide comprehensive, reproducible examples demonstrating the usage of each function, guiding the user from basic estimation to complex, simulation-based power calculations.
 
-## Simulated Data Example
+# 1. Introduction
 
-```{r sim-data}
+In clinical trials and observational studies, the analysis of time-to-event data is a primary focus. While the Cox proportional hazards model and its associated hazard ratio (HR) have long been the standard, their interpretation can be challenging, particularly when the proportional hazards assumption is violated. This has led to the increased adoption of alternative metrics that offer more clinically intuitive interpretations.
+
+One such metric is the **Restricted Mean Survival Time (RMST)**, which measures the average event-free time up to a specified follow-up period. The difference in RMST between two groups represents the "time gained" or "time lost," providing a clear and direct interpretation of the treatment effect.
+
+Furthermore, clinical practice often requires predictions that evolve as a patient's status is updated over time. **Dynamic Prediction (DP)** models address this need by making updated prognostic assessments at various "landmark" times during follow-up, incorporating time-dependent covariates.
+
+This package provides a unified set of tools to facilitate the design and analysis of studies using these modern survival analysis techniques. It is organized into two parts:
+
+* **Part 1** focuses on the calculation of RMST and the associated power and sample size formulas for study design.
+* **Part 2** introduces a flexible framework for Dynamic Prediction, providing functions to fit complex models and to estimate power and sample size through computationally intensive Monte Carlo simulations.
+
+This vignette will first detail the theoretical underpinnings of each method before demonstrating the practical application of the functions with worked examples.
+
+# 2. Required Packages
+
+Before using these functions, ensure you have the necessary packages installed and loaded. The core functions rely heavily on `survival` for model fitting and `dplyr` for data manipulation.
+
+# 3. Part 1: Restricted Mean Survival Time (RMST) Analysis
+
+## 3.1. Theoretical Background
+
+The Restricted Mean Survival Time (RMST) up to a pre-specified time $\tau$ is defined as the expected survival time within the interval $[0, \tau]$. Mathematically, if $T$ is the survival time and $S(t) = P(T > t)$ is the survival function, the RMST is:
+
+$$
+\text{RMST}(\tau) = E[\min(T, \tau)] = \int_{0}^{\tau} S(t) dt
+$$
+
+This quantity represents the area under the survival curve from time 0 to $\tau$.
+
+**Estimation:**
+In practice, $S(t)$ is unknown and is estimated from the data using the Kaplan-Meier estimator, $\hat{S}(t)$. The RMST is then estimated by calculating the area under the Kaplan-Meier curve, which is a step function. This is typically done by summing the areas of the rectangles formed by the curve:
+
+$$
+\widehat{\text{RMST}}(\tau) = \int_{0}^{\tau} \hat{S}(t) dt = \sum_{j=1}^{m} \hat{S}(t_{j-1})(t_j - t_{j-1})
+$$
+
+where $t_j$ are the ordered event times, $t_0=0$, and $m$ is the number of event times before or at $\tau$.
+
+**Power and Sample Size:**
+For a two-group comparison, the effect size is the difference in RMST, $\Delta = \text{RMST}_1(\tau) - \text{RMST}_0(\tau)$. Under the central limit theorem, the estimated difference, $\hat{\Delta}$, is approximately normally distributed. The power and sample size formulas are based on this normal approximation, using the standard test statistic for a two-sample z-test:
+
+$$
+Z = \frac{\hat{\Delta}}{\text{se}(\hat{\Delta})}
+$$
+
+where $\text{se}(\hat{\Delta})$ is the standard error of the estimated difference.
+
+## 3.2. Function Usage and Examples
+
+### `estimate_rmst()`
+
+**Example:** Calculate RMST up to $\tau = 10$ for a dataset with one event at time 5 and one subject censored at time 8.
+
+```{r}
+time_vec <- c(5, 8)
+status_vec <- c(1, 0)
+tau_val <- 10
+
+rmst_estimate <- estimate_rmst(time = time_vec, status = status_vec, tau = tau_val)
+print(paste("Estimated RMST:", rmst_estimate))
+```
+
+### `RMSt.power()` and `RMSt.sample.size()`
+
+**Example 1: Power Calculation**
+What is the power to detect an RMST difference of 1.2 years, with a common standard deviation of 2 and a total sample size of 100?
+
+```{r}
+power_val <- RMSt.power(delta = 1.2, sigma = 2, n_total = 100)
+print(paste("Power to detect RMST difference of 1.2:", round(power_val, 3)))
+```
+
+**Example 2: Sample Size Calculation**
+What sample size per group is needed for 80% power if the variance of the RMST difference is 0.25 and the expected difference is 0.5?
+
+```{r}
+n_per_group <- RMSt.sample.size(delta = 0.5, sigma2 = 0.25, power = 0.8)
+print(paste("Required sample size per group:", n_per_group))
+```
+
+### Stratified Analysis (`simulate_stratified_survival` and `rmst_sample_size`)
+
+**Example:** Simulate pilot data for a two-stratum study, then calculate the required sample size to detect an RMST difference of 0.5.
+
+```{r}
+# 1. Simulate stratified data
 set.seed(123)
-n <- 200
-lambda <- 0.1
-T_true <- rexp(n, rate = lambda)
-C <- runif(n, min = 0, max = 20)
-time <- pmin(T_true, C)
-status <- as.numeric(T_true <= C)
-group <- sample(c(0, 1), n, replace = TRUE)
+stratified_data <- simulate_stratified_survival(
+  n_per_stratum = c(50, 50),
+  hazard_rates = c(0.1, 0.2),
+  censoring_rate = 15,
+  strata_names = c("Low-Risk", "High-Risk")
+)
 
-df <- data.frame(time = time, status = status, group = group)
-
-fit <- survfit(Surv(time, status) ~ group, data = df)
-plot(fit, col = c("blue", "red"), lty = 1:2,
-     main = "Kaplan-Meier Curve by Group",
-     xlab = "Time", ylab = "Survival Probability")
-legend("topright", legend = c("Group 0", "Group 1"), col = c("blue", "red"), lty = 1:2)
+# 2. Calculate required sample size based on this pilot data
+required_n <- rmst_sample_size(
+  data = stratified_data,
+  tau = 10,
+  effect_size = 0.5,
+  power = 0.8
+)
+print("Required sample size per stratum:")
+print(required_n)
 ```
 
-## Estimating RMST Difference
+# 4. Part 2: Dynamic Prediction (DP) Modeling
 
-```{r rmst-diff}
-tau <- 15  # Truncation time
-rmst_result <- rmst2(time, status, arm = group, tau = tau)
-rmst_result$unadjusted.result
+## 4.1. Theoretical Background
+
+Dynamic prediction aims to provide updated survival predictions at a series of pre-specified landmark times, $s_1, s_2, \dots, s_K$. For a subject $i$ who is event-free at landmark time $s_k$, we want to predict their subsequent survival.
+
+**Outcome Variable:**
+The outcome of interest is the subject's **conditional RMST**. For a subject alive at $s_k$, the outcome is their remaining survival time, restricted to a window of length $L$. Let $T_i$ be the failure time for subject $i$. The outcome is $Y_{ik} = \min(T_i - s_k, L)$.
+
+**Inverse Probability Weighting (IPW):**
+A major challenge in dynamic prediction is that the population at risk changes at each landmark time. Subjects who have an event or are censored before $s_k$ are excluded. This creates a form of induced dependent censoring. To correct for the bias introduced by this, we use **Inverse Probability Weighting (IPW)**. The weight for each subject $i$ at landmark $s_k$ is the inverse of their probability of remaining in the study and uncensored up to that point. The total weight $W_{ik}$ is the product of a censoring weight ($W_{C,ik}$) and a treatment weight ($W_{T,ik}$):
+
+$$
+W_{ik} = W_{C,ik} \times W_{T,ik}
+$$
+
+* **Censoring Weight ($W_{C,ik}$):** This weight accounts for censoring due to loss to follow-up. It is estimated from a Cox model for censoring.
+* **Treatment Weight ($W_{T,ik}$):** This weight accounts for censoring due to receiving treatment, which may alter the natural course of the disease. It is estimated from a Cox model for treatment assignment. The weights can be **stabilized** by multiplying by the marginal probability of remaining uncensored, which often improves the stability of the estimates.
+
+**Modeling Approaches:**
+The `dp()` function implements two approaches to model the conditional RMST, $Y_{ik}$, as a function of covariates $Z_a$ (e.g., treatment group) and $Z_b$ (e.g., a biomarker).
+
+1.  **Link-Based Method:** This approach uses a Generalized Linear Model (GLM) for the stacked dataset (all subjects across all landmarks). The model form is:
+
+$$
+g(E[Y_{ik} | Z_a, Z_b]) = \beta_0 + \beta_1 Z_{a} + \beta_2 Z_{b} \cdot \text{factor}(s_k) + \text{factor}(s_k)
+$$
+
+    where $g(\cdot)$ is a link function (e.g., identity for `link="linear"` or log for `link="log"`). The model is fit using the calculated inverse probability weights.
+
+2.  **Stratified Method:** This approach fits a model separately within each landmark stratum $s_k$.
+    * **Additive (`"add"`):** A linear model is fit on the outcome $Y_{ik}$ against centered covariates, $Z_{ik} - \bar{Z}_k$.
+    * **Multiplicative (`"multi"`):** A Cox-like model is fit with the outcome in an offset term, effectively modeling the ratio of RMSTs.
+
+**Variance Estimation:**
+Because each subject can contribute multiple data points to the stacked dataset (one for each landmark they survive), these observations are correlated. Standard error estimates that assume independence would be incorrect. To address this, we use a robust **sandwich variance estimator**, which accounts for this intra-subject correlation to produce valid standard errors.
+
+## 4.2. Function Usage and Examples
+
+### `dp()`
+
+**Example 1: Simulate Data for DP**
+First, we generate a dataset with `K=3` cross-sections.
+
+```{r}
+set.seed(123)
+L_val <- 15
+K_val <- 3
+interval_val <- L_val / K_val
+
+# Simulate the data
+sim_data <- simulate_dp_data(
+  n_per_group = 100,
+  L = L_val,
+  K = K_val,
+  interval = interval_val,
+  group_effect_Za = log(0.8) # Group 1 has 20% lower hazard
+)
+
+df_dat <- sim_data$dat
+df_datA <- sim_data$datA
 ```
 
-## Sample Size Calculation (Simulated Example)
+**Example 2: Run DP with the "link" method**
 
-```{r sample-size-sim}
-alpha <- 0.05
-z_alpha <- qnorm(1 - alpha / 2)
+```{r, warning=FALSE}
+# # Run with a linear link
+dp_result_link <- dp(
+  dat = df_dat, datA = df_datA, L = L_val, K = K_val,
+  interval = interval_val, method = "link", link = "linear",
+  weights = "stabilized"
+)
 
-rmst_diff <- rmst_result$unadjusted.result[1, "Est."]
-
-# Calculate StdErr from the 95% CI
-lower <- rmst_result$unadjusted.result[1, "lower .95"]
-upper <- rmst_result$unadjusted.result[1, "upper .95"]
-
-rmst_se <- (upper - lower) / (2 * z_alpha)
-
-desired_power <- 0.8
-z_beta <- qnorm(desired_power)
-
-n_required <- 2 * (z_alpha + z_beta)^2 * (rmst_se^2) / (rmst_diff^2)
-ceiling(n_required)
-
+print("DP Result (Link-Linear):")
+t(data.frame(dp_result_link))
 ```
 
----
+**Example 3: Run DP with the "stratified" method**
 
-## Real-Life Example: Veteran Dataset
-
-```{r real-data}
-data(veteran, package = "survival")
-veteran$group <- ifelse(veteran$trt == 1, 1, 0)
-
-fit2 <- survfit(Surv(time, status) ~ group, data = veteran)
-plot(fit2, col = c("blue", "darkgreen"), lty = 1:2,
-     main = "Kaplan-Meier Curve (Veteran Data)",
-     xlab = "Time", ylab = "Survival Probability")
-legend("topright", legend = c("Standard", "Test"), col = c("blue", "darkgreen"), lty = 1:2)
+```{r, warning=FALSE}
+# # Run with an additive model
+# dp_result_strat <- dp(
+#   dat = df_dat, datA = df_datA, L = L_val, K = K_val,
+#   interval = interval_val, method = "stratified", stratified = "add",
+#   weights = "unstabilized"
+# )
+# 
+# print("DP Result (Stratified-Additive):")
+# print(dp_result_strat$betahat)
 ```
 
-```{r rmst-real}
-rmst_vet <- rmst2(veteran$time, veteran$status, veteran$group, tau = 100)
-rmst_vet$unadjusted.result
+### Power and Sample Size for DP
+
+The following examples are commented out because they are computationally intensive. For a real analysis, you would uncomment them and likely increase the number of simulations.
+
+**Example 1: Power Calculation**
+Calculate the power to detect a hazard reduction of 30% with 75 subjects per group.
+
+```{r, eval=FALSE, message=FALSE, warning=FALSE}
+# set.seed(456)
+# power_result_dp <- calculate_dp_power(
+#   n_per_group = 75,
+#   L = 10, K = 2, interval = 5,
+#   base_rate_survival = 0.1, group_effect_Za = log(0.7),
+#   Zb_effect = 0.1, censoring_rate = 0.03, treatment_rate = 0.04,
+#   dp_method = "link", dp_link = "linear",
+#   alpha = 0.05, n_sim = 20
+# )
+# print(paste("Estimated Power:", round(power_result_dp, 3)))
 ```
 
----
+**Example 2: Sample Size Calculation**
+Estimate the sample size needed to achieve 80% power.
 
-## Using the Sample Size Function from the Package
-
-```{r sample-size-fn}
-sample_size_rmst <- function(effect_size, sd, alpha = 0.05, power = 0.8) {
-  z_alpha <- qnorm(1 - alpha / 2)
-  z_beta <- qnorm(power)
-  n <- 2 * (z_alpha + z_beta)^2 * sd^2 / effect_size^2
-  ceiling(n)
-}
-
-# Example usage
-sample_size_rmst(effect_size = 2, sd = 3)
+```{r, eval=FALSE, message=FALSE, warning=FALSE}
+# set.seed(789)
+# # NOTE: n_sim_per_iter and max_iter should be higher for a real analysis.
+sample_size_dp <- calculate_dp_sample_size(
+  target_power = 0.8,
+  L = 10, K = 2, interval = 5,
+  base_rate_survival = 0.1, group_effect_Za = log(0.7),
+  Zb_effect = 0.1, censoring_rate = 0.03, treatment_rate = 0.04,
+  dp_method = "link", dp_link = "linear",
+  alpha = 0.05, n_sim_per_iter = 20,
+  max_iter = 5
+)
+print(paste("Estimated Sample Size per Group:", sample_size_dp))
 ```
 
----
+# 5. Conclusion
 
-## Pooled Variance Function
-
-```{r pooled-var}
-pooled_variance <- function(var_vec, n_vec) {
-  if(length(var_vec) != length(n_vec)) stop("Length mismatch.")
-  num <- sum((n_vec - 1) * var_vec)
-  denom <- sum(n_vec) - length(n_vec)
-  num / denom
-}
-
-# Example
-pooled_variance(c(0.5, 0.6), c(80, 120))
-```
-
----
-
-## Summary
-
-This vignette demonstrates:
-
-- RMST estimation using `survRM2::rmst2()`
-- Sample size estimation based on RMST difference
-- Use of simulated and real-world datasets
-- Utility functions like `sample_size_rmst()` and `pooled_variance()`
-
----
-
-## References
-
-- Uno et al. (2014), *Moving beyond the hazard ratio in quantifying the between-group difference in survival analysis*.
-- survRM2 package documentation: https://cran.r-project.org/web/packages/survRM2/
+This package provides a powerful and flexible set of tools for modern survival analysis. By offering functions for both RMST-based and Dynamic Prediction-based study design and analysis, it equips researchers to move beyond traditional hazard ratio approaches. The RMST functions allow for direct, interpretable comparisons of average survival time, while the DP framework enables the development of prognostic models that adapt to evolving patient information. The inclusion of simulation-based power and sample size calculators for these complex models is a key feature, enabling researchers to design future studies with adequate statistical power. Future development may include extending the models to handle competing risks and incorporating a wider range of machine learning algorithms into the prediction framework.
