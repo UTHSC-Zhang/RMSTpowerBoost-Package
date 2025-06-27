@@ -1,37 +1,29 @@
-#' @title Analyze Power/Sample Size using a Simple Linear RMST Model
-#' @description Performs power or sample size analysis based on the direct
-#'   linear regression model for RMST (Tian et al., 2014). This method is
-#'   best suited for studies where censoring can be assumed to be independent
-#'   of covariates.
+#' @title Analyze Power for a Simple Linear RMST Model
+#' @description Performs a power analysis for given sample sizes based on the direct
+#'   linear regression model for RMST (Tian et al., 2014).
 #'
 #' @note `status_var` should be `1` for an event, `0` for censored. `arm_var`
 #'   should be `1` for treatment, `0` for control.
 #'
 #' @param pilot_data A data.frame with pilot study data.
 #' @param time_var,status_var,arm_var Strings for column names.
-#' @param sample_sizes Optional vector of sample sizes per arm.
-#' @param target_power Optional numetic value of target power.
+#' @param sample_sizes A numeric vector of sample sizes per arm to calculate power for.
 #' @param linear_terms Optional vector of covariates for the linear model. If NULL,
 #'   defaults to all other columns in `pilot_data`.
 #' @param tau The truncation time for RMST.
 #' @param n_sim Number of bootstrap simulations.
 #' @param alpha The significance level.
-#' @param parallel.cores Number of cores for parallel processing. Default is 1 (no parallel).
-#' @param patience Number of consecutive non-improving steps in the sample size
-#'   search before terminating that search. Default is 5.
-#' @param n_start Initial sample size to start searching for required sample size.
-#' @param n_step Incremental step size for sample size search.
-#' @param max_n Maximum sample size per arm to search for.
 #'
-#' @return A list containing `results_data`, `results_plot`, and `results_summary`.
+#' @return A list containing `results_data` (a data.frame of sample sizes and corresponding power),
+#'   `results_plot` (a ggplot object), and `results_summary` (a data.frame with the estimated
+#'   treatment effect statistics from the largest sample size simulation).
 #'
 #' @references Tian, L., et al. (2014). *Biostatistics*, 15(2), 222-233.
 #'
 #' @importFrom survival survfit Surv
-#' @importFrom stats lm as.formula complete.cases na.omit
+#' @importFrom stats lm as.formula complete.cases na.omit sd quantile proc.time
 #' @importFrom ggplot2 ggplot aes geom_line geom_point geom_hline labs theme_minimal ylim
-#' @importFrom future plan multisession
-#' @importFrom future.apply future_lapply
+#' @importFrom knitr kable
 #'
 #' @examples
 #' # Create a small pilot dataset for the example
@@ -43,41 +35,23 @@
 #' )
 #'
 #' # --- Power Calculation Example ---
-#' # Fast-running example for CRAN checks
-#' results_power <- design_rmst_linear_ipcw(
+#' results_power <- design_rmst_ipcw_power(
 #'   pilot_data = pilot_data_linear,
 #'   time_var = "event_time",
 #'   status_var = "event_status",
 #'   arm_var = "treatment_arm",
-#'   sample_sizes = c(50, 100),
+#'   sample_sizes = c(100, 150),
 #'   tau = 10,
 #'   n_sim = 10 # Low n_sim for example speed
 #' )
 #'
-#' \donttest{
-#' # --- Sample Size Calculation with Parallel Processing ---
-#' # This example is more intensive and demonstrates parallel computing.
-#' # It will not be run on CRAN.
-#' results_n <- design_rmst_linear_ipcw(
-#'   pilot_data = pilot_data_linear,
-#'   time_var = "event_time",
-#'   status_var = "event_status",
-#'   arm_var = "treatment_arm",
-#'   target_power = c(0.80),
-#'   tau = 10,
-#'   n_sim = 100,
-#'   parallel.cores = 2 # Use 2 cores
-#' )
-#' }
-#'
 #' @export
-design_rmst_linear_ipcw <- function(pilot_data, time_var, status_var, arm_var,
-                                    sample_sizes = NULL, target_power = NULL,
-                                    linear_terms = NULL, tau, n_sim = 1000, alpha = 0.05,
-                                    parallel.cores = 1, patience = 5,
-                                    n_start = 5, n_step = 25,max_n = 2000) {
-   start_time <- Sys.time()
-   if (is.null(sample_sizes) && is.null(target_power)) stop("Must provide 'sample_sizes' or 'target_power'.")
+design_rmst_ipcw_power <- function(pilot_data, time_var, status_var, arm_var,
+                                   sample_sizes,linear_terms = NULL, tau, n_sim = 1000, alpha = 0.05)
+{
+
+   start_time <- proc.time()
+   if (is.null(sample_sizes)) stop("You must provide a numeric vector for 'sample_sizes'.")
 
    # --- Prepare data ---
    core_vars <- c(time_var, status_var, arm_var)
@@ -93,227 +67,296 @@ design_rmst_linear_ipcw <- function(pilot_data, time_var, status_var, arm_var,
    model_rhs <- paste(c(arm_var, linear_terms), collapse = " + ")
    model_formula <- as.formula(paste("Y_rmst ~", model_rhs))
 
-   # --- Simulation function ---
-   run_power_sim <- function(n_per_arm) {
-      for (i in seq_len(n_sim)) {
-         # Bootstrap
-         boot_data <- do.call(rbind, lapply(pilot_groups, function(df) {
-            df[sample(seq_len(nrow(df)), size = n_per_arm, replace = TRUE), ]
-         }))
+   # --- Run simulation ---
+   cat("--- Calculating Power (Method: Linear RMST with IPCW) ---\n")
+   message("Model: Y_rmst ~ ", model_rhs)
+   results_summary <- NULL
 
-         # Make sure arm_var is a factor with levels 0 and 1
+   all_sim_outputs <- vector("list", length(sample_sizes))
+
+   for (i in seq_along(sample_sizes)) {
+      n_per_arm <- sample_sizes[i]
+      cat("Simulating for n =", n_per_arm, "per arm...\n")
+
+      p_values <- rep(NA_real_, n_sim)
+      estimates <- rep(NA_real_, n_sim)
+      std_errors <- rep(NA_real_, n_sim)
+
+      for (j in seq_len(n_sim)) {
+         boot_list <- lapply(pilot_groups, function(df) df[sample(seq_len(nrow(df)), size = n_per_arm, replace = TRUE), ])
+         boot_data <- do.call(rbind, boot_list)
          boot_data[[arm_var]] <- factor(boot_data[[arm_var]], levels = c(0, 1))
 
-         # IPCW weights
          is_censored <- boot_data[[status_var]] == 0
-         surv_obj <- survival::Surv(boot_data[[time_var]], is_censored)
-         cens_fit <- tryCatch(survival::survfit(surv_obj ~ 1), error = function(e) NULL)
+         cens_fit <- tryCatch(survival::survfit(Surv(boot_data[[time_var]], is_censored) ~ 1), error = function(e) NULL)
          if (is.null(cens_fit)) next
-
          surv_summary <- tryCatch(summary(cens_fit, times = pmin(boot_data[[time_var]], tau), extend = TRUE), error = function(e) NULL)
          if (is.null(surv_summary)) next
 
          weights <- 1 / surv_summary$surv
-         weights[!is.finite(weights) | weights > 1e4] <- NA
+         finite_weights <- weights[is.finite(weights)]
+         if (length(finite_weights) > 0) {
+            weight_cap <- stats::quantile(finite_weights, probs = 0.99, na.rm = TRUE)
+            weights[weights > weight_cap] <- weight_cap
+         }
+         weights[!is.finite(weights)] <- NA
+
          boot_data$Y_rmst <- pmin(boot_data[[time_var]], tau)
+         fit_data <- boot_data[boot_data[[status_var]] == 1 & is.finite(weights), ]
+         fit_weights <- weights[boot_data[[status_var]] == 1 & is.finite(weights)]
 
-         # Use only uncensored observations
-         fit_data <- boot_data[boot_data[[status_var]] == 1, ]
-         fit_weights <- weights[boot_data[[status_var]] == 1]
-
-         valid_idx <- is.finite(fit_weights)
-         fit_data <- fit_data[valid_idx, ]
-         fit_weights <- fit_weights[valid_idx]
-
-         # if (nrow(fit_data) < length(linear_terms) + 2) next
-
-         fit <- tryCatch(lm(model_formula, data = fit_data, weights = fit_weights), error = function(e) NULL)
-         if (is.null(fit)) next
-
-         sfit <- summary(fit)
-         term_names <- rownames(sfit$coefficients)
-
-         # Find test term robustly
-         test_term <- grep(paste0("^", arm_var), term_names, value = TRUE)[1]
-         if (is.na(test_term)) {
-            cat("Skipped sim", i, ": test_term not found in model coefficients\n")
-            next
+         if (nrow(fit_data) > (length(all.vars(model_formula)) - 1)) {
+            fit <- tryCatch(lm(model_formula, data = fit_data, weights = fit_weights), error = function(e) NULL)
+            if (!is.null(fit)) {
+               sfit <- summary(fit)
+               test_term <- grep(paste0("^", arm_var), rownames(sfit$coefficients), value = TRUE)[1]
+               if (!is.na(test_term)) {
+                  p_values[j] <- tryCatch(sfit$coefficients[test_term, "Pr(>|t|)"], error = function(e) NA)
+                  estimates[j] <- tryCatch(sfit$coefficients[test_term, "Estimate"], error = function(e) NA)
+                  std_errors[j] <- tryCatch(sfit$coefficients[test_term, "Std. Error"], error = function(e) NA)
+               }
+            }
          }
-
-         # Debug output
-         cat("Sim", i, ": Coefs =", paste(term_names, collapse = ", "), "\n")
-         cat("Using test term:", test_term, "\n")
-
-         p_val <- tryCatch(sfit$coefficients[test_term, "Pr(>|t|)"], error = function(e) NA)
-         estimate <- tryCatch(sfit$coefficients[test_term, "Estimate"], error = function(e) NA)
-         std_error <- tryCatch(sfit$coefficients[test_term, "Std. Error"], error = function(e) NA)
-
-         p_values[i] <- p_val
-         estimates[i] <- estimate
-         std_errors[i] <- std_error
       }
-
-      return(list(
-         power = mean(p_values < alpha, na.rm = TRUE),
-         estimates = estimates,
-         std_errors = std_errors
-      ))
+      all_sim_outputs[[i]] <- list(power = mean(p_values < alpha, na.rm = TRUE),
+                                   estimates = estimates,
+                                   std_errors = std_errors)
    }
 
-   # --- Run simulation ---
-   cat("--- Calculating Power/Sample Size (Method: Linear RMST with IPCW) ---\n")
-   message("Model: Y_rmst ~ ", model_rhs)
-   results_summary <- NULL
+   power_values <- sapply(all_sim_outputs, `[[`, "power")
+   results_df <- data.frame(N_per_Arm = sample_sizes, Power = power_values)
+   best <- which.max(sample_sizes)
+   est <- na.omit(all_sim_outputs[[best]]$estimates)
+   se  <- na.omit(all_sim_outputs[[best]]$std_errors)
 
-   if (!is.null(sample_sizes)) {
-      results_list <- vector("list", length(sample_sizes))
-
-      for (i in seq_along(sample_sizes)) {
-         n <- sample_sizes[i]
-         cat("Simulating for n =", n, "per arm...\n")
-         results_list[[i]] <- run_power_sim(n)
-      }
-
-      power_values <- sapply(results_list, function(x) x$power)
-      results_df <- data.frame(N_per_Arm = sample_sizes, Power = power_values)
-
-      # Summary from the largest n
-      best <- which.max(sample_sizes)
-      est <- na.omit(results_list[[best]]$estimates)
-      se  <- na.omit(results_list[[best]]$std_errors)
-
-      if (length(est) > 1) {
-         results_summary <- data.frame(
-            Statistic = c("Mean RMST Difference", "Mean Standard Error", "95% CI Lower", "95% CI Upper"),
-            Value = c(mean(est), mean(se), mean(est) - 1.96 * sd(est), mean(est) + 1.96 * sd(est))
-         )
-      }
-
-      p <- ggplot2::ggplot(results_df, ggplot2::aes(x = N_per_Arm, y = Power)) +
-         ggplot2::geom_line(color = "#D55E00", linewidth = 1) +
-         ggplot2::geom_point(color = "#D55E00", size = 3) +
-         ggplot2::labs(title = "Power Curve: Linear IPCW RMST Model",
-                       x = "Sample Size Per Arm", y = "Estimated Power") +
-         ggplot2::ylim(0, 1) + ggplot2::theme_minimal()
-
+   if (length(est) > 1) {
+      results_summary <- data.frame(
+         Statistic = c("Mean RMST Difference", "Mean Standard Error", "95% CI Lower", "95% CI Upper"),
+         Value = c(mean(est), mean(se, na.rm=TRUE), mean(est) - 1.96 * sd(est), mean(est) + 1.96 * sd(est))
+      )
    }
-   else {
-      cat(paste0("\n--- Searching for N for ", target_power * 100, "% Power ---\n"))
 
-      # Step 1: Try uniroot with a clean bracket
-      power_diff <- function(n) {
-         n_int <- ceiling(n)
-         sim <- run_power_sim(n_int)
-         power_val <- sim$power
-         if (!is.finite(power_val)) return(Inf)
-         return(power_val - target_power)
-      }
+   p <- ggplot2::ggplot(results_df, ggplot2::aes(x = N_per_Arm, y = Power)) +
+      ggplot2::geom_line(color = "#D55E00", linewidth = 1) +
+      ggplot2::geom_point(color = "#D55E00", size = 3) +
+      # ggplot2::geom_hline(yintercept = 0.75, linetype = "dashed", color = "blue") +
+      ggplot2::labs(title = "Power Curve: Linear IPCW RMST Model",
+                    x = "Sample Size Per Arm", y = "Estimated Power") +
+      ggplot2::ylim(0, 1) + ggplot2::theme_minimal()
 
-      uniroot_success <- FALSE
-      uniroot_output <- tryCatch({
-         res <- uniroot(power_diff, lower = 1, upper = 1e7)
-         uniroot_success <<- TRUE
-         ceiling(res$root)
-      }, error = function(e) {
-         warning("Uniroot failed: ", e$message)
-         return(NA)
-      })
-
-      all_results <- list()
-      best_sim_output <- NULL
-      results_summary <- NULL
-
-      if (uniroot_success) {
-         cat(paste0("Required sample size per arm found by uniroot: N = ", uniroot_output, "\n"))
-         n_seq <- seq(10, uniroot_output, by = 10)
-         for (n in n_seq) {
-            sim_output <- run_power_sim(n)
-            all_results[[as.character(n)]] <- sim_output$power
-         }
-         best_sim_output <- run_power_sim(uniroot_output)
-         est <- na.omit(best_sim_output$estimates)
-         se  <- na.omit(best_sim_output$std_errors)
-         if (length(est) > 1) {
-            results_summary <- data.frame(
-               Statistic = c("Mean RMST Difference", "Mean Standard Error", "95% CI Lower", "95% CI Upper"),
-               Value = c(mean(est), mean(se), mean(est) - 1.96 * sd(est), mean(est) + 1.96 * sd(est))
-            )
-         }
-         results_df <- data.frame(N_per_Arm = as.integer(names(all_results)),
-                                  Power = unlist(all_results))
-      } else {
-         # Step 2: fallback to rolling power check with early stop
-         cat("Falling back to rolling evaluation.\n")
-         current_n <- n_start
-         max_power_so_far <- -1
-         stagnation_counter <- 0
-         n_at_max_power <- n_start
-
-         while (current_n <= max_n) {
-            sim_output <- run_power_sim(current_n)
-            power_val <- sim_output$power
-            if (!is.finite(power_val)) power_val <- 0
-
-            all_results[[as.character(current_n)]] <- power_val
-            cat("  N = ", current_n, "/arm, Calculated Power = ", round(power_val, 3), "\n")
-
-            if (power_val >= target_power) {
-               best_sim_output <- sim_output
-               break
-            }
-
-            if (power_val > max_power_so_far) {
-               max_power_so_far <- power_val
-               n_at_max_power <- current_n
-               best_sim_output <- sim_output
-               stagnation_counter <- 0
-            } else {
-               stagnation_counter <- stagnation_counter + 1
-            }
-
-            if (stagnation_counter >= patience) {
-               warning("Search terminated due to stagnation. Best N = ", n_at_max_power,
-                       " with power = ", round(max_power_so_far, 3))
-               break
-            }
-
-            current_n <- current_n + n_step
-         }
-
-         # Finalize summary and table
-         results_df <- data.frame(N_per_Arm = as.integer(names(all_results)),
-                                  Power = unlist(all_results))
-         if (!is.null(best_sim_output)) {
-            est <- na.omit(best_sim_output$estimates)
-            se  <- na.omit(best_sim_output$std_errors)
-            if (length(est) > 1) {
-               results_summary <- data.frame(
-                  Statistic = c("Mean RMST Difference", "Mean Standard Error", "95% CI Lower", "95% CI Upper"),
-                  Value = c(mean(est), mean(se), mean(est) - 1.96 * sd(est), mean(est) + 1.96 * sd(est))
-               )
-            }
-         }
-      }
-
-      # Plot
-      p <- ggplot2::ggplot(na.omit(results_df), ggplot2::aes(x = N_per_Arm, y = Power)) +
-         ggplot2::geom_line(color = "#009E73", linewidth = 1) +
-         ggplot2::geom_point(color = "#009E73", size = 3) +
-         ggplot2::labs(title = "Sample Size Curve: Linear IPCW RMST Model",
-                       x = "Sample Size Per Arm", y = "Estimated Power") +
-         ggplot2::theme_minimal()
-}
-
+   end_time <- proc.time()
+   elapsed_time <- round((end_time - start_time)["elapsed"], 2)
+   message(paste("Total simulation time:", elapsed_time, "seconds"))
 
    cat("\n--- Simulation Summary ---\n")
    if (!is.null(results_summary)) {
       print(knitr::kable(results_summary, caption = "Estimated Treatment Effect (RMST Difference)"))
-   }
-   else {
+   } else {
       cat("No valid estimates were generated to create a summary.\n")
    }
    print(p)
-   end_time <- Sys.time()
-   return(list(results_data = results_df, results_plot = p, results_summary = results_summary,
-               execution_time = end_time - start_time))
+
+   return(list(results_data = results_df, results_plot = p, results_summary = results_summary))
+}
+#' @title Find Sample Size for a Linear RMST Model
+#' @description Performs an iterative sample size search to achieve a target power
+#'   based on the direct linear regression model for RMST.
+#'
+#' @note `status_var` should be `1` for an event, `0` for censored. `arm_var`
+#'   should be `1` for treatment, `0` for control.
+#'
+#' @param pilot_data A data.frame with pilot study data.
+#' @param time_var,status_var,arm_var Strings for column names.
+#' @param target_power A single numeric value for the target power.
+#' @param linear_terms Optional vector of covariates for the linear model.
+#' @param tau The truncation time for RMST.
+#' @param n_sim Number of bootstrap simulations per search step.
+#' @param alpha The significance level.
+#' @param patience Number of consecutive non-improving steps in the iterative
+#'   search before terminating. Default is 5.
+#' @param n_start The starting sample size per arm for the search.
+#' @param n_step The increment in sample size at each step of the search.
+#' @param max_n_per_arm The maximum sample size per arm to search up to.
+#'
+#' @return A list containing `results_data` (the final required N), a ggplot object
+#'   of the search path, and a `results_summary` data.frame.
+#'
+#' @importFrom survival survfit Surv
+#' @importFrom stats lm as.formula complete.cases na.omit sd quantile proc.time
+#' @importFrom ggplot2 ggplot aes geom_line geom_point geom_hline geom_vline labs theme_minimal
+#' @importFrom knitr kable
+#'
+#' @examples
+#' # Use the 'veteran' dataset for a stable example
+#' data(veteran)
+#' veteran_pilot <- veteran %>%
+#'   dplyr::mutate(
+#'     status = ifelse(status == 1, 1, 0),
+#'     trt = ifelse(trt == 2, 1, 0)
+#'   ) %>%
+#'   tidyr::drop_na(time, status, trt, karno, age)
+#'
+#' results_n <- design_rmst_ipcw_ss(
+#'   pilot_data = veteran_pilot,
+#'   time_var = "time",
+#'   status_var = "status",
+#'   arm_var = "trt",
+#'   target_power = 0.80,
+#'   linear_terms = c("age", "karno"),
+#'   tau = 365,
+#'   n_sim = 50, # Low n_sim for example speed
+#'   patience = 3,
+#'   n_step = 100
+#' )
+#' @export
+design_rmst_ipcw_ss <- function(pilot_data, time_var, status_var, arm_var,
+                                target_power,
+                                linear_terms = NULL, tau, n_sim = 1000, alpha = 0.05,
+                                patience = 5,
+                                n_start = 50, n_step = 25, max_n_per_arm = 2000) {
+
+   start_time <- proc.time()
+   if (is.null(target_power) || length(target_power) != 1 || !is.numeric(target_power)) {
+      stop("You must provide a single numeric value for 'target_power'.")
+   }
+
+   # --- Prepare data ---
+   core_vars <- c(time_var, status_var, arm_var)
+   if (is.null(linear_terms)) {
+      linear_terms <- setdiff(names(pilot_data), core_vars)
+      if (length(linear_terms) > 0) message("Using unspecified columns as linear terms: ", paste(linear_terms, collapse = ", "))
+   }
+   all_vars <- c(core_vars, linear_terms)
+   pilot_data <- pilot_data[stats::complete.cases(pilot_data[, all_vars]), ]
+   pilot_groups <- split(pilot_data, pilot_data[[arm_var]])
+   model_rhs <- paste(c(arm_var, linear_terms), collapse = " + ")
+   model_formula <- as.formula(paste("Y_rmst ~", model_rhs))
+
+   # --- Run simulation ---
+   cat("--- Searching for Sample Size (Method: Linear RMST with IPCW) ---\n")
+   message("Model: Y_rmst ~ ", model_rhs)
+
+   # Initialize variables for the search
+   cat(paste0("\n--- Searching for N for ", target_power * 100, "% Power ---\n"))
+   current_n <- n_start
+   max_power_so_far <- -1
+   stagnation_counter <- 0
+   n_at_max_power <- n_start
+   best_sim_output <- NULL
+   search_results <- list()
+   final_n <- NA
+
+   # --- Iterative Search Loop ---
+   while (current_n <= max_n_per_arm) {
+      p_values <- rep(NA_real_, n_sim)
+      estimates <- rep(NA_real_, n_sim)
+      std_errors <- rep(NA_real_, n_sim)
+
+      for (j in seq_len(n_sim)) {
+         boot_list <- lapply(pilot_groups, function(df) df[sample(seq_len(nrow(df)), size = current_n, replace = TRUE), ])
+         boot_data <- do.call(rbind, boot_list)
+         boot_data[[arm_var]] <- factor(boot_data[[arm_var]], levels = c(0, 1))
+         is_censored <- boot_data[[status_var]] == 0
+         cens_fit <- tryCatch(survival::survfit(Surv(boot_data[[time_var]], is_censored) ~ 1), error = function(e) NULL)
+         if (is.null(cens_fit)) next
+         surv_summary <- tryCatch(summary(cens_fit, times = pmin(boot_data[[time_var]], tau), extend = TRUE), error = function(e) NULL)
+         if (is.null(surv_summary)) next
+         weights <- 1 / surv_summary$surv
+         finite_weights <- weights[is.finite(weights)]
+         if (length(finite_weights) > 0) {
+            weight_cap <- stats::quantile(finite_weights, probs = 0.99, na.rm = TRUE)
+            weights[weights > weight_cap] <- weight_cap
+         }
+         weights[!is.finite(weights)] <- NA
+         boot_data$Y_rmst <- pmin(boot_data[[time_var]], tau)
+         fit_data <- boot_data[boot_data[[status_var]] == 1 & is.finite(weights), ]
+         fit_weights <- weights[boot_data[[status_var]] == 1 & is.finite(weights)]
+         if (nrow(fit_data) > (length(all.vars(model_formula)) - 1)) {
+            fit <- tryCatch(lm(model_formula, data = fit_data, weights = fit_weights), error = function(e) NULL)
+            if (!is.null(fit)) {
+               sfit <- summary(fit)
+               test_term <- grep(paste0("^", arm_var), rownames(sfit$coefficients), value = TRUE)[1]
+               if (!is.na(test_term)) {
+                  p_values[j] <- tryCatch(sfit$coefficients[test_term, "Pr(>|t|)"], error = function(e) NA)
+                  estimates[j] <- tryCatch(sfit$coefficients[test_term, "Estimate"], error = function(e) NA)
+                  std_errors[j] <- tryCatch(sfit$coefficients[test_term, "Std. Error"], error = function(e) NA)
+               }
+            }
+         }
+      }
+
+      sim_output <- list(power = mean(p_values < alpha, na.rm = TRUE),
+                         estimates = estimates, std_errors = std_errors)
+
+      calculated_power <- if(is.finite(sim_output$power)) sim_output$power else 0
+      search_results[[as.character(current_n)]] <- calculated_power
+      cat(paste0("  N = ", current_n, "/arm, Calculated Power = ", round(calculated_power, 3), "\n"))
+
+      if (calculated_power >= target_power) {
+         message("Success: Target power reached at N = ", current_n, "/arm.")
+         best_sim_output <- sim_output
+         final_n <- current_n
+         break
+      }
+      if (calculated_power > max_power_so_far) {
+         max_power_so_far <- calculated_power
+         n_at_max_power <- current_n
+         best_sim_output <- sim_output
+         stagnation_counter <- 0
+      } else {
+         stagnation_counter <- stagnation_counter + 1
+      }
+      if (stagnation_counter >= patience) {
+         final_n <- n_at_max_power
+         warning(paste0("Search terminated due to stagnation. Returning best N found: ", final_n,
+                        " (Power = ", round(max_power_so_far, 3), ")"), call. = FALSE)
+         break
+      }
+      current_n <- current_n + n_step
+   }
+
+   if (is.na(final_n) && current_n > max_n_per_arm) {
+      warning(paste("Target power", target_power, "not achieved by max N of", max_n_per_arm))
+      final_n <- n_at_max_power
+   }
+
+   # --- Finalize Summary, Plot, and Results ---
+   results_summary <- NULL
+   if (!is.null(best_sim_output)) {
+      est <- na.omit(best_sim_output$estimates)
+      se  <- na.omit(best_sim_output$std_errors)
+      if(length(est) > 1) {
+         results_summary <- data.frame(
+            Statistic = c("Mean RMST Difference", "Mean Standard Error", "95% CI Lower", "95% CI Upper"),
+            Value = c(mean(est), mean(se, na.rm=TRUE), mean(est) - 1.96 * sd(est), mean(est) + 1.96 * sd(est))
+         )
+      }
+   }
+
+   results_df <- data.frame(Target_Power = target_power, Required_N_per_Arm = final_n)
+   search_path_df <- data.frame(N_per_Arm = as.integer(names(search_results)),
+                                Power = unlist(search_results))
+
+   p <- ggplot2::ggplot(na.omit(search_path_df), ggplot2::aes(x = N_per_Arm, y = Power)) +
+      ggplot2::geom_line(color = "#009E73", linewidth = 1) +
+      ggplot2::geom_point(color = "#009E73", size = 3) +
+      ggplot2::geom_hline(yintercept = target_power, linetype = "dashed", color = "red") +
+      ggplot2::labs(title = "Sample Size Search Path: Linear IPCW RMST Model",
+                    x = "Sample Size Per Arm", y = "Calculated Power") +
+      ggplot2::theme_minimal()
+
+   end_time <- proc.time()
+   elapsed_time <- round((end_time - start_time)["elapsed"], 2)
+   message(paste("Total simulation time:", elapsed_time, "seconds"))
+
+   cat("\n--- Simulation Summary ---\n")
+   if (!is.null(results_summary)) {
+      print(knitr::kable(results_summary, caption = "Estimated Treatment Effect (RMST Difference)"))
+   } else {
+      cat("No valid estimates were generated to create a summary.\n")
+   }
+
+   print(p)
+
+   return(list(results_data = results_df, results_plot = p, results_summary = results_summary))
 }

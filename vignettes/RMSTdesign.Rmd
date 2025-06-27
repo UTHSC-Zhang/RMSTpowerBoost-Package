@@ -111,35 +111,33 @@ lung_tau <-quantile(lung$time,0.75)
 
 ```{r linear_power, include=TRUE}
 # Note: Low n_sim for speed. Increase for real analysis.
-  results_power_linear <- design_rmst_linear_ipcw(
+  results_power_linear <- design_rmst_ipcw_power(
     pilot_data = lung_pilot,
     time_var = "time",
     status_var = "status",
     arm_var = "sex",
-    sample_sizes = c(250, 500, 1000),
+    sample_sizes = c(100, 250, 500,750, 1000),
     linear_terms = c("age", "ph.ecog", "meal.cal", "wt.loss"),
     tau = lung_tau,
-    n_sim = 500
+    n_sim = 1000,
+    alpha = 0.05
   )
-
 results_power_linear
 ```
 
 ### 2.3.2. Example 2: Sample Size Calculation (Unadjusted)
 
 ```{r linear_n_parallel, include=TRUE}
-# Set parallel.cores > 1 to enable parallel processing for more intensive searches.
-  results_n_linear <- design_rmst_linear_ipcw(
+results_n_linear <- design_rmst_ipcw_ss(
     pilot_data = lung_pilot,
     time_var = "time",
     status_var = "status",
     arm_var = "sex",
-    sample_sizes = NULL,
-    target_power = 0.5,
+    target_power = 0.75, 
     linear_terms = c("age", "ph.ecog", "meal.cal", "wt.loss"),
     tau = lung_tau,
-    n_sim = 2000,
-    parallel.cores = 20
+    n_sim = 1000,
+    alpha = 0.05
   )
 results_n_linear
 ```
