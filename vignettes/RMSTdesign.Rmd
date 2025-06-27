@@ -10,6 +10,9 @@ bibliography: references.bib
 biblio-style: apalike
 link-citations: yes
 ---
+
+
+
 ```{r setup, include=FALSE}
 # This setup chunk configures the vignette's appearance and loads necessary packages.
 knitr::opts_chunk$set(
@@ -108,17 +111,17 @@ lung_tau <-quantile(lung$time,0.75)
 
 ```{r linear_power, include=TRUE}
 # Note: Low n_sim for speed. Increase for real analysis.
-system.time(
   results_power_linear <- design_rmst_linear_ipcw(
     pilot_data = lung_pilot,
     time_var = "time",
     status_var = "status",
     arm_var = "sex",
-    sample_sizes = c(100, 150, 200),
+    sample_sizes = c(250, 500, 1000),
+    linear_terms = c("age", "ph.ecog", "meal.cal", "wt.loss"),
     tau = lung_tau,
     n_sim = 500
   )
-)
+
 results_power_linear
 ```
 
@@ -126,20 +129,19 @@ results_power_linear
 
 ```{r linear_n_parallel, include=TRUE}
 # Set parallel.cores > 1 to enable parallel processing for more intensive searches.
-# system.time(
-#   results_n_linear <- design_rmst_linear_ipcw(
-#     pilot_data = lung_pilot,
-#     time_var = "time",
-#     status_var = "status",
-#     arm_var = "sex",
-#     target_powers = c(0.20, 0.30),
-#     linear_terms = NULL,
-#     tau = lung_tau,
-#     n_sim = 200,
-#     parallel.cores = 10
-#   )
-# )
-# results_n_linear
+  results_n_linear <- design_rmst_linear_ipcw(
+    pilot_data = lung_pilot,
+    time_var = "time",
+    status_var = "status",
+    arm_var = "sex",
+    sample_sizes = NULL,
+    target_powers =c(0.2, 0.9),
+    linear_terms = c("age", "ph.ecog", "meal.cal", "wt.loss"),
+    tau = lung_tau,
+    n_sim = 200,
+    parallel.cores = 10
+  )
+results_n_linear
 ```
 
 # 3. Additive Model with Pseudo-Observations
