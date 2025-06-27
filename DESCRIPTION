@@ -20,6 +20,7 @@ License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
+<<<<<<< HEAD
 Imports: 
     survival,
     mgcv,
@@ -27,11 +28,19 @@ Imports:
     stats,
     tidyr,
     dplyr
+=======
+Imports:
+    survival
+>>>>>>> 40dc1ad180fc57cb988efb382ddc762de6767cc8
 Suggests:
     knitr,
     rmarkdown,
     here,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+<<<<<<< HEAD
 VignetteBuilder: knitr,
                  rmarkdown
+=======
+VignetteBuilder: knitr
+>>>>>>> 40dc1ad180fc57cb988efb382ddc762de6767cc8
