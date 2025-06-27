@@ -10,16 +10,16 @@ design_rmst_linear_ipcw(
   status_var,
   arm_var,
   sample_sizes = NULL,
-  target_powers = NULL,
+  target_power = NULL,
   linear_terms = NULL,
   tau,
   n_sim = 1000,
   alpha = 0.05,
   parallel.cores = 1,
   patience = 5,
-  n_start = 50,
+  n_start = 5,
   n_step = 25,
-  max_n_per_arm = 2000
+  max_n = 2000
 )
 }
 \arguments{
@@ -29,7 +29,7 @@ design_rmst_linear_ipcw(
 
 \item{sample_sizes}{Optional vector of sample sizes per arm.}
 
-\item{target_powers}{Optional vector of target powers.}
+\item{target_power}{Optional numetic value of target power.}
 
 \item{linear_terms}{Optional vector of covariates for the linear model. If NULL,
 defaults to all other columns in \code{pilot_data}.}
@@ -45,7 +45,11 @@ defaults to all other columns in \code{pilot_data}.}
 \item{patience}{Number of consecutive non-improving steps in the sample size
 search before terminating that search. Default is 5.}
 
-\item{...}{Additional arguments for sample size search (n_start, n_step, etc.).}
+\item{n_start}{Initial sample size to start searching for required sample size.}
+
+\item{n_step}{Incremental step size for sample size search.}
+
+\item{max_n}{Maximum sample size per arm to search for.}
 }
 \value{
 A list containing \code{results_data}, \code{results_plot}, and \code{results_summary}.
@@ -90,7 +94,7 @@ results_n <- design_rmst_linear_ipcw(
   time_var = "event_time",
   status_var = "event_status",
   arm_var = "treatment_arm",
-  target_powers = c(0.80),
+  target_power = c(0.80),
   tau = 10,
   n_sim = 100,
   parallel.cores = 2 # Use 2 cores

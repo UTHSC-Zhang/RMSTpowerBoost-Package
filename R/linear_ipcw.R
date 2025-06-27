@@ -10,7 +10,7 @@
 #' @param pilot_data A data.frame with pilot study data.
 #' @param time_var,status_var,arm_var Strings for column names.
 #' @param sample_sizes Optional vector of sample sizes per arm.
-#' @param target_powers Optional vector of target powers.
+#' @param target_power Optional numetic value of target power.
 #' @param linear_terms Optional vector of covariates for the linear model. If NULL,
 #'   defaults to all other columns in `pilot_data`.
 #' @param tau The truncation time for RMST.
@@ -19,7 +19,9 @@
 #' @param parallel.cores Number of cores for parallel processing. Default is 1 (no parallel).
 #' @param patience Number of consecutive non-improving steps in the sample size
 #'   search before terminating that search. Default is 5.
-#' @param ... Additional arguments for sample size search (n_start, n_step, etc.).
+#' @param n_start Initial sample size to start searching for required sample size.
+#' @param n_step Incremental step size for sample size search.
+#' @param max_n Maximum sample size per arm to search for.
 #'
 #' @return A list containing `results_data`, `results_plot`, and `results_summary`.
 #'
@@ -61,7 +63,7 @@
 #'   time_var = "event_time",
 #'   status_var = "event_status",
 #'   arm_var = "treatment_arm",
-#'   target_powers = c(0.80),
+#'   target_power = c(0.80),
 #'   tau = 10,
 #'   n_sim = 100,
 #'   parallel.cores = 2 # Use 2 cores
@@ -70,12 +72,12 @@
 #'
 #' @export
 design_rmst_linear_ipcw <- function(pilot_data, time_var, status_var, arm_var,
-                                    sample_sizes = NULL, target_powers = NULL,
+                                    sample_sizes = NULL, target_power = NULL,
                                     linear_terms = NULL, tau, n_sim = 1000, alpha = 0.05,
                                     parallel.cores = 1, patience = 5,
-                                    n_start = 50, n_step = 25, max_n_per_arm = 2000) {
+                                    n_start = 5, n_step = 25,max_n = 2000) {
    start_time <- Sys.time()
-   if (is.null(sample_sizes) && is.null(target_powers)) stop("Must provide 'sample_sizes' or 'target_powers'.")
+   if (is.null(sample_sizes) && is.null(target_power)) stop("Must provide 'sample_sizes' or 'target_power'.")
 
    # --- Prepare data ---
    core_vars <- c(time_var, status_var, arm_var)
@@ -196,75 +198,112 @@ design_rmst_linear_ipcw <- function(pilot_data, time_var, status_var, arm_var,
 
    }
    else {
-      required_n_values <- sapply(sort(target_powers), function(target_power) {
-         cat(paste0("\n--- Searching for N for ", target_power * 100, "% Power ---\n"))
+      cat(paste0("\n--- Searching for N for ", target_power * 100, "% Power ---\n"))
+
+      # Step 1: Try uniroot with a clean bracket
+      power_diff <- function(n) {
+         n_int <- ceiling(n)
+         sim <- run_power_sim(n_int)
+         power_val <- sim$power
+         if (!is.finite(power_val)) return(Inf)
+         return(power_val - target_power)
+      }
+
+      uniroot_success <- FALSE
+      uniroot_output <- tryCatch({
+         res <- uniroot(power_diff, lower = 1, upper = 1e7)
+         uniroot_success <<- TRUE
+         ceiling(res$root)
+      }, error = function(e) {
+         warning("Uniroot failed: ", e$message)
+         return(NA)
+      })
+
+      all_results <- list()
+      best_sim_output <- NULL
+      results_summary <- NULL
+
+      if (uniroot_success) {
+         cat(paste0("Required sample size per arm found by uniroot: N = ", uniroot_output, "\n"))
+         n_seq <- seq(10, uniroot_output, by = 10)
+         for (n in n_seq) {
+            sim_output <- run_power_sim(n)
+            all_results[[as.character(n)]] <- sim_output$power
+         }
+         best_sim_output <- run_power_sim(uniroot_output)
+         est <- na.omit(best_sim_output$estimates)
+         se  <- na.omit(best_sim_output$std_errors)
+         if (length(est) > 1) {
+            results_summary <- data.frame(
+               Statistic = c("Mean RMST Difference", "Mean Standard Error", "95% CI Lower", "95% CI Upper"),
+               Value = c(mean(est), mean(se), mean(est) - 1.96 * sd(est), mean(est) + 1.96 * sd(est))
+            )
+         }
+         results_df <- data.frame(N_per_Arm = as.integer(names(all_results)),
+                                  Power = unlist(all_results))
+      } else {
+         # Step 2: fallback to rolling power check with early stop
+         cat("Falling back to rolling evaluation.\n")
          current_n <- n_start
          max_power_so_far <- -1
          stagnation_counter <- 0
          n_at_max_power <- n_start
-         best_sim_output <- NULL # <<-- NEW: Store the best simulation output
 
-         while (current_n <= max_n_per_arm) {
+         while (current_n <= max_n) {
             sim_output <- run_power_sim(current_n)
-            calculated_power <- sim_output$power
-            if (!is.finite(calculated_power)) {
-               calculated_power <- 0
-            }
-            cat(paste0("  N = ", current_n, "/arm, Calculated Power = ", round(calculated_power, 3), "\n"))
+            power_val <- sim_output$power
+            if (!is.finite(power_val)) power_val <- 0
 
-            if (calculated_power >= target_power) {
-               est <- na.omit(sim_output$estimates)
-               se <- na.omit(sim_output$std_errors)
-               if(length(est) > 1) {
-                  results_summary <<- data.frame(
-                     Statistic = c("Mean RMST Difference", "Mean Standard Error", "95% CI Lower", "95% CI Upper"),
-                     Value = c(mean(est), mean(se, na.rm=TRUE), mean(est) - 1.96 * sd(est), mean(est) + 1.96 * sd(est))
-                  )
-               }
-               return(current_n)
+            all_results[[as.character(current_n)]] <- power_val
+            cat("  N = ", current_n, "/arm, Calculated Power = ", round(power_val, 3), "\n")
+
+            if (power_val >= target_power) {
+               best_sim_output <- sim_output
+               break
             }
 
-            if (calculated_power > max_power_so_far) {
-               max_power_so_far <- calculated_power
+            if (power_val > max_power_so_far) {
+               max_power_so_far <- power_val
                n_at_max_power <- current_n
-               best_sim_output <- sim_output # <<-- NEW: Save the best result
+               best_sim_output <- sim_output
                stagnation_counter <- 0
             } else {
                stagnation_counter <- stagnation_counter + 1
             }
 
             if (stagnation_counter >= patience) {
-               warning(paste0("Search for target power ", target_power, " terminated due to stagnation. ",
-                              "Returning N=", n_at_max_power, " which achieved the highest power of ", round(max_power_so_far, 3), "."),
-                       call. = FALSE)
-
-               # --- NEW: Generate summary from the best result found ---
-               if (!is.null(best_sim_output)) {
-                  est <- na.omit(best_sim_output$estimates)
-                  se <- na.omit(best_sim_output$std_errors)
-                  if(length(est) > 1) {
-                     results_summary <<- data.frame(
-                        Statistic = c("Mean RMST Difference", "Mean Standard Error", "95% CI Lower", "95% CI Upper"),
-                        Value = c(mean(est), mean(se, na.rm=TRUE), mean(est) - 1.96 * sd(est), mean(est) + 1.96 * sd(est))
-                     )
-                  }
-               }
-               # --- End NEW --
-               return(n_at_max_power)
+               warning("Search terminated due to stagnation. Best N = ", n_at_max_power,
+                       " with power = ", round(max_power_so_far, 3))
+               break
             }
+
             current_n <- current_n + n_step
          }
-         warning(paste("Target power", target_power, "not achieved by max N of", max_n_per_arm))
-         return(NA)
-      })
 
-      p <- ggplot2::ggplot(na.omit(results_df), ggplot2::aes(x = Target_Power, y = Required_N_per_Arm)) +
+         # Finalize summary and table
+         results_df <- data.frame(N_per_Arm = as.integer(names(all_results)),
+                                  Power = unlist(all_results))
+         if (!is.null(best_sim_output)) {
+            est <- na.omit(best_sim_output$estimates)
+            se  <- na.omit(best_sim_output$std_errors)
+            if (length(est) > 1) {
+               results_summary <- data.frame(
+                  Statistic = c("Mean RMST Difference", "Mean Standard Error", "95% CI Lower", "95% CI Upper"),
+                  Value = c(mean(est), mean(se), mean(est) - 1.96 * sd(est), mean(est) + 1.96 * sd(est))
+               )
+            }
+         }
+      }
+
+      # Plot
+      p <- ggplot2::ggplot(na.omit(results_df), ggplot2::aes(x = N_per_Arm, y = Power)) +
          ggplot2::geom_line(color = "#009E73", linewidth = 1) +
          ggplot2::geom_point(color = "#009E73", size = 3) +
          ggplot2::labs(title = "Sample Size Curve: Linear IPCW RMST Model",
-                       x = "Target Power", y = "Required Sample Size Per Arm") +
+                       x = "Sample Size Per Arm", y = "Estimated Power") +
          ggplot2::theme_minimal()
-   }
+}
+
 
    cat("\n--- Simulation Summary ---\n")
    if (!is.null(results_summary)) {

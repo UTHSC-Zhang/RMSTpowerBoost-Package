@@ -135,11 +135,11 @@ results_power_linear
     status_var = "status",
     arm_var = "sex",
     sample_sizes = NULL,
-    target_powers =c(0.2, 0.9),
+    target_power = 0.5,
     linear_terms = c("age", "ph.ecog", "meal.cal", "wt.loss"),
     tau = lung_tau,
-    n_sim = 200,
-    parallel.cores = 10
+    n_sim = 2000,
+    parallel.cores = 20
   )
 results_n_linear
 ```
