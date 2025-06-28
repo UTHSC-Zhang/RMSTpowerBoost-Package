@@ -191,38 +191,41 @@ pbc_tau <- 3652.5
 We model the effect of `bili` non-linearly while adjusting for `age` linearly.
 
 ```{r gam_power, include=FALSE}
-system.time(
-  results_power_gam <- design_rmst_additive_gam(
+results_power_gam <- design_rmst_gam_power(
     pilot_data = pbc_pilot_simple,
     time_var = "time",
     status_var = "status",
     arm_var = "trt",
+    strata_var = "stage",
     sample_sizes = c(150, 200, 250),
     linear_terms = c("age"),
     smooth_terms = c("bili"),
     tau = pbc_tau,
-    n_sim = 50
-  )
+    n_sim = 500,
+    parallel.cores = 20
 )
 results_power_gam
 ```
 
 ### 3.3.2. Example 2: Sample Size Calculation with Smooth & Linear Terms
 ```{r gam_n, include=FALSE}
-system.time(
-  results_n_gam <- design_rmst_additive_gam(
+
+  results_n_gam <- design_rmst_gam_ss(
     pilot_data = pbc_pilot_simple,
     time_var = "time",
     status_var = "status",
     arm_var = "trt",
-    target_powers = c(0.5, 0.6, 0.7),
-    linear_terms = c("age"),
-    smooth_terms = c("bili"),
+    target_power = 0.4,
     tau = pbc_tau,
-    n_sim = 50
+    n_sim = 500,
+    parallel.cores = 20,
+    n_start = 100,
+    n_step = 50,
+    max_n_per_arm = 2500,
   )
-)
+
 results_n_gam
+
 ```
 
 

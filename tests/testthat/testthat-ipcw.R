@@ -6,12 +6,9 @@
 # * https://r-pkgs.org/testing-design.html#sec-tests-files-overview
 # * https://testthat.r-lib.org/articles/special-files.html
 # This script contains unit tests for the two independent IPCW functions.
-# It assumes that the functions `design_rmst_ipcw_power` and `design_rmst_ipcw_ss`
-# have been loaded into the environment.
 
 library(testthat)
 source(here::here("R/linear_ipcw.R"))
-# --- 1. Tests for design_rmst_ipcw_power ---
 
 test_that("Power function runs and returns correct structure", {
 
