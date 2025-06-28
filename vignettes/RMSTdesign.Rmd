@@ -196,7 +196,7 @@ results_power_gam <- design_rmst_gam_power(
     time_var = "time",
     status_var = "status",
     arm_var = "trt",
-    strata_var = "stage",
+    # strata_var = "stage",
     sample_sizes = c(150, 200, 250),
     linear_terms = c("age"),
     smooth_terms = c("bili"),
@@ -214,6 +214,7 @@ results_power_gam
     pilot_data = pbc_pilot_simple,
     time_var = "time",
     status_var = "status",
+    strata_var = "stage",
     arm_var = "trt",
     target_power = 0.4,
     tau = pbc_tau,
@@ -264,27 +265,7 @@ We calculate the required sample size per stratum to achieve various levels of p
 
 ```{r stratified_n, include=TRUE}
 # A higher n_sim is recommended here to get stable power estimates.
-system.time(
-  results_n_strat <- design_rmst_multiplicative_stratified(
-    pilot_data = pbc_pilot_simple,
-    time_var = "time",
-    status_var = "status",
-    arm_var = "trt",
-    strata_var = "edema",
-    target_powers = c(0.2, 0.3, 0.5),
-    linear_terms = c("age"),
-    tau = pbc_tau,
-    n_sim = 200,
-    parallel.cores = 1
-  )
-)
-results_n_strat
-```
-
-### 4.2.2. Example 2: Power Calculation
-```{r stratified_power, include=TRUE}
-system.time(
-  results_power_strat <- design_rmst_multiplicative_stratified(
+  results_n_strat <- design_rmst_strat_power(
     pilot_data = pbc_pilot_simple,
     time_var = "time",
     status_var = "status",
@@ -293,9 +274,26 @@ system.time(
     sample_sizes = c(100, 150, 200),
     linear_terms = c("age"),
     tau = pbc_tau,
-    n_sim = 50
+    n_sim = 200,
+    parallel.cores = 20
   )
-)
+results_n_strat
+```
+
+### 4.2.2. Example 2: Power Calculation
+```{r stratified_power, include=TRUE}
+  results_power_strat <- design_rmst_strat_ss(
+    pilot_data = pbc_pilot_simple,
+    time_var = "time",
+    status_var = "status",
+    arm_var = "trt",
+    strata_var = "edema",
+    target_power = 0.2,
+    linear_terms = c("age"),
+    tau = pbc_tau,
+    n_sim = 500,
+    parallel.cores = 20
+  )
 results_power_strat
 ```
 
@@ -325,17 +323,23 @@ The power calculation follows the bootstrap paradigm, performing the full double
 
 This function uniquely requires a separate indicator for the competing event. We create a dedicated `pbc_pilot_comp_risk` dataset.
 
-```{r pbc_data_prep_comp_risk, include=TRUE}
-pbc_pilot_comp_risk <- pbc %>%
-  dplyr::mutate(
-    # Create the 'transplant' indicator for the competing event (status = 1)
-    transplant = ifelse(status == 1, 1, 0),
-    # Recode 'status' to represent only the primary event (death, status = 2)
-    status = ifelse(status == 2, 1, 0),
-    # Recode 'trt' to the required 0/1 format
-    trt = ifelse(trt == 1, 1, 0)
-  ) %>%
-  tidyr::drop_na(time, status, trt, transplant, age, bili)
+```{r synthetic data, include=TRUE}
+# --- 1. Data Preparation: Create a robust pilot dataset ---
+# This dataset has a larger size and higher event rates to ensure stability
+# for the dependent censoring model.
+set.seed(42)
+n_pilot <- 300 # Larger pilot dataset
+pilot_data_cr <- data.frame(
+  time = c(stats::rexp(n_pilot/2, 0.1), stats::rexp(n_pilot/2, 0.05)), #<-- Stronger effect
+  arm = rep(0:1, each = n_pilot/2),
+  age = stats::rnorm(n_pilot, 65, 5)
+)
+event_probs <- stats::runif(n_pilot)
+# Higher event rates
+pilot_data_cr$primary_event <- ifelse(event_probs < 0.40, 1, 0) # 40% primary events
+pilot_data_cr$competing_event <- ifelse(event_probs >= 0.40 & event_probs < 0.75, 1, 0) # 35% competing
+pilot_data_cr$primary_event[pilot_data_cr$competing_event == 1] <- 0
+
 ```
 
 ## 5.3. Application: `design_rmst_dependent_censoring()`
@@ -345,39 +349,34 @@ pbc_pilot_comp_risk <- pbc %>%
 We calculate power, correctly accounting for liver transplant as a competing risk for death.
 
 ```{r comp_risk_power, include=TRUE}
-system.time(
-  results_power_cr <- design_rmst_dependent_censoring(
-    pilot_data = pbc_pilot_comp_risk,
-    time_var = "time",
-    status_var = "status",
-    arm_var = "trt",
-    dep_cens_status_var = "transplant",
-    linear_terms = c("age", "bili"),
-    sample_sizes = c(200, 250, 300),
-    tau = pbc_tau,
-    n_sim = 50
-  )
+results_power_cr <- design_rmst_dc_power(
+  pilot_data = pilot_data_cr,
+  time_var = "time",
+  status_var = "primary_event",
+  dep_cens_status_var = "competing_event",
+  arm_var = "arm",
+  linear_terms = "age",
+  sample_sizes = c(50 ,100, 200),
+  tau = 12,
+  n_sim = 500
 )
+
 results_power_cr
 ```
 
 ### 5.3.2. Example 2: Sample Size Calculation
 ```{r comp_risk_n, include=TRUE}
-system.time(
-  results_sample_cr <- design_rmst_dependent_censoring(
-    pilot_data = pbc_pilot_comp_risk,
-    time_var = "time",
-    status_var = "status",
-    arm_var = "trt",
-    dep_cens_status_var = "transplant",
-    linear_terms = c("age", "bili"),
-    target_powers = c(0.5,0.6,0.80),
-    tau = pbc_tau,
-    n_sim = 50
-  )
+results_n_cr <- design_rmst_dc_ss(
+  pilot_data = pilot_data_cr,
+  time_var = "time",
+  status_var = "primary_event",
+  dep_cens_status_var = "competing_event",
+  arm_var = "arm",
+  target_power = 0.6,
+  linear_terms = "age",
+  tau = 12,
+  n_sim = 50
 )
-results_power_cr
-
 ```
 
 # 6. Conclusion
