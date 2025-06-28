@@ -3,4 +3,4 @@
 .RData
 .Ruserdata
 inst/doc
-tests/Rplots.pdf
+tests/testthat/Rplots.pdf
