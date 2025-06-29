@@ -324,21 +324,18 @@ The power calculation follows the bootstrap paradigm, performing the full double
 This function uniquely requires a separate indicator for the competing event. We create a dedicated `pbc_pilot_comp_risk` dataset.
 
 ```{r synthetic data, include=TRUE}
-# --- 1. Data Preparation: Create a robust pilot dataset ---
-# This dataset has a larger size and higher event rates to ensure stability
-# for the dependent censoring model.
-set.seed(42)
-n_pilot <- 300 # Larger pilot dataset
-pilot_data_cr <- data.frame(
-  time = c(stats::rexp(n_pilot/2, 0.1), stats::rexp(n_pilot/2, 0.05)), #<-- Stronger effect
-  arm = rep(0:1, each = n_pilot/2),
-  age = stats::rnorm(n_pilot, 65, 5)
-)
-event_probs <- stats::runif(n_pilot)
-# Higher event rates
-pilot_data_cr$primary_event <- ifelse(event_probs < 0.40, 1, 0) # 40% primary events
-pilot_data_cr$competing_event <- ifelse(event_probs >= 0.40 & event_probs < 0.75, 1, 0) # 35% competing
-pilot_data_cr$primary_event[pilot_data_cr$competing_event == 1] <- 0
+# Primary event of interest is death
+pbc$primary_event <- ifelse(pbc$status == 2, 1, 0)
+
+# Dependent censoring event is liver transplant
+pbc$competing_event <- ifelse(pbc$status == 1, 1, 0)
+
+
+pbc$arm <- ifelse(pbc$trt == 2, 1, 0)
+
+# For this example, let's select a few variables and remove rows with missing data
+pbc_cleaned <- pbc[, c("time", "primary_event", "competing_event", "arm", "age", "bili")]
+pbc_cleaned <- na.omit(pbc_cleaned)
 
 ```
 
@@ -350,15 +347,15 @@ We calculate power, correctly accounting for liver transplant as a competing ris
 
 ```{r comp_risk_power, include=TRUE}
 results_power_cr <- design_rmst_dc_power(
-  pilot_data = pilot_data_cr,
+  pilot_data = pbc_cleaned,
   time_var = "time",
   status_var = "primary_event",
   dep_cens_status_var = "competing_event",
   arm_var = "arm",
-  linear_terms = "age",
-  sample_sizes = c(50 ,100, 200),
+  linear_terms = NULL,
+  sample_sizes = c(285 ,190, 480),
   tau = 12,
-  n_sim = 500
+  alpha = 0.05
 )
 
 results_power_cr
@@ -367,16 +364,17 @@ results_power_cr
 ### 5.3.2. Example 2: Sample Size Calculation
 ```{r comp_risk_n, include=TRUE}
 results_n_cr <- design_rmst_dc_ss(
-  pilot_data = pilot_data_cr,
+  pilot_data = pbc_cleaned,
   time_var = "time",
   status_var = "primary_event",
   dep_cens_status_var = "competing_event",
+  linear_terms = NULL,
   arm_var = "arm",
-  target_power = 0.6,
-  linear_terms = "age",
+  target_power = 0.9,
   tau = 12,
-  n_sim = 50
+  alpha = 0.05
 )
+results_n_cr
 ```
 
 # 6. Conclusion
