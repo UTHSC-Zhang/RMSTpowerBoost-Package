@@ -1,5 +1,7 @@
 ^renv$
 ^renv\.lock$
-^RMSTSS\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
+^RMSTdesign\.Rproj$
+^doc$
+^Meta$

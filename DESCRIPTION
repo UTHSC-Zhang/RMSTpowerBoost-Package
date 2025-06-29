@@ -25,13 +25,16 @@ Imports:
     mgcv,
     ggplot2,
     stats,
-    tidyr,
     dplyr,
-    here,
-    bibtex
+    magrittr,
+    future,
+    future.apply,
+    knitr
 Suggests:
-    knitr,
     rmarkdown,
+    tidyr,
+    kableExtra,
+    bibtex,
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
 VignetteBuilder: knitr,
