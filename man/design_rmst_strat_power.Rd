@@ -2,7 +2,7 @@
 % Please edit documentation in R/multiplicative_stratified.R
 \name{design_rmst_strat_power}
 \alias{design_rmst_strat_power}
-\title{Analyze Power for a Multiplicative Stratified RMST Model}
+\title{Analyze Power for a Multiplicative Stratified RMST Model (Analytic)}
 \usage{
 design_rmst_strat_power(
   pilot_data,
@@ -10,12 +10,10 @@ design_rmst_strat_power(
   status_var,
   arm_var,
   strata_var,
-  sample_sizes = NULL,
+  sample_sizes,
   linear_terms = NULL,
   tau,
-  n_sim = 1000,
-  alpha = 0.05,
-  parallel.cores = 1
+  alpha = 0.05
 )
 }
 \arguments{
@@ -23,61 +21,27 @@ design_rmst_strat_power(
 
 \item{time_var, status_var, arm_var, strata_var}{Strings for column names.}
 
-\item{sample_sizes}{A numeric vector of sample sizes to calculate power for.
-Each value represents the sample size \emph{per stratum}.}
+\item{sample_sizes}{A numeric vector of sample sizes to calculate power for.}
 
-\item{linear_terms}{Optional vector of covariates for the model. If NULL,
-defaults to all other columns in \code{pilot_data}.}
+\item{linear_terms}{Optional vector of covariates for the model.}
 
 \item{tau}{The truncation time for RMST.}
 
-\item{n_sim}{Number of bootstrap simulations.}
-
-\item{alpha}{The significance level.}
-
-\item{parallel.cores}{Number of cores for parallel processing. Default is 1.}
+\item{alpha}{The significance level. Default is 0.05.}
 }
 \value{
-A list containing \code{results_data} (a data.frame of sample sizes and
-corresponding powers), \code{results_plot} (a ggplot object), and
-\code{results_summary} (a data.frame with the estimated treatment effect).
+A list containing \code{results_data} and \code{results_plot}.
 }
 \description{
-Performs power analysis based on the multiplicative model for RMST
-(Wang et al., 2019), designed for stratified trials. This function
-calculates the estimated power for a given set of sample sizes.
+Performs power analysis using a formula based on the asymptotic
+variance from Wang et al. (2019) for a multiplicative, stratified RMST model.
 }
 \note{
-\code{status_var} should be \code{1}/\code{0}. \code{arm_var} should be \code{1}/\code{0}. \code{strata_var}
-is a mandatory argument.
-}
-\examples{
-# Create a small pilot dataset with strata
-pilot_data_strat <- data.frame(
-  time = rexp(120, rate = 0.15),
-  status = rbinom(120, 1, 0.6),
-  arm = rep(0:1, each = 60),
-  # Create a stratification variable with 3 levels
-  region = factor(rep(c("A", "B", "C"), each = 40)),
-  age = rnorm(120, 55, 8)
-)
-
-# --- Power Calculation Example ---
-results_power_strat <- design_rmst_strat_power(
-  pilot_data = pilot_data_strat,
-  time_var = "time",
-  status_var = "status",
-  arm_var = "arm",
-  strata_var = "region",
-  sample_sizes = c(50, 100, 150),
-  tau = 10,
-  n_sim = 50, # Low n_sim for example speed
-  parallel.cores = 1
-)
-
-print(results_power_strat$results_plot)
-
+This function is analytic. To simplify the complex estimation procedure
+in the paper, it uses a weighted log-linear model on the pilot data to
+approximate the effect size and its variance. \code{arm_var} should be a 0/1 indicator.
 }
 \references{
-Wang, X., et al. (2019). \emph{Statistics in Medicine}, 38, 5133-5145.
+Wang, X., et al. (2019). Computationally efficient inference for
+center effects based on restricted mean survival time. \emph{Statistics in Medicine}, 38, 5133-5145.
 }

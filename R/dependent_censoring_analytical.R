@@ -1,25 +1,4 @@
-#' @title Analyze Power for a Dependent Censoring RMST Model via Analytic Formula
-#' @description Performs power analysis using a direct formula-based method based
-#'   on the asymptotic variance of the estimator from Wang & Schaubel (2018).
-#'   This version uses a simplified ("ASE1") sandwich variance estimator.
-#'
-#' @note This function does not use bootstrapping and is therefore much faster
-#'   but requires more complex calculations based on statistical theory.
-#'
-#' @param pilot_data A data.frame with pilot study data.
-#' @param time_var,status_var,arm_var,dep_cens_status_var Strings for column names.
-#' @param sample_sizes A numeric vector of sample sizes per arm to calculate power for.
-#' @param linear_terms Optional vector of covariates for the model.
-#' @param tau The truncation time for RMST.
-#' @param alpha The significance level. Default is 0.05.
-#'
-#' @return A list containing `results_data` (a data.frame of sample sizes and
-#'   corresponding powers) and `results_plot` (a ggplot object).
-#'
-#' @references Wang, X., & Schaubel, D. E. (2018). Modeling Restricted Mean Survival
-#'   Time Under General Censoring Mechanisms. *Lifetime Data Analysis*, 24, 176-199.
-#'
-design_rmst_dc_power<- function(pilot_data,
+rmst.dep.cens.power<- function(pilot_data,
                                           time_var,
                                           status_var,
                                           arm_var,
@@ -143,26 +122,7 @@ design_rmst_dc_power<- function(pilot_data,
    return(list(results_data = results_df, results_plot = p))
 }
 
-#' @title Find Sample Size for a Dependent Censoring RMST Model via Analytic Search
-#' @description Calculates the required sample size by performing an iterative search
-#'   that uses a direct formula for power at each step.
-#'
-#' @note This function does not use bootstrapping. It calculates power analytically
-#'   at each step of the search to produce a power curve.
-#'
-#' @param pilot_data A data.frame with pilot study data.
-#' @param time_var,status_var,arm_var,dep_cens_status_var Strings for column names.
-#' @param target_power A single numeric value for the target power (e.g., 0.80).
-#' @param linear_terms Optional vector of covariates for the model.
-#' @param tau The truncation time for RMST.
-#' @param alpha The significance level. Default is 0.05.
-#' @param n_start The starting sample size per arm for the search.
-#' @param n_step The increment in sample size at each step of the search.
-#' @param max_n_per_arm The maximum sample size per arm to search up to.
-#'
-#' @return A list containing `results_data`, `results_plot`, and `results_summary`.
-#'
-design_rmst_dc_ss<- function(pilot_data,
+rmst.dep.cens.ss<- function(pilot_data,
                                        time_var,
                                        status_var,
                                        arm_var,

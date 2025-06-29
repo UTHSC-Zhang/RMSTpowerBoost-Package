@@ -2,7 +2,7 @@
 % Please edit documentation in R/linear_ipcw.R
 \name{design_rmst_ipcw_power}
 \alias{design_rmst_ipcw_power}
-\title{Analyze Power for a Simple Linear RMST Model}
+\title{Analyze Power for a Linear RMST Model (Analytic)}
 \usage{
 design_rmst_ipcw_power(
   pilot_data,
@@ -12,7 +12,6 @@ design_rmst_ipcw_power(
   sample_sizes,
   linear_terms = NULL,
   tau,
-  n_sim = 1000,
   alpha = 0.05
 )
 }
@@ -23,48 +22,24 @@ design_rmst_ipcw_power(
 
 \item{sample_sizes}{A numeric vector of sample sizes per arm to calculate power for.}
 
-\item{linear_terms}{Optional vector of covariates for the linear model. If NULL,
-defaults to all other columns in \code{pilot_data}.}
+\item{linear_terms}{Optional vector of covariates for the linear model.}
 
 \item{tau}{The truncation time for RMST.}
 
-\item{n_sim}{Number of bootstrap simulations.}
-
-\item{alpha}{The significance level.}
+\item{alpha}{The significance level. Default is 0.05.}
 }
 \value{
-A list containing \code{results_data} (a data.frame of sample sizes and corresponding power),
-\code{results_plot} (a ggplot object), and \code{results_summary} (a data.frame with the estimated
-treatment effect statistics from the largest sample size simulation).
+A list with \code{results_data} (a data.frame of sample sizes and powers)
+and \code{results_plot} (a ggplot object).
 }
 \description{
-Performs a power analysis for given sample sizes based on the direct
-linear regression model for RMST (Tian et al., 2014).
+Performs power analysis using a direct formula based on the
+asymptotic sandwich variance estimator for the linear RMST model (Tian et al., 2014).
 }
 \note{
 \code{status_var} should be \code{1} for an event, \code{0} for censored. \code{arm_var}
-should be \code{1} for treatment, \code{0} for control.
-}
-\examples{
-# Create a small pilot dataset for the example
-pilot_data_linear <- data.frame(
-  event_time = rexp(100, rate = 0.1),
-  event_status = rbinom(100, 1, 0.7),
-  treatment_arm = rep(0:1, each = 50),
-  age = rnorm(100, 50, 10)
-)
-
-# --- Power Calculation Example ---
-results_power <- design_rmst_ipcw_power(
-  pilot_data = pilot_data_linear,
-  time_var = "event_time",
-  status_var = "event_status",
-  arm_var = "treatment_arm",
-  sample_sizes = c(100, 150),
-  tau = 10,
-  n_sim = 10 # Low n_sim for example speed
-)
-
+should be \code{1} for treatment, \code{0} for control. This function is analytic and
+does not use bootstrapping.
 }
 \references{
 Tian, L., et al. (2014). \emph{Biostatistics}, 15(2), 222-233.

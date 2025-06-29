@@ -2,79 +2,46 @@
 % Please edit documentation in R/additive_gam.R
 \name{design_rmst_gam_power}
 \alias{design_rmst_gam_power}
-\title{Calculate Power for a Semiparametric Additive RMST Model}
+\title{Analyze Power for a Multiplicative Stratified RMST Model (Analytic)}
 \usage{
 design_rmst_gam_power(
   pilot_data,
   time_var,
   status_var,
   arm_var,
-  strata_var = NULL,
+  strata_var,
   sample_sizes,
   linear_terms = NULL,
-  smooth_terms = NULL,
   tau,
-  n_sim = 1000,
-  alpha = 0.05,
-  parallel.cores = 1
+  alpha = 0.05
 )
 }
 \arguments{
 \item{pilot_data}{A data.frame with pilot study data.}
 
-\item{time_var, status_var, arm_var}{Strings for column names.}
+\item{time_var, status_var, arm_var, strata_var}{Strings for column names.}
 
-\item{strata_var}{An optional string for a stratification variable.}
+\item{sample_sizes}{A numeric vector of sample sizes to calculate power for.}
 
-\item{sample_sizes}{A numeric vector of sample sizes per arm/stratum.}
-
-\item{linear_terms}{Optional character vector of covariates with a linear effect.}
-
-\item{smooth_terms}{Optional character vector of covariates with a non-linear effect.}
+\item{linear_terms}{Optional vector of covariates for the model.}
 
 \item{tau}{The truncation time for RMST.}
 
-\item{n_sim}{Number of bootstrap simulations.}
-
-\item{alpha}{The significance level.}
-
-\item{parallel.cores}{Number of cores for parallel processing. Default is 1 (sequential).}
+\item{alpha}{The significance level. Default is 0.05.}
 }
 \value{
-A list containing results data, a ggplot object, and a summary data.frame.
+A list containing \code{results_data} and \code{results_plot}.
 }
 \description{
-Performs a power analysis for given sample sizes using a flexible,
-semiparametric additive model for the RMST based on pseudo-observations.
+Performs power analysis using a formula based on the asymptotic
+variance from Wang et al. (2019) for a multiplicative, stratified RMST model.
 }
 \note{
-\code{status_var} should be \code{1} for an event, \code{0} for censored. \code{arm_var}
-should be \code{1} for treatment, \code{0} for control.
-}
-\examples{
-# Create a small pilot dataset for the example
-pilot_data_gam <- data.frame(
-  surv_time = stats::rexp(100, rate = 0.1),
-  censor_status = stats::rbinom(100, 1, 0.7),
-  arm = rep(0:1, each = 50),
-  age = stats::rnorm(100, 50, 10),
-  biomarker = stats::rnorm(100, 10, 3)
-)
-
-# --- Power Calculation Example ---
-results_power <- design_rmst_gam_power(
-  pilot_data = pilot_data_gam,
-  time_var = "surv_time",
-  status_var = "censor_status",
-  arm_var = "arm",
-  sample_sizes = c(100, 150),
-  linear_terms = c("age"),
-  smooth_terms = c("biomarker"),
-  tau = 10,
-  n_sim = 10 # Low n_sim for example speed
-)
+This function is analytic. To simplify the complex estimation procedure
+in the paper, it uses a weighted log-linear model on the pilot data to
+approximate the effect size and its variance. \code{arm_var} should be a 0/1 indicator.
 }
 \references{
-This function uses a pseudo-observation approach. For an alternative
-IPCW-based method, see Zhang, Y., & Schaubel, D. E. (2024), Biometrical Journal.
+Wang, X., et al. (2019). Computationally efficient inference for
+center effects based on restricted mean survival time. \emph{Statistics in Medicine}, 38, 5133-5145.
 }

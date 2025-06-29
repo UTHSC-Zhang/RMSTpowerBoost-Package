@@ -119,7 +119,7 @@ lung_tau <-quantile(lung$time,0.75)
     sample_sizes = c(100, 250, 500,750, 1000),
     linear_terms = c("age", "ph.ecog", "meal.cal", "wt.loss"),
     tau = lung_tau,
-    n_sim = 1000,
+    # n_sim = 1000,
     alpha = 0.05
   )
 results_power_linear
@@ -136,7 +136,7 @@ results_n_linear <- design_rmst_ipcw_ss(
     target_power = 0.75, 
     linear_terms = c("age", "ph.ecog", "meal.cal", "wt.loss"),
     tau = lung_tau,
-    n_sim = 1000,
+    # n_sim = 1000,
     alpha = 0.05
   )
 results_n_linear
@@ -196,13 +196,10 @@ results_power_gam <- design_rmst_gam_power(
     time_var = "time",
     status_var = "status",
     arm_var = "trt",
-    # strata_var = "stage",
+    strata_var = "stage",
     sample_sizes = c(150, 200, 250),
     linear_terms = c("age"),
-    smooth_terms = c("bili"),
-    tau = pbc_tau,
-    n_sim = 500,
-    parallel.cores = 20
+    tau = pbc_tau
 )
 results_power_gam
 ```
@@ -216,10 +213,8 @@ results_power_gam
     status_var = "status",
     strata_var = "stage",
     arm_var = "trt",
-    target_power = 0.4,
+    target_power = 0.9,
     tau = pbc_tau,
-    n_sim = 500,
-    parallel.cores = 20,
     n_start = 100,
     n_step = 50,
     max_n_per_arm = 2500,
@@ -273,9 +268,7 @@ We calculate the required sample size per stratum to achieve various levels of p
     strata_var = "edema",
     sample_sizes = c(100, 150, 200),
     linear_terms = c("age"),
-    tau = pbc_tau,
-    n_sim = 200,
-    parallel.cores = 20
+    tau = pbc_tau
   )
 results_n_strat
 ```
@@ -288,11 +281,9 @@ results_n_strat
     status_var = "status",
     arm_var = "trt",
     strata_var = "edema",
-    target_power = 0.2,
+    target_power = 0.85,
     linear_terms = c("age"),
-    tau = pbc_tau,
-    n_sim = 500,
-    parallel.cores = 20
+    tau = pbc_tau
   )
 results_power_strat
 ```

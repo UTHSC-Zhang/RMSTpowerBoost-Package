@@ -2,7 +2,7 @@
 % Please edit documentation in R/linear_ipcw.R
 \name{design_rmst_ipcw_ss}
 \alias{design_rmst_ipcw_ss}
-\title{Find Sample Size for a Linear RMST Model}
+\title{Find Sample Size for a Linear RMST Model (Analytic)}
 \usage{
 design_rmst_ipcw_ss(
   pilot_data,
@@ -12,9 +12,7 @@ design_rmst_ipcw_ss(
   target_power,
   linear_terms = NULL,
   tau,
-  n_sim = 1000,
   alpha = 0.05,
-  patience = 5,
   n_start = 50,
   n_step = 25,
   max_n_per_arm = 2000
@@ -31,51 +29,21 @@ design_rmst_ipcw_ss(
 
 \item{tau}{The truncation time for RMST.}
 
-\item{n_sim}{Number of bootstrap simulations per search step.}
+\item{alpha}{The significance level. Default is 0.05.}
 
-\item{alpha}{The significance level.}
+\item{n_start}{Starting sample size per arm for the search.}
 
-\item{patience}{Number of consecutive non-improving steps in the iterative
-search before terminating. Default is 5.}
+\item{n_step}{Increment for the sample size search.}
 
-\item{n_start}{The starting sample size per arm for the search.}
-
-\item{n_step}{The increment in sample size at each step of the search.}
-
-\item{max_n_per_arm}{The maximum sample size per arm to search up to.}
+\item{max_n_per_arm}{Maximum sample size per arm to try.}
 }
 \value{
-A list containing \code{results_data} (the final required N), a ggplot object
-of the search path, and a \code{results_summary} data.frame.
+A list containing \code{results_data}, \code{results_plot}, and \code{results_summary}.
 }
 \description{
-Performs an iterative sample size search to achieve a target power
-based on the direct linear regression model for RMST.
+Calculates the required sample size for a target power using an
+analytic formula based on the methods of Tian et al. (2014).
 }
 \note{
-\code{status_var} should be \code{1} for an event, \code{0} for censored. \code{arm_var}
-should be \code{1} for treatment, \code{0} for control.
-}
-\examples{
-# Use the 'veteran' dataset for a stable example
-data(veteran)
-veteran_pilot <- veteran \%>\%
-  dplyr::mutate(
-    status = ifelse(status == 1, 1, 0),
-    trt = ifelse(trt == 2, 1, 0)
-  ) \%>\%
-  tidyr::drop_na(time, status, trt, karno, age)
-
-results_n <- design_rmst_ipcw_ss(
-  pilot_data = veteran_pilot,
-  time_var = "time",
-  status_var = "status",
-  arm_var = "trt",
-  target_power = 0.80,
-  linear_terms = c("age", "karno"),
-  tau = 365,
-  n_sim = 50, # Low n_sim for example speed
-  patience = 3,
-  n_step = 100
-)
+This function is analytic and does not use bootstrapping.
 }
