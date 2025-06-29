@@ -1,7 +1,5 @@
 # Test script for Additive RMST model functions (Boot & Analytic)
 library(testthat)
-devtools::load_all(".")
-
 
 # --- Test Data Setup ---
 # Unstratified data with an additive effect

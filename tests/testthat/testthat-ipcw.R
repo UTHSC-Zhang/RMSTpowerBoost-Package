@@ -1,8 +1,6 @@
 # Test script for Linear RMST model functions (Boot & Analytic)
 library(testthat)
 
-devtools::load_all(".")
-
 # --- Test Data Setup ---
 # A simple pilot dataset for basic checks
 pilot_data_linear <- data.frame(

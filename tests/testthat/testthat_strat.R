@@ -1,9 +1,6 @@
 # Test script for Multiplicative Stratified RMST models (Boot & Analytic)
 library(testthat)
 
-devtools::load_all(".")
-
-
 # --- Test Data Setup ---
 # CORRECTED: Increased the size of the pilot data to make bootstrap tests more stable.
 pilot_data_mult_strat <- data.frame(

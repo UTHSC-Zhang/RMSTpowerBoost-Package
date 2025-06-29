@@ -1,9 +1,6 @@
 # Test script for Dependent Censoring functions
 library(testthat)
 
-devtools::load_all(".")
-
-
 # --- Test Data Setup ---
 # A pilot dataset with a primary event and a competing event
 generate_dc_data <- function(seed, n = 200, effect = 1.2) {

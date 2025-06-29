@@ -63,26 +63,29 @@ from the pilot data, then uses these parameters in an analytic formula to
 efficiently find the required sample size.
 }
 \examples{
-# This example uses a different seed to avoid the singularity issue in the check.
-set.seed(457)
+set.seed(123)
 pilot_df_strat <- data.frame(
- time = rexp(200, 0.5),
- status = rbinom(200, 1, 0.4),
- arm = rep(0:1, each = 100),
- region = factor(rep(c("A", "B"), each = 100))
+ time = rexp(150, 0.1),
+ status = rbinom(150, 1, 0.8),
+ arm = rep(0:1, each = 75),
+ region = factor(rep(c("A", "B", "C"), each = 50)),
+ age = rnorm(150, 60, 10)
 )
-# Introduce a clear additive treatment effect
+# Introduce an additive treatment effect
 pilot_df_strat$time[pilot_df_strat$arm == 1] <-
-  pilot_df_strat$time[pilot_df_strat$arm == 1] + 2.0
+  pilot_df_strat$time[pilot_df_strat$arm == 1] + 1.5
 
-ss_results <- additive.ss.analytical(
-  pilot_data = pilot_df_strat,
-  time_var = "time", status_var = "status", arm_var = "arm", strata_var = "region",
-  target_power = 0.80,
-  tau = 10,
-  n_start = 100, n_step = 50
-)
-print(ss_results$results_data)
-print(ss_results$results_plot)
-
+  # Find the required sample size per stratum for 80\% power
+  ss_results <- additive.ss.analytical(
+    pilot_data = pilot_df_strat,
+    time_var = "time", status_var = "status",
+    arm_var = "arm", strata_var = "region",
+    target_power = 0.50,
+    tau = 18, #
+    n_start = 200,
+    n_step = 50,
+    max_n_per_arm = 1000
+  )
+  print(ss_results$results_data)
+  print(ss_results$results_plot)
 }
