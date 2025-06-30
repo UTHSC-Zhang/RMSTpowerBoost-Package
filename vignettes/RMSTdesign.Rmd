@@ -341,7 +341,7 @@ power_ms_boot <- MS.power.boot(
   sample_sizes = c(100, 300, 500),
   tau = 1825,
   n_sim = 100, 
-  parallel.cores = 20 
+  parallel.cores = 10 
 )
 ```
 
@@ -369,7 +369,7 @@ ss_ms_boot <- MS.ss.boot(
   n_start = 100,
   n_step = 50,
   patience = 4,
-  parallel.cores = 20
+  parallel.cores = 10
 )
 ```
 
@@ -414,7 +414,7 @@ power_gam <- GAM.power.boot(
   sample_sizes = c(50, 200, 400),
   tau = 2825, # 5 years
   n_sim = 500,
-  parallel.cores = 20
+  parallel.cores = 10
 )
 
 print(power_gam$results_plot)
@@ -432,7 +432,7 @@ ss_gam <- GAM.ss.boot(
   tau = 182, 
   n_sim = 500, 
   patience = 5,
-  parallel.cores = 20
+  parallel.cores = 10
 )
 ```
 
