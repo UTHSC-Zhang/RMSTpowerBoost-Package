@@ -37,6 +37,7 @@
 #' @return A `list` containing:
 #' \item{results_data}{A `data.frame` with the specified sample sizes and their corresponding calculated power.}
 #' \item{results_plot}{A `ggplot` object visualizing the power curve.}
+#' \item{results_summary}{A `data.frame` summarizing the treatment effect from the pilot data used for the calculation.}
 #'
 #' @importFrom survival Surv survfit
 #' @importFrom stats lm as.formula complete.cases na.omit sd quantile pnorm qnorm model.matrix coef vcov predict
@@ -117,12 +118,14 @@ linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
    cat("--- Calculating asymptotic variance... ---\n")
    X <- stats::model.matrix(model_formula, data = df)
 
-   # A matrix (derivative of estimating function)
-   # For weighted least squares, it's X'WX / n
    A_hat <- crossprod(X * sqrt(df$weights), X * sqrt(df$weights)) / n_pilot
 
-   # B matrix (outer product of influence functions)
-   # Note: This is an approximation that ignores the influence from estimating the IPCW weights
+   A_hat_inv <- tryCatch({
+      solve(A_hat)
+   }, error = function(e) {
+      stop("The design matrix (A_hat) is singular. This can happen with small pilot datasets or perfect separation.", call. = FALSE)
+   })
+
    df$predicted_rmst <- predict(fit_lm, newdata = df)
    residuals <- df$Y_rmst - df$predicted_rmst
 
@@ -130,9 +133,6 @@ linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
    epsilon[is.na(epsilon)] <- 0
    B_hat <- crossprod(epsilon) / n_pilot
 
-   # --- 3. Assemble the Sandwich Variance Estimator ---
-   # This gives Var(sqrt(n) * (beta_hat - beta))
-   A_hat_inv <- solve(A_hat)
    V_hat_n <- A_hat_inv %*% B_hat %*% t(A_hat_inv)
 
    # Scale to get the variance for n=1
@@ -151,11 +151,16 @@ linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
 
    results_df <- data.frame(N_per_Arm = sample_sizes, Power = power_values)
 
+   # --- CORRECTED: Add the summary object to the return list ---
+   results_summary <- data.frame(
+      Statistic = "Assumed RMST Difference (from pilot)",
+      Value = beta_effect
+   )
+
    # --- 5. Create Plot and Return ---
    p <- ggplot2::ggplot(results_df, ggplot2::aes(x = N_per_Arm, y = Power)) +
       ggplot2::geom_line(color = "#D55E00", linewidth = 1) +
       ggplot2::geom_point(color = "#D55E00", size = 3) +
-      ggplot2::geom_hline(yintercept = 0.8, linetype = "dashed", color = "red") +
       ggplot2::labs(
          title = "Analytic Power Curve: Linear IPCW RMST Model",
          subtitle = "Based on the asymptotic variance from Tian et al. (2014).",
@@ -163,7 +168,7 @@ linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
       ) +
       ggplot2::ylim(0, 1) + ggplot2::theme_minimal()
 
-   return(list(results_data = results_df, results_plot = p))
+   return(list(results_data = results_df, results_plot = p, results_summary = results_summary))
 }
 
 # Sample Size Search ------------------------------------------------------
@@ -264,12 +269,19 @@ linear.ss.analytical <- function(pilot_data, time_var, status_var, arm_var,
 
    X <- stats::model.matrix(model_formula, data = df)
    A_hat <- crossprod(X * sqrt(df$weights), X * sqrt(df$weights)) / n_pilot
+
+   A_hat_inv <- tryCatch({
+      solve(A_hat)
+   }, error = function(e) {
+      stop("The design matrix (A_hat) is singular. This can happen with small pilot datasets or perfect separation.", call. = FALSE)
+   })
+
    df$predicted_rmst <- predict(fit_lm, newdata = df)
    residuals <- df$Y_rmst - df$predicted_rmst
    epsilon <- X * residuals * df$weights
    epsilon[is.na(epsilon)] <- 0
    B_hat <- crossprod(epsilon) / n_pilot
-   A_hat_inv <- solve(A_hat)
+
    V_hat_n <- A_hat_inv %*% B_hat %*% t(A_hat_inv)
    var_beta_n1 <- V_hat_n[arm_coeff_name, arm_coeff_name]
    se_beta_n1 <- sqrt(var_beta_n1)

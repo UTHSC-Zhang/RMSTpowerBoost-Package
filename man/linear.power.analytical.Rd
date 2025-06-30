@@ -36,6 +36,7 @@ linear.power.analytical(
 A \code{list} containing:
 \item{results_data}{A \code{data.frame} with the specified sample sizes and their corresponding calculated power.}
 \item{results_plot}{A \code{ggplot} object visualizing the power curve.}
+\item{results_summary}{A \code{data.frame} summarizing the treatment effect from the pilot data used for the calculation.}
 }
 \description{
 Performs power analysis using a direct formula based on the

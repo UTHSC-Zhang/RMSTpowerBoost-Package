@@ -39,3 +39,4 @@ Suggests:
 Config/testthat/edition: 3
 VignetteBuilder: knitr,
                  rmarkdown
+URL: https://biomedical-data-science-internship.github.io/UTHSC-package/

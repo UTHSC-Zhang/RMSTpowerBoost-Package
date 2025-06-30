@@ -1,21 +1,27 @@
 ---
-title: "RMSTdesign:Sample Size and Power Calculations for RMST-based Clinical Trials"
+title: "RMSTdesign: Sample Size and Power Calculations for RMST-based Clinical Trials"
+author: "Arnab Aich"
 output:
   rmarkdown::html_vignette:
     toc: true
-author: "Arnab Aich"
+    fig_caption: true
+    code_folding: hide
+    df_print: paged
+    highlight: tango
+    self_contained: false
 bibliography: references.bib
-vignette: >
-  %\VignetteIndexEntry{RMSTdesign:Sample Size and Power Calculations for RMST-based Clinical Trials}
-  %\VignetteEncoding{UTF-8}
-  %\VignetteEngine{knitr::rmarkdown}
 biblio-style: apalike
 link-citations: yes
+vignette: >
+  %\VignetteIndexEntry{RMSTdesign: Sample Size and Power Calculations for RMST-based Clinical Trials}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
 ---
 
 ```{r setup, include=FALSE}
 # This setup chunk configures the vignette's appearance and loads necessary packages.
 knitr::opts_chunk$set(
+   # eval = FALSE,
   message = FALSE,
   warning = FALSE,
   comment = NA,
@@ -24,33 +30,27 @@ knitr::opts_chunk$set(
   fig.height = 5,
   collapse = TRUE
 )
-
 packages = c("survival", "dplyr", "tidyr", "knitr", "ggplot2", "mgcv", "kableExtra", "bibtex")
 lapply(packages, require, character.only = TRUE)
 
-# In a real package, these functions would be exported and loaded with `library(RMSTdesign)`.
 library(RMSTdesign)
 ```
 
 # Introduction
 
-## The Role of RMST in Clinical Trials
 
-The analysis of time-to-event data has traditionally been dominated by the Cox proportional hazards model, which focuses on the hazard ratio (HR) as the primary measure of treatment effect. However, the HR can be difficult to interpret, especially when the proportional hazards assumption is violated. In such cases, the estimated HR becomes a weighted average that depends on the study's specific censoring pattern, making it difficult to compare results across trials [@tian2014].
+
+The analysis of time-to-event data has traditionally been dominated by the Cox proportional hazards model, which focuses on the hazard ratio (HR) as the primary measure of treatment effect. However, the HR can be difficult to interpret, especially when the proportional hazards assumption is violated. In such cases, the estimated HR becomes a weighted average that depends on the study's specific censoring pattern, making it difficult to compare results across trials ([@tian2014]).
 
 The Restricted Mean Survival Time (RMST) has emerged as a robust and clinically intuitive alternative. The RMST is the average event-free time up to a pre-specified time point, $\tau$, and is estimated as the area under the survival curve. This provides a direct measure of survival benefit in units of time (e.g., "days" or "months"), which is often more meaningful to clinicians and patients.
 
-## Direct Modeling of RMST
-
 Instead of estimating RMST indirectly from a survival function, recent methodological advances have focused on modeling the RMST directly as a function of covariates. This approach, analogous to generalized linear models, offers flexibility and clear interpretation of covariate effects. This package, `RMSTdesign`, implements a suite of these modern methods to facilitate the design of clinical trials based on RMST. It provides functions for both power and sample size calculations under various complex scenarios.
-
-## What This Package Offers
 
 `RMSTdesign` provides a comprehensive framework by implementing several key methodologies from the statistical literature:
 
 * **Direct Linear Models**: Based on the seminal work of [@tian2014], these functions model the RMST directly using Inverse Probability of Censoring Weighting (IPCW).
-* **Stratified Models**: For studies with nuisance categorical variables (e.g., clinical centers), we provide functions for both **additive** [@zhang2024] and **multiplicative** [@wang2019] models, which efficiently handle stratification without estimating parameters for each level.
-* **Dependent Censoring Models**: In settings with competing risks, such as transplantation studies where receiving an organ dependently censors death, we implement methods from [@wang2018].
+* **Stratified Models**: For studies with nuisance categorical variables (e.g., clinical centers), we provide functions for both **additive** [@zhang2024] and **multiplicative** ([@wang2019]) models, which efficiently handle stratification without estimating parameters for each level.
+* **Dependent Censoring Models**: In settings with competing risks, such as transplantation studies where receiving an organ dependently censors death, we implement methods from [@wang2019].
 * **Flexible Non-Linear Models**: For covariates with suspected non-linear effects, the package includes bootstrap-based functions using Generalized Additive Models (GAMs) on pseudo-observations.
 * **Analytic vs. Bootstrap Methods**: For many models, the package offers both an `analytical` approach for rapid calculations and a `boot` (bootstrap) approach for enhanced robustness at the cost of computation time.
 
@@ -68,30 +68,23 @@ Based on the methods of [@tian2014], these functions model the conditional RMST 
 
 The analytical functions use a formula based on the asymptotic variance of the regression coefficients to calculate power or sample size, making them extremely fast.
 
-### Power Calculation (`linear.power.analytical`)
-
 **Scenario**: We use the `veteran` dataset to estimate power for a trial comparing standard vs. test chemotherapy (`trt`), adjusting for the Karnofsky performance score (`karno`).
 
-```{r echo=FALSE, results='hide'}
-# Prepare the veteran dataset
-data(veteran)
+### Power Calculation - [`linear.power.analytical`](../reference/linear.power.analytical.html)
+
+First, let's inspect the prepared `veteran` dataset.
+```{r veteran_data_prep, echo=FALSE}
 vet <- veteran %>%
   mutate(
     arm = ifelse(trt == 1, 0, 1),
     status = status
   )
-```
-
-First, let's inspect the prepared `veteran` dataset.
-
-```{r}
 head(vet)
 ```
 
-Now, we calculate the power for a range of sample sizes using a truncation time of one year (365 days).
+Now, we calculate the power for a range of sample sizes using a truncation time of 9 months year (270 days).
 
-```{r}
-# Calculate power
+```{r veteran_power_calc}
 power_results_vet <- linear.power.analytical(
   pilot_data = vet,
   time_var = "time",
@@ -99,54 +92,46 @@ power_results_vet <- linear.power.analytical(
   arm_var = "arm",
   linear_terms = "karno",
   sample_sizes = c(100, 150, 200, 250),
-  tau = 365
+  tau = 270
 )
 ```
 
 The results are returned as a data frame and a `ggplot` object.
 
-```{r}
-# Display results table
-kbl(power_results_vet$results_data, caption = "Power Analysis for Veteran Dataset") %>%
+```{r veteran_table_plot, echo=FALSE}
+
+kbl(power_results_vet$results_data , caption = "Power Analysis for Veteran Dataset") %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
 ```
 
+### Sample Size Calculation - [`linear.ss.analytical`](../reference/linear.ss.analytical.html)
 
+We can also use the analytical method to find the required sample size to achieve a target power for a truncation time of an year(365 days) .
 
-```{r}
-# Display enhanced plot
-power_results_vet$results_plot +
-  geom_hline(yintercept = 0.8, linetype = "dashed", color = "#E41A1C") +
-  labs(
-    title = "Power Curve for Veteran Lung Cancer Trial",
-    subtitle = "Linear RMST model, adjusted for Karnofsky score (tau = 365 days)",
-    caption = "Red dashed line indicates 80% target power."
-  ) +
-  theme_bw(base_size = 14)
-```
-
-### Sample Size Calculation (`linear.ss.analytical`)
-
-We can also use the analytical method to find the required sample size to achieve a target power.
-
-```{r}
-# Find sample size for 80% power
+```{r veteran_ss_calc}
 ss_results_vet <- linear.ss.analytical(
   pilot_data = vet,
   time_var = "time",
   status_var = "status",
   arm_var = "arm",
-  target_power = 0.80,
+  target_power = 0.40,
   linear_terms = "karno",
-  tau = 365
+  tau = 365,
+  n_start = 1000, n_step = 250, max_n_per_arm = 5000
 )
 ```
 
 
-```{r}
-# Display results table
-kbl(ss_results_vet$results_data, caption = "Sample Size for Veteran Dataset") %>%
+```{r veteran_ss_table, echo=FALSE}
+
+kbl(ss_results_vet$results_summary, caption = "Estimated Effect from Pilot Data") %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+
+ss_results_vet$results_plot +
+  theme_bw(base_size = 14)
+
 ```
 
 ## Bootstrap Methods
@@ -155,10 +140,11 @@ The bootstrap, or simulation-based, approach provides a robust, distribution-fre
 
 ### Power and Sample Size Calculation (`.boot`)
 
-Here is how you would call the bootstrap functions for power and sample size for the linear model. We set `eval=FALSE` because these chunks can take a long time to run.
+Here is how you would call the bootstrap functions for power for the linear model. The following examples use the same `veteran` dataset, but with a smaller number of simulations for demonstration purposes. In practice, you would use a larger number of simulations (e.g., 1000 or more) to ensure stability of the results. 
 
-```{r, eval=FALSE}
-# Power calculation with bootstrap
+First we calculate the power for a range of sample sizes. The [`linear.power.boot`](../reference/linear.power.boot.html) function takes the pilot data and returns a data frame with the estimated power for each sample size.
+
+```{r linear_boot_example}
 power_boot_vet <- linear.power.boot(
   pilot_data = vet,
   time_var = "time",
@@ -167,22 +153,39 @@ power_boot_vet <- linear.power.boot(
   linear_terms = "karno",
   sample_sizes = c(150, 200, 250),
   tau = 365,
-  n_sim = 200 # Use more simulations (e.g., 1000) in practice
+  n_sim = 200 
 )
+```
 
-# Sample size calculation with bootstrap
+
+```{r echo=FALSE}
+power_boot_vet$results_plot
+```
+
+
+Here is how you would call the bootstrap function for sample size calculation. We will use the function [`linear.ss.boot`](../reference/linear.ss.boot.html) to find the sample size needed to achieve a target power of 0.5, truncating at 180 days (6 months).
+```{r}
 ss_boot_vet <- linear.ss.boot(
   pilot_data = vet,
   time_var = "time",
   status_var = "status",
   arm_var = "arm",
-  target_power = 0.80,
+  target_power = 0.5,
   linear_terms = "karno",
-  tau = 365,
-  n_sim = 200, # Use more simulations in practice
-  patience = 2
+  tau = 180,
+  n_sim = 500, 
+  patience = 5
 )
 ```
+
+
+
+```{r echo=FALSE}
+
+ss_boot_vet$results_plot +
+  theme_bw(base_size = 14)
+```
+
 
 # Additive Stratified Models
 
@@ -190,92 +193,191 @@ In many trials, it is necessary to stratify by a categorical variable with many 
 
 ## Theory and Model
 
-The semiparametric additive model for RMST, $\mu_{ij} = \mu_{0j} + \beta'Z_i$, assumes that the effect of covariates $Z_i$ is additive and constant across strata $j$, while allowing each stratum to have its own baseline RMST, $\mu_{0j}$. The methods implemented here are based on [@zhang2024], who show that the common effect $\beta$ can be estimated efficiently by using a stratum-centering approach on the IPCW-weighted data, which avoids direct estimation of the numerous $\mu_{0j}$ parameters.
+The semiparametric additive model for RMST, $$\mu_{ij} = \mu_{0j} + \beta'Z_i$$, assumes that the effect of covariates $Z_i$ is additive and constant across strata $j$, while allowing each stratum to have its own baseline RMST, $\mu_{0j}$. The methods implemented here are based on Zhang & Schaubel (2024), who show that the common effect $\beta$ can be estimated efficiently by using a stratum-centering approach on the IPCW-weighted data, which avoids direct estimation of the numerous $\mu_{0j}$ parameters.
 
 ## Analytical Methods
 
-### Sample Size Calculation (`additive.ss.analytical`)
+### Sample Size Calculation - [`additive.ss.analytical`](../reference/additive.ss.analytical.html)
 
 **Scenario**: We use the `colon` dataset to design a trial stratified by the extent of local disease (`extent`), a factor with 4 levels. We want to find the sample size per stratum to achieve 80% power.
-
-```{r echo=FALSE, results='hide'}
-# Prepare colon dataset for death endpoint
-data(colon)
+Let's inspect the prepared `colon` dataset.
+```{r colon_data_prep, echo=FALSE}
 colon_death <- colon %>%
   filter(etype == 2) %>%
   select(time, status, rx, extent) %>%
   na.omit() %>%
   mutate(
     arm = ifelse(rx == "Obs", 0, 1),
+    status = status,
     strata = factor(extent)
   )
-```
-
-Let's inspect the prepared `colon` dataset.
-
-```{r}
 head(colon_death)
 ```
 
 Now, we run the sample size search for 80% power, truncating at 5 years (1825 days).
 
-```{r}
-# Run the sample size search
+```{r colon_ss_calc}
 ss_results_colon <- additive.ss.analytical(
   pilot_data = colon_death,
   time_var = "time", status_var = "status", arm_var = "arm", strata_var = "strata",
-  target_power = 0.80,
+  target_power = 0.60,
   tau = 1825,
-  n_start = 200, n_step = 50, max_n_per_arm = 1000
+  n_start = 100, n_step = 100, max_n_per_arm = 10000
 )
 ```
 
+```{r colon_ss_table, echo=FALSE}
 
-
-```{r}
-# Display results table
-kbl(ss_results_colon$results_data, caption = "Sample Size for Stratified Colon Trial") %>%
+kbl(ss_results_colon$results_summary , caption = "Estimated Effect from Pilot Data") %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
-```
-
-```{r}
 # Display enhanced search plot
 final_n_colon <- ss_results_colon$results_data$Required_N_per_Stratum
 power_at_final_n_colon <- ss_results_colon$results_plot$data %>% 
   filter(N_per_Stratum == final_n_colon) %>% pull(Power)
 
-ss_results_colon$results_plot +
-  annotate("rect", xmin = final_n_colon - 25, xmax = final_n_colon + 25, ymin = 0, ymax = power_at_final_n_colon,
-           alpha = .2, fill = "#377EB8") +
-  annotate("text", x = final_n_colon, y = 0.25,
-           label = paste("N =", final_n_colon), color = "#377EB8", angle = 90, vjust = -1, fontface="bold") +
-  labs(
-    title = "Sample Size Search for Stratified Colon Cancer Trial",
-    subtitle = "Additive RMST model with stratification by disease extent (tau = 5 years)"
-  ) +
+ss_results_colon$results_plot
+
+```
+
+### Power Calculation - [`additive.power.analytical`](../reference/additive.power.analytical.html)
+
+This function calculates the power for a given set of sample sizes in a stratified additive model. We will use the `colon` dataset again for this example.
+
+```{r additive_power_calc}
+# Calculate power for a range of sample sizes per stratum
+power_results_colon <- additive.power.analytical(
+  pilot_data = colon_death,
+  time_var = "time",
+  status_var = "status",
+  arm_var = "arm",
+  strata_var = "strata",
+  sample_sizes = c(1000, 3000, 5000),
+  tau = 1825 # 5 years
+)
+
+```
+
+
+```{r additive_power_table_plot, echo=FALSE}
+# Display the results
+kbl(power_results_colon$results_data, caption = "Power for Additive Stratified Colon Trial") %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+power_results_colon$results_plot +
+  geom_hline(yintercept = 0.8, linetype = "dashed", color = "red") +
+  labs(title = "Power Curve for Additive Stratified Model") +
   theme_bw(base_size = 14)
 ```
 
+
 # Multiplicative Stratified Models
 
-As an alternative to the additive model, the multiplicative model may be preferred if the treatment is expected to have a relative effect on the RMST.
+As an alternative to the additive model, the multiplicative model may be preferred if the treatment is expected to have a relative effect on the RMST, such as increasing or decreasing survival time by a certain percentage.
 
 ## Theory and Model
 
-The multiplicative model is of the form $\mu_{ij} = \mu_{0j} \exp(\beta'Z_i)$, where the effect of covariates is a proportional change to the baseline stratum-specific RMST. This is particularly useful for facility profiling, where we might have thousands of centers. The methods implemented here, based on [@wang2019], use a computationally efficient two-stage procedure that avoids creating thousands of indicator variables, making analysis of very large datasets feasible.
+The multiplicative model is of the form $$\mu_{ij} = \mu_{0j} \exp(\beta'Z_i)$$, where the effect of covariates is a proportional change to the baseline stratum-specific RMST. This is particularly useful for facility profiling, where we might have thousands of centers. The methods implemented here, based on [@wang2019], use a computationally efficient two-stage procedure that avoids creating thousands of indicator variables, making analysis of very large datasets feasible.
 
-## Analytical & Bootstrap Methods
+## Analytical Methods
 
-The functions for this model family follow the same pattern (`MS.power.analytical`, `MS.ss.boot`, etc.). Below is a sample call for the analytical sample size function.
+### Power Calculation - [`MS.power.analytical`](../reference/MS.power.analytical.html)
 
-```{r, eval=FALSE}
-# Note: Using the same colon_death data as the previous section
+This function calculates the power for various sample sizes using the analytical method for the multiplicative stratified model.
+
+```{r ms_power_analytical_example}
+# Calculate power using the multiplicative stratified analytical method
+power_ms_analytical <- MS.power.analytical(
+  pilot_data = colon_death,
+  time_var = "time", status_var = "status", arm_var = "arm", strata_var = "strata",
+  sample_sizes = c(300, 400, 500),
+  tau = 1825
+)
+```
+
+
+```{r echo=FALSE}
+
+kbl(power_ms_analytical$results_data, caption = "Power for Multiplicative Stratified Model") %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+```
+
+### Sample Size Calculation - [`MS.ss.analytical`](../reference/MS.ss.analytical.html)
+
+The following example demonstrates the sample size calculation using the same model.
+
+```{r ms_ss_analytical_example}
+# Calculate sample size
 ms_ss_results_colon <- MS.ss.analytical(
   pilot_data = colon_death,
   time_var = "time", status_var = "status", arm_var = "arm", strata_var = "strata",
   target_power = 0.80,
   tau = 1825
 )
+```
+```{r echo=FALSE}
+
+kbl(ms_ss_results_colon$results_summary, caption = "Sample Size for Multiplicative Stratified Model") %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+ms_ss_results_colon$results_plot +
+  theme_bw(base_size = 14)
+```
+
+## Bootstrap Methods
+
+The bootstrap approach provides a more robust, simulation-based analysis for the multiplicative model.
+
+### Power Calculation - [`MS.power.boot`](../reference/MS.power.boot.html)
+
+The following code demonstrates how to call the `MS.power.boot` function. 
+
+```{r ms_power_boot_example}
+power_ms_boot <- MS.power.boot(
+  pilot_data = colon_death,
+  time_var = "time",
+  status_var = "status",
+  arm_var = "arm",
+  strata_var = "strata",
+  sample_sizes = c(100, 300, 500),
+  tau = 1825,
+  n_sim = 100, 
+  parallel.cores = 20 
+)
+```
+
+```{r echo=FALSE}
+kbl(power_ms_boot$results_summary, caption = "Power for Multiplicative Stratified Model (Bootstrap)") %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+power_ms_boot$results_plot 
+```
+
+
+### Sample Size Calculation - [`MS.ss.boot`](../reference/MS.ss.boot.html)
+
+Similarly, the sample size can be calculated using bootstrap simulation. 
+
+```{r ms_ss_boot_example}
+ss_ms_boot <- MS.ss.boot(
+  pilot_data = colon_death,
+  time_var = "time",
+  status_var = "status",
+  arm_var = "arm",
+  strata_var = "strata", 
+  target_power = 0.5,
+  tau = 1825,
+  n_sim = 100,
+  n_start = 100,
+  n_step = 50,
+  patience = 4,
+  parallel.cores = 20
+)
+```
+
+
+```{r echo=FALSE}
+
+kbl(ss_ms_boot$results_summary, caption = "Sample Size for Multiplicative Stratified Model (Bootstrap)") %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
 ```
 
 # Semiparametric GAM Models
@@ -288,44 +390,55 @@ These functions use a bootstrap simulation approach combined with a GAM. The tim
 
 ## Bootstrap Methods
 
-### Power Calculation (`GAM.power.boot`)
+### Power Calculation - [`GAM.power.boot`](../reference/GAM.power.boot.html)
 
 **Scenario**: We use the `gbsg` (German Breast Cancer Study Group) dataset, suspecting that the progesterone receptor count (`pgr`) has a non-linear effect on recurrence-free survival.
-
-```{r echo=FALSE, results='hide'}
-# Prepare gbsg dataset
-data(gbsg)
+Here is a look at the prepared `gbsg` data.
+```{r gbsg_data_prep, echo=FALSE}
 gbsg_prepared <- gbsg %>%
   mutate(
     arm = ifelse(hormon == "no", 0, 1)
   )
-```
-
-Here is a look at the prepared `gbsg` data.
-
-```{r}
 head(gbsg_prepared)
 ```
 
-The following code shows how to calculate power. We set `eval=FALSE` as it is time-consuming.
+The following code shows how to calculate power.
 
-```{r, eval=FALSE}
-# Calculate power using GAM bootstrap.
-# NOTE: n_sim should be higher (e.g., 1000) in practice.
+```{r gbsg_power_calc}
 power_gam <- GAM.power.boot(
   pilot_data = gbsg_prepared,
   time_var = "rfstime",
   status_var = "status",
   arm_var = "arm",
   smooth_terms = "pgr", # Model pgr with a smooth term
-  sample_sizes = c(150, 200, 250),
-  tau = 1825, # 5 years
-  n_sim = 100, # Low n_sim for a quick example!
-  parallel.cores = 2
+  sample_sizes = c(50, 200, 400),
+  tau = 2825, # 5 years
+  n_sim = 500,
+  parallel.cores = 20
 )
 
-# kbl(power_gam$results_data)
-# print(power_gam$results_plot)
+print(power_gam$results_plot)
+```
+
+### Sample Size Calculation - [`GAM.ss.boot`](../reference/GAM.ss.boot.html)
+**Scenario**: We want to find the sample size needed to achieve 80% power for detecting an effect of `pgr` on recurrence-free survival.
+```{r}
+ss_gam <- GAM.ss.boot(
+  pilot_data = gbsg_prepared,
+  time_var = "rfstime",
+  status_var = "status",
+  arm_var = "arm",
+  target_power = 0.95,
+  tau = 182, 
+  n_sim = 500, 
+  patience = 5,
+  parallel.cores = 20
+)
+```
+
+```{r echo=FALSE}
+ss_gam$results_plot +
+  theme_bw(base_size = 14)
 ```
 
 # Dependent Censoring Models
@@ -334,17 +447,9 @@ In some studies, particularly observational or registry studies, censoring may n
 
 ## Theory and Model
 
-The methods from [@wang2018] address this by extending the IPCW framework. Instead of a single censoring model, **cause-specific Cox models** are fitted for each source of censoring (e.g., one model for administrative censoring, another for the competing event). The final weight for a subject is a product of the weights derived from all censoring causes, allowing for unbiased estimation of the RMST for the primary event.
+The methods from [@wang2019] address this by extending the IPCW framework. Instead of a single censoring model, **cause-specific Cox models** are fitted for each source of censoring (e.g., one model for administrative censoring, another for the competing event). The final weight for a subject is a product of the weights derived from all censoring causes, allowing for unbiased estimation of the RMST for the primary event. We will use the `mgus2` dataset for this scenario.
 
-## Analytical Methods
-
-### Sample Size Calculation (`DC.ss.analytical`)
-
-**Scenario**: We use the `mgus2` dataset, which tracks patients with a pre-malignant condition. The primary event is progression to cancer (`pstat`=1), but death before progression is a competing risk. We want to find the required sample size to detect an effect on progression, accounting for the competing risk of death.
-
-```{r echo=FALSE, results='hide'}
-# Prepare mgus2 data
-data(mgus2)
+```{r mgus2_data_prep, echo=FALSE}
 mgus_prepared <- mgus2 %>%
   mutate(
     event_primary = ifelse(pstat == 1, 1, 0),
@@ -352,18 +457,38 @@ mgus_prepared <- mgus2 %>%
     arm = ifelse(sex == "M", 1, 0)
   ) %>%
   rename(time = futime)
-```
-
-First, inspect the prepared `mgus2` dataset. Note the two status columns we created.
-
-```{r}
 head(mgus_prepared)
 ```
+## Analytical Methods
+
+### Power Calculation - [`DC.power.analytical`](../reference/DC.power.analytical.html)
+
+This function calculates power for a study with dependent censoring (competing risks) for a given set of sample sizes. 
+```{r dc_power_calc}
+dc_power_results <- DC.power.analytical(
+  pilot_data = mgus_prepared,
+  time_var = "time",
+  status_var = "event_primary",
+  arm_var = "arm",
+  dep_cens_status_var = "event_dependent",
+  sample_sizes = c(1000, 1500, 2000),
+  linear_terms = "age",
+  tau = 120 # 10 years
+)
+```
+
+```{r echo=FALSE}
+kbl(dc_power_results$results_summary, caption = "Power Analysis for MGUS Progression Study") %>%
+  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+
+dc_power_results$results_plot
+```
+
+### Sample Size Calculation - [`DC.ss.analytical`](../reference/DC.ss.analytical.html)
 
 Now, find the sample size needed for 80% power, truncating at 10 years (120 months).
 
-```{r}
-# Find the sample size
+```{r mgus2_ss_calc}
 ss_dc_mgus <- DC.ss.analytical(
   pilot_data = mgus_prepared,
   time_var = "time",
@@ -373,30 +498,20 @@ ss_dc_mgus <- DC.ss.analytical(
   target_power = 0.80,
   linear_terms = "age",
   tau = 120, # 10 years
-  n_start = 1000, n_step = 250, max_n_per_arm = 5000
+  n_start = 100, n_step = 25, max_n_per_arm = 5000
 )
+
 ```
 
 
+```{r mgus2_table, echo=FALSE}
 
-
-```{r}
-# Display results table
-kbl(ss_dc_mgus$results_data, caption = "Sample Size for MGUS Progression Study") %>%
+kbl(ss_dc_mgus$results_summary, caption = "Estimated Effect from Pilot Data") %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
-```
-
-```{r}
-# Display enhanced plot
-final_n_dc <- ss_dc_mgus$results_data$Required_N_per_Arm
 
 ss_dc_mgus$results_plot +
-  geom_hline(yintercept = 0.8, linetype = "dashed", color = "red") +
-  labs(
-    title = "Sample Size Search with Competing Risks",
-    subtitle = "Dataset: mgus2. Event: Progression to malignancy. Competing Risk: Death."
-  ) +
   theme_bw(base_size = 14)
+
 ```
 
 # Conclusion
@@ -412,4 +527,6 @@ The `RMSTdesign` package provides a powerful and flexible suite of tools for des
 
 Future development could involve extending the bootstrap approach to the dependent censoring models and incorporating more advanced model diagnostic tools to help users assess the adequacy of their chosen model based on the pilot data.
 
+
 # References
+
