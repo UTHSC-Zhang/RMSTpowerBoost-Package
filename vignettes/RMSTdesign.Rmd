@@ -25,6 +25,7 @@ knitr::opts_chunk$set(
   message = FALSE,
   warning = FALSE,
   comment = NA,
+  eval = FALSE,
   fig.align = 'center',
   fig.width = 7,
   fig.height = 5,
@@ -38,14 +39,13 @@ library(RMSTdesign)
 
 # Introduction
 
+The analysis of time-to-event data has traditionally been dominated by the Cox proportional hazards model, which focuses on the hazard ratio (HR) as the primary measure of treatment effect. However, the HR can be difficult to interpret, especially when the proportional hazards assumption is violated [@tian2014, @zhang2024]. In such cases, the estimated HR becomes a weighted average that depends on the study's specific censoring pattern, making it difficult to compare results across trials [@wang2018]. The Restricted Mean Survival Time (RMST) has emerged as a robust and clinically intuitive alternative, a conclusion supported by a growing body of literature that advocates for its use in the design and analysis of clinical trials [@royston2013, @uno2014]. The RMST is the average event-free time up to a pre-specified time point, $\tau$ , and is estimated as the area under the survival curve. This provides a direct measure of survival benefit in units of time (e.g., "days" or "months"), which is often more meaningful to clinicians and patients.
 
+Instead of estimating RMST indirectly from a survival function, recent methodological advances have focused on modeling the RMST directly as a function of covariates. A foundational paper by [@tian2014] established a class of such models using Inverse Probability of Censoring Weighting (IPCW), which provided the theoretical basis for direct RMST regression. Since then, the literature has rapidly expanded to adapt this direct modeling approach to the complex data structures seen in modern trials. Research has moved beyond a single timepoint to modeling the entire RMST curve as a function of restriction time [@zhao2016, @zhong2022]. Furthermore, to handle the common challenge of adjusting for high-dimensional categorical variables like clinical centers, computationally efficient stratified models were developed, including a multiplicative model by [@wang2019] and a complementary additive model by [@zhang2024]. For observational data, these methods have been extended to estimate causal effects [@ni2021], and for settings with competing risks, such as transplantation studies, [@wang2018] developed a framework to handle dependent censoring using cause-specific weights.
 
-The analysis of time-to-event data has traditionally been dominated by the Cox proportional hazards model, which focuses on the hazard ratio (HR) as the primary measure of treatment effect. However, the HR can be difficult to interpret, especially when the proportional hazards assumption is violated. In such cases, the estimated HR becomes a weighted average that depends on the study's specific censoring pattern, making it difficult to compare results across trials ([@tian2014]).
+To date, the computational implementation of these sophisticated methods has focused primarily on estimation. For instance, the original papers describe how estimation can be achieved through custom-coded procedures or by cleverly manipulating standard software for weighted least squares or Cox regression [@wang2019, @zhang2024]. However, there is a significant gap between these theoretical estimation frameworks and the availability of validated, user-friendly tools for study design. Calculating the required sample size or statistical power for a trial based on these advanced RMST models is a complex task that, until now, would require bespoke simulation programming from trial statisticians.
 
-The Restricted Mean Survival Time (RMST) has emerged as a robust and clinically intuitive alternative. The RMST is the average event-free time up to a pre-specified time point, $\tau$, and is estimated as the area under the survival curve. This provides a direct measure of survival benefit in units of time (e.g., "days" or "months"), which is often more meaningful to clinicians and patients.
-
-Instead of estimating RMST indirectly from a survival function, recent methodological advances have focused on modeling the RMST directly as a function of covariates. This approach, analogous to generalized linear models, offers flexibility and clear interpretation of covariate effects. This package, `RMSTdesign`, implements a suite of these modern methods to facilitate the design of clinical trials based on RMST. It provides functions for both power and sample size calculations under various complex scenarios.
-
+This package, RMSTdesign, is designed to fill that critical gap. The primary goal of RMSTdesign is to provide trialists with a comprehensive and accessible suite of tools for power and sample size calculations based on the very latest in direct RMST methodology. It operationalizes the seminal work on direct RMST modeling into a set of validated functions, allowing researchers to robustly design trials for a wide variety of scenarios. RMSTdesign provides a comprehensive framework by implementing several key methodologies from the statistical literature:
 `RMSTdesign` provides a comprehensive framework by implementing several key methodologies from the statistical literature:
 
 * **Direct Linear Models**: Based on the seminal work of [@tian2014], these functions model the RMST directly using Inverse Probability of Censoring Weighting (IPCW).
@@ -308,12 +308,10 @@ The following example demonstrates the sample size calculation using the same mo
 ```{r ms_ss_analytical_example}
 # Calculate sample size
 ms_ss_results_colon <- MS.ss.analytical(
-  pilot_data = colon_death,
-  time_var = "time", status_var = "status", arm_var = "arm", strata_var = "strata",
-  target_power = 0.80,
-  tau = 1825
-)
+  pilot_data = colon_death, time_var = "time", status_var = "status", arm_var = "arm", strata_var = "strata",
+  target_power = 0.6,tau = 1825)
 ```
+
 ```{r echo=FALSE}
 
 kbl(ms_ss_results_colon$results_summary, caption = "Sample Size for Multiplicative Stratified Model") %>%
@@ -471,7 +469,7 @@ dc_power_results <- DC.power.analytical(
   status_var = "event_primary",
   arm_var = "arm",
   dep_cens_status_var = "event_dependent",
-  sample_sizes = c(1000, 1500, 2000),
+  sample_sizes = c(100, 250, 500),
   linear_terms = "age",
   tau = 120 # 10 years
 )
@@ -498,7 +496,7 @@ ss_dc_mgus <- DC.ss.analytical(
   target_power = 0.80,
   linear_terms = "age",
   tau = 120, # 10 years
-  n_start = 100, n_step = 25, max_n_per_arm = 5000
+  n_start = 100, n_step = 50, max_n_per_arm = 5000
 )
 
 ```
