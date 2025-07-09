@@ -1,5 +1,5 @@
 ---
-title: "RMSTdesign: Sample Size and Power Calculations for RMST-based Clinical Trials"
+title: "RMSTSS: Sample Size and Power Calculations for RMST-based Clinical Trials"
 author: "Arnab Aich"
 output:
   rmarkdown::html_vignette:
@@ -13,7 +13,7 @@ bibliography: references.bib
 biblio-style: apalike
 link-citations: yes
 vignette: >
-  %\VignetteIndexEntry{RMSTdesign: Sample Size and Power Calculations for RMST-based Clinical Trials}
+  %\VignetteIndexEntry{RMSTSS: Sample Size and Power Calculations for RMST-based Clinical Trials}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
 ---
@@ -33,7 +33,7 @@ knitr::opts_chunk$set(
 packages = c("survival", "dplyr", "tidyr", "knitr", "ggplot2", "mgcv", "kableExtra", "bibtex")
 lapply(packages, require, character.only = TRUE)
 
-library(RMSTdesign)
+library(RMSTSS)
 ```
 
 # Introduction
@@ -44,7 +44,7 @@ Instead of estimating RMST indirectly from a survival function, recent methodolo
 
 To date, the computational implementations of these sophisticated methods have focused primarily on estimation. For instance, the original papers describe how estimation can be achieved through custom-coded procedures or by cleverly manipulating standard software for weighted least squares or Cox regression [@wang2019, @zhang2024]. However, there is a significant gap between these theoretical estimation frameworks and the availability of validated, user-friendly tools for study design. Calculating the required sample size or statistical power for a trial based on these advanced RMST models is a complex task that, until now, has required bespoke simulation programming from trial statisticians.
 
-This package, `RMSTdesign`, is designed to fill that critical gap. The primary goal of `RMSTdesign` is to provide trialists with a comprehensive and accessible suite of tools for power and sample size calculations based on the latest direct RMST methodology. It operationalizes the seminal work on direct RMST modeling into a set of validated functions, allowing researchers to robustly design trials for a wide variety of scenarios. `RMSTdesign` provides a comprehensive framework by implementing several key methodologies from the statistical literature:
+This package, `RMSTSS`, is designed to fill that critical gap. The primary goal of `RMSTSS` is to provide trialists with a comprehensive and accessible suite of tools for power and sample size calculations based on the latest direct RMST methodology. It operationalizes the seminal work on direct RMST modeling into a set of validated functions, allowing researchers to robustly design trials for a wide variety of scenarios. `RMSTSS` provides a comprehensive framework by implementing several key methodologies from the statistical literature:
 
 -   **Direct Linear Models**: Based on the seminal work of [@tian2014], these functions model the RMST directly using Inverse Probability of Censoring Weighting (IPCW).
 -   **Stratified Models**: For studies with nuisance categorical variables (e.g., clinical centers), we provide functions for both **additive** [@zhang2024] and **multiplicative** ([@wang2019]) models, which efficiently handle stratification without estimating parameters for each level.
@@ -509,7 +509,7 @@ ss_dc_mgus$results_plot +
 
 # Interactive Shiny Application
 
-For users who prefer a graphical interface, `RMSTdesign` provides an interactive Shiny web application that offers a point-and-click interface to all the models and methods described in this vignette.
+For users who prefer a graphical interface, `RMSTSS` provides an interactive Shiny web application that offers a point-and-click interface to all the models and methods described in this vignette.
 
 ### Accessing the Application
 
@@ -519,10 +519,10 @@ There are two ways to access the application:
 
     -   [Launch Web Application](https://arnab96.shinyapps.io/uthsc-app/)
 
-2.  **Run Locally from the R Package**: If you have installed the `RMSTdesign-Package`, you can run the application on your own machine with the following command:
+2.  **Run Locally from the R Package**: If you have installed the `RMSTSS-Package`, you can run the application on your own machine with the following command:
 
 ```{r, eval=FALSE}
-RMSTdesign::run_app()
+RMSTSS::run_app()
 ```
 
 ### App Features
@@ -535,7 +535,7 @@ RMSTdesign::run_app()
 
 # Conclusion
 
-The `RMSTdesign` package provides a powerful and flexible suite of tools for designing and analyzing clinical trials using the Restricted Mean Survival Time.
+The `RMSTSS` package provides a powerful and flexible suite of tools for designing and analyzing clinical trials using the Restricted Mean Survival Time.
 
 ## Advantages and Disadvantages
 

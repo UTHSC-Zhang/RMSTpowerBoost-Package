@@ -1,4 +1,4 @@
-Package: RMSTdesign
+Package: RMSTSS
 Type: Package
 Title: Sample Size Calculation Using RMST for Survival Data
 Version: 0.1.1
@@ -29,7 +29,8 @@ Imports:
     magrittr,
     future,
     future.apply,
-    knitr
+    knitr,
+    shiny
 Suggests:
     rmarkdown,
     tidyr,
@@ -39,4 +40,4 @@ Suggests:
 Config/testthat/edition: 3
 VignetteBuilder: knitr,
                  rmarkdown
-URL: https://biomedical-data-science-internship.github.io/UTHSC-package/
+URL: https://biomedical-data-science-internship.github.io/UTHSC-zhang/
