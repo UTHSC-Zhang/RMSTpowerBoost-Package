@@ -125,7 +125,6 @@ ss_results_vet <- linear.ss.analytical(
 kbl(ss_results_vet$results_summary, caption = "Estimated Effect from Pilot Data") %>%
   kable_styling(bootstrap_options = "striped", full_width = FALSE)
 
-
 ss_results_vet$results_plot +
   theme_bw(base_size = 14)
 
