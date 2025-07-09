@@ -67,9 +67,7 @@ print(power_results$results_plot)
 
 For users who prefer a graphical user interface, an interactive Shiny application is available. The app provides a point-and-click interface to all the package's functionalities, allowing you to upload data, map variables, select models, and run analyses without writing any code.
 
-You can access the application directly in your web browser by following this link:
-
-[**Click Here**](https://arnab96.shinyapps.io/uthsc-app/)
+You can access the application directly in your web browser by following this link: [**Click Here**](https://arnab96.shinyapps.io/uthsc-app/)
 
 ## Citation
 
