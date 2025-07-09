@@ -45,8 +45,95 @@
   </div>
 </nav><div class="container template-home">
 <div class="row">
-  <main id="main" class="col-md-9">
-A toolkit for designing studies with a restricted mean survival time (RMST) endpoint. This package provides functions to perform bootstrap-based power and sample size calculations for two-arm studies, implementing several modern, direct RMST modeling approaches from the biostatistical literature. Users can select a method based on their study's design and assumptions, including flexible additive models with splines (Zhang &amp; Schaubel, 2024), simple linear models with IPCW for independent censoring (Tian et al., 2014), efficient multiplicative models for high-dimensional stratification (Wang et al., 2019), and models for handling dependent censoring or competing risks (Wang &amp; Schaubel, 2018).
+  <main id="main" class="col-md-9"><div class="section level1">
+<div class="page-header"><h1 id="rmstdesign-power-and-sample-size-for-rmst-based-trials">RMSTdesign: Power and Sample Size for RMST-Based Trials<a class="anchor" aria-label="anchor" href="#rmstdesign-power-and-sample-size-for-rmst-based-trials"></a>
+</h1></div>
+<p><a href="https://www.google.com/search?q=https://CRAN.R-project.org/package%3DRMSTdesign" class="external-link"></a> <a href="https://www.google.com/search?q=https://github.com/arnabaich/RMSTdesign/actions/workflows/R-CMD-check.yaml" class="external-link"></a> <code>RMSTdesign</code> provides a comprehensive suite of tools for calculating statistical power and sample size for clinical trials that use the Restricted Mean Survival Time (RMST) as the primary endpoint.</p>
+<div class="section level2">
+<h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
+</h2>
+<p>The analysis of time-to-event data is moving beyond the proportional hazards assumption, and the RMST has emerged as a robust and clinically intuitive alternative to the hazard ratio. However, tools for designing studies based on modern, direct-modeling approaches for the RMST have been lacking.</p>
+<p><code>RMSTdesign</code> fills this critical gap by implementing a variety of advanced statistical methods for study design, allowing researchers to accurately plan trials under complex scenarios.</p>
+<div class="section level3">
+<h3 id="key-features">Key Features<a class="anchor" aria-label="anchor" href="#key-features"></a>
+</h3>
+<ul>
+<li>
+<strong>Multiple Model Types</strong>: Handles various data structures and assumptions.
+<ul>
+<li>
+<strong>Linear IPCW Models</strong>: Standard direct regression modeling.</li>
+<li>
+<strong>Additive &amp; Multiplicative Stratified Models</strong>: Efficiently handles stratification by variables with many levels (e.g., clinical centers).</li>
+<li>
+<strong>Semiparametric GAM Models</strong>: Allows for flexible, non-linear covariate effects.</li>
+<li>
+<strong>Dependent Censoring Models</strong>: Appropriate for settings with competing risks.</li>
+</ul>
+</li>
+<li>
+<strong>Dual Calculation Methods</strong>: For many models, the package offers both:
+<ul>
+<li>A fast <strong>analytical</strong> approach based on asymptotic variance formulas.</li>
+<li>A robust <strong>bootstrap</strong> (simulation-based) approach for enhanced accuracy and fewer distributional assumptions.</li>
+</ul>
+</li>
+<li>
+<strong>Interactive Application</strong>: Includes a user-friendly Shiny application for point-and-click analysis.</li>
+</ul>
+</div>
+</div>
+<div class="section level2">
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
+</h2>
+<p>You can install the development version of <code>RMSTdesign</code> from GitHub with:</p>
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"https://github.com/UTHSC-Zhang/RMSTdesign.git"</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="quick-example">Quick Example<a class="anchor" aria-label="anchor" href="#quick-example"></a>
+</h2>
+<p>Here is a basic example of calculating statistical power for a range of sample sizes using a linear RMST model. The calculation is based on pilot data from the <code>veteran</code> dataset, adjusting for the Karnofsky performance score (<code>karno</code>).</p>
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://biomedical-data-science-internship.github.io/UTHSC-package/">RMSTdesign</a></span><span class="op">)</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/therneau/survival" class="external-link">survival</a></span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Prepare the veteran dataset for analysis</span></span>
+<span><span class="va">vet</span> <span class="op">&lt;-</span> <span class="va">veteran</span></span>
+<span><span class="va">vet</span><span class="op">$</span><span class="va">arm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">vet</span><span class="op">$</span><span class="va">trt</span> <span class="op">==</span> <span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Calculate power for several sample sizes per arm</span></span>
+<span><span class="va">power_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/linear.power.analytical.html">linear.power.analytical</a></span><span class="op">(</span></span>
+<span>  pilot_data <span class="op">=</span> <span class="va">vet</span>,</span>
+<span>  time_var <span class="op">=</span> <span class="st">"time"</span>,</span>
+<span>  status_var <span class="op">=</span> <span class="st">"status"</span>,</span>
+<span>  arm_var <span class="op">=</span> <span class="st">"arm"</span>,</span>
+<span>  linear_terms <span class="op">=</span> <span class="st">"karno"</span>,</span>
+<span>  sample_sizes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">150</span>, <span class="fl">200</span>, <span class="fl">250</span><span class="op">)</span>,</span>
+<span>  tau <span class="op">=</span> <span class="fl">270</span> <span class="co"># Truncation time of 9 months</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># View the results data frame</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">power_results</span><span class="op">$</span><span class="va">results_data</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># View the power curve plot</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">power_results</span><span class="op">$</span><span class="va">results_plot</span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level2">
+<h2 id="interactive-shiny-application">Interactive Shiny Application<a class="anchor" aria-label="anchor" href="#interactive-shiny-application"></a>
+</h2>
+<p>For users who prefer a graphical user interface, an interactive Shiny application is available. The app provides a point-and-click interface to all the package’s functionalities, allowing you to upload data, map variables, select models, and run analyses without writing any code.</p>
+<p>You can access the application directly in your web browser by following this link:</p>
+<p><a href="https://arnab96.shinyapps.io/uthsc-app/" class="external-link"><strong>https://arnab96.shinyapps.io/uthsc-app/</strong></a></p>
+</div>
+<div class="section level2">
+<h2 id="citation">Citation<a class="anchor" aria-label="anchor" href="#citation"></a>
+</h2>
+<p>If you use <code>RMSTdesign</code> in your research, please cite it as follows:</p>
+<pre><code>Aich, A. (2025). RMSTdesign: Sample Size and Power Calculations for RMST-based Clinical Trials. R package version 0.1.0. https://github.com/arnabaich/RMSTdesign</code></pre>
+</div>
+</div>
   </main><aside class="col-md-3"><div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
