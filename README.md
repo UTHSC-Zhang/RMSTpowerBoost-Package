@@ -1,16 +1,16 @@
 
 
-# RMSTdesign: Power and Sample Size for RMST-Based Trials
+# RMSTSS: Power and Sample Size for RMST-Based Trials
 
-[](https://www.google.com/search?q=https://CRAN.R-project.org/package%3DRMSTdesign)
-[](https://www.google.com/search?q=https://github.com/arnabaich/RMSTdesign/actions/workflows/R-CMD-check.yaml)
-`RMSTdesign` provides a comprehensive suite of tools for calculating statistical power and sample size for clinical trials that use the Restricted Mean Survival Time (RMST) as the primary endpoint.
+[](https://www.google.com/search?q=https://CRAN.R-project.org/package%3DRMSTSS)
+[](https://www.google.com/search?q=https://github.com/arnabaich/RMSTSS/actions/workflows/R-CMD-check.yaml)
+`RMSTSS` provides a comprehensive suite of tools for calculating statistical power and sample size for clinical trials that use the Restricted Mean Survival Time (RMST) as the primary endpoint.
 
 ## Overview
 
 The analysis of time-to-event data is moving beyond the proportional hazards assumption, and the RMST has emerged as a robust and clinically intuitive alternative to the hazard ratio. However, tools for designing studies based on modern, direct-modeling approaches for the RMST have been lacking.
 
-`RMSTdesign` fills this critical gap by implementing a variety of advanced statistical methods for study design, allowing researchers to accurately plan trials under complex scenarios. More detailed usage of this package is described in the vignette, which can be accessed using the following link [**Click Here**](https://uthsc-zhang.github.io/RMSTdesign-Package/articles/RMSTdesign.html).
+`RMSTSS` fills this critical gap by implementing a variety of advanced statistical methods for study design, allowing researchers to accurately plan trials under complex scenarios. More detailed usage of this package is described in the vignette, which can be accessed using the following link [**Click Here**](https://uthsc-zhang.github.io/RMSTSS-Package/articles/RMSTSS.html).
 
 ### Key Features
 
@@ -26,11 +26,11 @@ The analysis of time-to-event data is moving beyond the proportional hazards ass
 
 ## Installation
 
-You can install the development version of `RMSTdesign` from GitHub with:
+You can install the development version of `RMSTSS` from GitHub with:
 
 ```r
 # install.packages("remotes")
-remotes::install_github("https://github.com/UTHSC-Zhang/RMSTdesign.git")
+remotes::install_github("https://github.com/UTHSC-Zhang/RMSTSS.git")
 ```
 
 ## Quick Example
@@ -38,7 +38,7 @@ remotes::install_github("https://github.com/UTHSC-Zhang/RMSTdesign.git")
 Here is a basic example of calculating statistical power for a range of sample sizes using a linear RMST model. The calculation is based on pilot data from the `veteran` dataset, adjusting for the Karnofsky performance score (`karno`).
 
 ```r
-library(RMSTdesign)
+library(RMSTSS)
 library(survival)
 
 # Prepare the veteran dataset for analysis
@@ -71,8 +71,8 @@ You can access the application directly in your web browser by following this li
 
 ## Citation
 
-If you use `RMSTdesign` in your research, please cite it as follows:
+If you use `RMSTSS` in your research, please cite it as follows:
 
 ```
-Aich, A. (2025). RMSTdesign: Sample Size and Power Calculations for RMST-based Clinical Trials. R package version 0.1.0. https://github.com/arnabaich/RMSTdesign
+Aich, A. (2025). RMSTSS: Sample Size and Power Calculations for RMST-based Clinical Trials. R package version 0.1.0. https://github.com/arnabaich/RMSTSS
 ```
