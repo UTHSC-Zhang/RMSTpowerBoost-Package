@@ -22,6 +22,7 @@ vignette: >
 # This setup chunk configures the vignette's appearance and loads necessary packages.
 knitr::opts_chunk$set(
    message = FALSE,
+   # eval = FALSE,
    warning = FALSE,
    comment = NA,
    fig.align = 'center',
@@ -45,13 +46,17 @@ To date, the computational implementations of these sophisticated methods have f
 
 This package, `RMSTdesign`, is designed to fill that critical gap. The primary goal of `RMSTdesign` is to provide trialists with a comprehensive and accessible suite of tools for power and sample size calculations based on the latest direct RMST methodology. It operationalizes the seminal work on direct RMST modeling into a set of validated functions, allowing researchers to robustly design trials for a wide variety of scenarios. `RMSTdesign` provides a comprehensive framework by implementing several key methodologies from the statistical literature:
 
-  * **Direct Linear Models**: Based on the seminal work of [@tian2014], these functions model the RMST directly using Inverse Probability of Censoring Weighting (IPCW).
-  * **Stratified Models**: For studies with nuisance categorical variables (e.g., clinical centers), we provide functions for both **additive** [@zhang2024] and **multiplicative** ([@wang2019]) models, which efficiently handle stratification without estimating parameters for each level.
-  * **Dependent Censoring Models**: In settings with competing risks, such as transplantation studies where receiving an organ dependently censors death, we implement methods from [@wang2019].
-  * **Flexible Non-Linear Models**: For covariates with suspected non-linear effects, the package includes bootstrap-based functions using Generalized Additive Models (GAMs) on pseudo-observations.
-  * **Analytic vs. Bootstrap Methods**: For many models, the package offers both an `analytical` approach for rapid calculations and a `boot` (bootstrap) approach for enhanced robustness at the cost of computation time.
+-   **Direct Linear Models**: Based on the seminal work of [@tian2014], these functions model the RMST directly using Inverse Probability of Censoring Weighting (IPCW).
+-   **Stratified Models**: For studies with nuisance categorical variables (e.g., clinical centers), we provide functions for both **additive** [@zhang2024] and **multiplicative** ([@wang2019]) models, which efficiently handle stratification without estimating parameters for each level.
+-   **Dependent Censoring Models**: In settings with competing risks, such as transplantation studies where receiving an organ dependently censors death, we implement methods from [@wang2019].
+-   **Flexible Non-Linear Models**: For covariates with suspected non-linear effects, the package includes bootstrap-based functions using Generalized Additive Models (GAMs) on pseudo-observations.
+-   **Analytic vs. Bootstrap Methods**: For many models, the package offers both an `analytical` approach for rapid calculations and a `boot` (bootstrap) approach for enhanced robustness at the cost of computation time.
 
 This vignette will guide you through the theory and application of each of these function groups.
+
+Of course. Here is the updated "Interactive Shiny Application" section for your vignette, now including the feature for downloading reports.
+
+------------------------------------------------------------------------
 
 # Linear IPCW Models
 
@@ -191,8 +196,7 @@ The semiparametric additive model for RMST, $$\mu_{ij} = \mu_{0j} + \beta_{Z_i}$
 
 ### Sample Size Calculation - [`additive.ss.analytical`](https://www.google.com/search?q=../reference/additive.ss.analytical.html)
 
-**Scenario**: We use the `colon` dataset to design a trial stratified by the extent of local disease (`extent`), a factor with 4 levels. We want to find the sample size per stratum to achieve 80% power.
-Lets inspect the prepared `colon` dataset.
+**Scenario**: We use the `colon` dataset to design a trial stratified by the extent of local disease (`extent`), a factor with 4 levels. We want to find the sample size per stratum to achieve 80% power. Lets inspect the prepared `colon` dataset.
 
 ```{r colon_data_prep, echo=FALSE}
 colon_death <- colon %>%
@@ -378,8 +382,7 @@ These functions use a bootstrap simulation approach combined with a GAM. The tim
 
 ### Power Calculation - [`GAM.power.boot`](https://www.google.com/search?q=../reference/GAM.power.boot.html)
 
-**Scenario**: We use the `gbsg` (German Breast Cancer Study Group) dataset, suspecting that the progesterone receptor count (`pgr`) has a non-linear effect on recurrence-free survival.
-Here is a look at the prepared `gbsg` data.
+**Scenario**: We use the `gbsg` (German Breast Cancer Study Group) dataset, suspecting that the progesterone receptor count (`pgr`) has a non-linear effect on recurrence-free survival. Here is a look at the prepared `gbsg` data.
 
 ```{r gbsg_data_prep, echo=FALSE}
 gbsg_prepared <- gbsg %>%
@@ -504,14 +507,40 @@ ss_dc_mgus$results_plot +
 
 ```
 
+# Interactive Shiny Application
+
+For users who prefer a graphical interface, `RMSTdesign` provides an interactive Shiny web application that offers a point-and-click interface to all the models and methods described in this vignette.
+
+### Accessing the Application
+
+There are two ways to access the application:
+
+1.  **Live Web Version (Recommended)**: Access the application directly in your browser without any installation.
+
+    -   [Launch Web Application](https://arnab96.shinyapps.io/uthsc-app/)
+
+2.  **Run Locally from the R Package**: If you have installed the `RMSTdesign-Package`, you can run the application on your own machine with the following command:
+
+```{r, eval=FALSE}
+RMSTdesign::run_app()
+```
+
+### App Features
+
+-   **Interactive Data Upload**: Upload your pilot dataset in `.csv` format.
+-   **Visual Column Mapping**: Visually map the columns in your data to the required variables for the analysis (e.g., time, status, treatment arm).
+-   **Full Model Selection**: Choose the desired RMST model, calculation method (analytical or bootstrap), and set all relevant parameters through user-friendly controls.
+-   **Rich Visualization**: Execute the analysis and view the results, including survival plots, power curves, and summary tables, all within the application.
+-   **Downloadable Reports**: Generate and download a complete, publication-ready analysis report in PDF format.
+
 # Conclusion
 
 The `RMSTdesign` package provides a powerful and flexible suite of tools for designing and analyzing clinical trials using the Restricted Mean Survival Time.
 
 ## Advantages and Disadvantages
 
-* **Advantages**: The package implements a wide range of modern statistical methods, allowing users to handle complex scenarios like stratification, non-linear effects, and competing risks. The provision of both fast analytical methods and robust bootstrap methods gives users a choice between speed and distributional flexibility.
-* **Disadvantages**: The primary limitation is the reliance on representative pilot data. The accuracy of any power or sample size calculation is contingent on the effect sizes and variance structures estimated from the pilot dataset. Furthermore, the bootstrap-based methods can be computationally intensive and may require access to parallel computing resources for timely results.
+-   **Advantages**: The package implements a wide range of modern statistical methods, allowing users to handle complex scenarios like stratification, non-linear effects, and competing risks. The provision of both fast analytical methods and robust bootstrap methods gives users a choice between speed and distributional flexibility.
+-   **Disadvantages**: The primary limitation is the reliance on representative pilot data. The accuracy of any power or sample size calculation is contingent on the effect sizes and variance structures estimated from the pilot dataset. Furthermore, the bootstrap-based methods can be computationally intensive and may require access to parallel computing resources for timely results.
 
 ## Future Work
 
@@ -519,4 +548,4 @@ Future development could involve extending the bootstrap approach to the depende
 
 # References
 
-```
+\`\`\`

@@ -14,7 +14,7 @@
   tau,
   alpha,
   n_sim,
-  parallel.cores
+  parallel.cores = 10
 )
 }
 \value{
