@@ -2,7 +2,7 @@
 ^renv\.lock$
 ^\.Rproj\.user$
 ^LICENSE\.md$
-^RMSTdesign\.Rproj$
+^RMSTSS\.Rproj$
 ^doc$
 ^Meta$
 ^_pkgdown\.yml$
