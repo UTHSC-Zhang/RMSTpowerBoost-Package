@@ -69,7 +69,7 @@ For users who prefer a graphical user interface, an interactive Shiny applicatio
 
 You can access the application directly in your web browser by following this link:
 
-[**https://arnab96.shinyapps.io/uthsc-app/**](https://arnab96.shinyapps.io/uthsc-app/)
+[**Click Here**](https://arnab96.shinyapps.io/uthsc-app/)
 
 ## Citation
 
