@@ -10,7 +10,7 @@
 
 The analysis of time-to-event data is moving beyond the proportional hazards assumption, and the RMST has emerged as a robust and clinically intuitive alternative to the hazard ratio. However, tools for designing studies based on modern, direct-modeling approaches for the RMST have been lacking.
 
-`RMSTdesign` fills this critical gap by implementing a variety of advanced statistical methods for study design, allowing researchers to accurately plan trials under complex scenarios.
+`RMSTdesign` fills this critical gap by implementing a variety of advanced statistical methods for study design, allowing researchers to accurately plan trials under complex scenarios. More detailed usage of this package is described in the vignette, which can be accessed using the following link [**Click Here**](https://uthsc-zhang.github.io/RMSTdesign-Package/articles/RMSTdesign.html).
 
 ### Key Features
 
