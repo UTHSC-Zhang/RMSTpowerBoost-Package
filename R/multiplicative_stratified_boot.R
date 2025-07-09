@@ -7,7 +7,7 @@
 #' @return A function that takes `n_per_stratum` and runs the simulation.
 #' @keywords internal
 .get_internal_simulation_runner <- function(pilot_data, time_var, status_var, arm_var, strata_var,
-                                            linear_terms, tau, alpha, n_sim, parallel.cores) {
+                                            linear_terms, tau, alpha, n_sim, parallel.cores=10) {
 
    # --- Data Preparation & Model Formula ---
    core_vars <- c(time_var, status_var, arm_var, strata_var)
