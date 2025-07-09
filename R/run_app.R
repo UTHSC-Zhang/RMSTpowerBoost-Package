@@ -13,13 +13,13 @@
 #' }
 run_app <- function() {
    # Find the app's directory within the installed package
-   app_dir <- system.file("shiny_app", package = "RMSTdesign")
+   app_dir <- system.file("shiny_app", package = "RMSTSS")
 
    # Check if the directory exists
    if (app_dir == "") {
       stop(
          "Could not find the app directory. ",
-         "Try re-installing the `RMSTdesign-Package`.",
+         "Try re-installing the `RMSTSS-Package`.",
          call. = FALSE
       )
    }
