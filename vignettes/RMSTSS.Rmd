@@ -8,7 +8,7 @@ output:
     code_folding: hide
     df_print: paged
     highlight: tango
-    self_contained: false
+    self_contained: true
 bibliography: references.bib
 biblio-style: apalike
 link-citations: yes
@@ -22,7 +22,7 @@ vignette: >
 # This setup chunk configures the vignette's appearance and loads necessary packages.
 knitr::opts_chunk$set(
    message = FALSE,
-   # eval = FALSE,
+    eval = FALSE,
    warning = FALSE,
    comment = NA,
    fig.align = 'center',
@@ -33,38 +33,120 @@ knitr::opts_chunk$set(
 packages = c("survival", "dplyr", "tidyr", "knitr", "ggplot2", "mgcv", "kableExtra", "bibtex")
 lapply(packages, require, character.only = TRUE)
 
-library(RMSTSS)
+ library(RMSTSS)
 ```
 
 # Introduction
 
-The analysis of time-to-event data has traditionally been dominated by the Cox proportional hazards model, which focuses on the hazard ratio (HR) as the primary measure of treatment effect. However, the HR can be difficult to interpret, especially when the proportional hazards assumption is violated [@tian2014, @zhang2024]. In such cases, the estimated HR becomes a weighted average that depends on the studys specific censoring pattern, making it difficult to compare results across trials [@wang2018]. The Restricted Mean Survival Time (RMST) has emerged as a robust and clinically intuitive alternative, a conclusion advocated by a growing body of literature for its use in the design and analysis of clinical trials [@royston2013, @uno2014]. The RMST, defined as the average event-free time up to a pre-specified time point ($\\tau$), is estimated as the area under the survival curve. This provides a direct measure of survival benefit in units of time (e.g., "days" or "months"), which is often more meaningful to clinicians and patients.
+The analysis of time-to-event data often relies on the Cox proportional hazards model, which uses the hazard ratio (HR) as its primary result. However, the HR can be difficult to interpret, especially when its core assumption of proportional hazards is not met.
 
-Instead of estimating RMST indirectly from a survival function, recent methodological advances have focused on modeling the RMST directly as a function of covariates. A foundational paper by [@tian2014] established a class of such models using Inverse Probability of Censoring Weighting (IPCW), which provided the theoretical basis for direct RMST regression. Since then, the literature has rapidly expanded to adapt this direct modeling approach to the complex data structures seen in modern trials. Research has moved beyond a single time point to modeling the entire RMST curve as a function of the restriction time, $\\tau$ [@zhao2016, @zhong2022]. Furthermore, to handle the common challenge of adjusting for high-dimensional categorical variables like clinical centers, computationally efficient stratified models were developed, including a multiplicative model by [@wang2019] and a complementary additive model by [@zhang2024]. For observational data, these methods have been extended to estimate causal effects [@ni2021], and for settings with competing risks, such as transplantation studies, [@wang2018] developed a framework to handle dependent censoring using cause-specific weights.
+As an alternative, the **Restricted Mean Survival Time (RMST)** is gaining favor for its clarity and robust properties [@royston2013; @uno2014]. The RMST measures the average event-free time up to a pre-specified follow-up point, **L**. This provides a direct and meaningful measure of treatment benefit (e.g., "an average of 3 extra months of survival over 5 years"), which is highly valuable for clinicians and patients.
 
-To date, the computational implementations of these sophisticated methods have focused primarily on estimation. For instance, the original papers describe how estimation can be achieved through custom-coded procedures or by cleverly manipulating standard software for weighted least squares or Cox regression [@wang2019, @zhang2024]. However, there is a significant gap between these theoretical estimation frameworks and the availability of validated, user-friendly tools for study design. Calculating the required sample size or statistical power for a trial based on these advanced RMST models is a complex task that, until now, has required bespoke simulation programming from trial statisticians.
+Modern statistical methods now focus on modeling the RMST directly as a function of covariates, rather than estimating it indirectly from a survival curve. This direct approach, based on foundational work using Inverse Probability of Censoring Weighting (IPCW) [@tian2014], has been extended to handle the complex data structures seen in modern trials, including stratification [@wang2019; @zhang2024] and competing risks [@wang2018].
 
-This package, `RMSTSS`, is designed to fill that critical gap. The primary goal of `RMSTSS` is to provide trialists with a comprehensive and accessible suite of tools for power and sample size calculations based on the latest direct RMST methodology. It operationalizes the seminal work on direct RMST modeling into a set of validated functions, allowing researchers to robustly design trials for a wide variety of scenarios. `RMSTSS` provides a comprehensive framework by implementing several key methodologies from the statistical literature:
+However, most software tools for these advanced methods focus on analyzing existing data, not designing new studies. This has left trial statisticians to write custom code for the crucial task of calculating sample size and power.
 
--   **Direct Linear Models**: Based on the seminal work of [@tian2014], these functions model the RMST directly using Inverse Probability of Censoring Weighting (IPCW).
--   **Stratified Models**: For studies with nuisance categorical variables (e.g., clinical centers), we provide functions for both **additive** [@zhang2024] and **multiplicative** ([@wang2019]) models, which efficiently handle stratification without estimating parameters for each level.
--   **Dependent Censoring Models**: In settings with competing risks, such as transplantation studies where receiving an organ dependently censors death, we implement methods from [@wang2019].
--   **Flexible Non-Linear Models**: For covariates with suspected non-linear effects, the package includes bootstrap-based functions using Generalized Additive Models (GAMs) on pseudo-observations.
--   **Analytic vs. Bootstrap Methods**: For many models, the package offers both an `analytical` approach for rapid calculations and a `boot` (bootstrap) approach for enhanced robustness at the cost of computation time.
+The `RMSTSS` package is designed to fill this gap. It provides a comprehensive and user-friendly suite of tools for **power and sample size calculations** based on the latest direct RMST methodologies. The package implements several key approaches from the statistical literature:
+
+* **Direct Linear Models**: The foundational IPCW-based regression model for RMST [@tian2014].
+* **Stratified Models**: Efficient methods for studies with many strata (e.g., clinical centers), including both **additive** [@zhang2024] and **multiplicative** ([@wang2019]) models.
+* **Dependent Censoring Models**: For handling competing risks, based on methods from [@wang2018].
+* **Flexible Non-Linear Models**: Bootstrap-based functions using Generalized Additive Models (GAMs) to capture non-linear covariate effects.
+* **Analytic vs. Bootstrap Methods**: For most models, the package offers a choice between a fast `analytical` calculation and a robust, simulation-based `boot` method.
 
 This vignette will guide you through the theory and application of each of these function groups.
 
-Of course. Here is the updated "Interactive Shiny Application" section for your vignette, now including the feature for downloading reports.
-
 ------------------------------------------------------------------------
 
-# Linear IPCW Models
+# Core Concepts of `RMSTSS` Package{.tabset}
 
-These models assume a direct linear relationship between covariates and the RMST. They are the foundational models for direct RMST regression when dealing with independent censoring.
+The `RMSTSS` package uses two primary approaches for its calculations: a fast **Analytic Method** and a robust **Bootstrap Method**. All functions for finding sample size then use a common search algorithm. Understanding these three components is key to choosing the right function for your needs.
+
+## The Analytic Method (`.analytical` functions)
+
+The analytical functions are extremely fast because they use a direct mathematical formula to calculate power. This makes them ideal for quickly exploring different scenarios. The process is:
+
+1.  **One-Time Estimation**: The function first analyzes the provided `pilot_data` to estimate two key parameters:
+      * The **treatment effect size** (e.g., the difference in RMST or the log-RMST ratio).
+      * The **asymptotic variance** of that effect estimator, which measures its uncertainty.
+2.  **Power Formula**: It then plugs these fixed estimates into a standard power formula. For a given total sample size `N`, the power is calculated as:
+    $$
+\text{Power} = \Phi\left( \frac{|\beta_{\text{effect}}|}{\sigma_N} - z_{1-\alpha/2} \right)
+    $$
+ where:
+      * $\Phi$ is the cumulative distribution function (CDF) of the standard normal distribution.
+      * $\beta_{\text{effect}}$ is the treatment effect estimated from the pilot data.
+      * $\sigma_N = \frac{\sigma_1}{\sqrt{N}}$ is the standard error of the effect for the target sample size `N`, which is scaled from the pilot data's variance.
+      * $z_{1-\alpha/2}$ is the critical value from the standard normal distribution (e.g., 1.96 for an alpha of 0.05).
+
+## The Bootstrap Method (`.boot` functions)
+
+The bootstrap functions provide a robust, simulation-based alternative that makes fewer assumptions about the data's distribution. This is a trade-off, as they are much more computationally intensive. The process is:
+
+1.  **Resample**: The function simulates a "future trial" of a given `sample_size` by resampling with replacement from the `pilot_data`.
+2.  **Fit Model**: On this new bootstrap sample, it performs the full analysis (e.g., calculating weights or pseudo-observations and fitting the specified model).
+3.  **Get P-Value**: It extracts the p-value for the treatment effect from the fitted model.
+4.  **Repeat**: This process is repeated thousands of times (`n_sim`).
+5.  **Calculate Power**: The final estimated power is the proportion of simulations where the p-value was less than the significance level `alpha`.
+    $$
+ \text{Power} = \frac{\text{Number of simulations with } p < \alpha}{n_{\text{sim}}}
+    $$
+
+## The Sample Size Search Algorithm (`.ss` functions)
+
+All functions ending in `.ss` (for sample size) use the same iterative search algorithm to find the `N` required to achieve a `target_power`:
+
+1.  **Start**: The search begins with a sample size of `n_start`.
+2.  **Calculate Power**: It calculates the power for the `current_n` using either the **analytic formula** or a **full bootstrap simulation**.
+3.  **Check Condition**:
+      * If `calculated_power >= target_power`, the search succeeds and returns `current_n`.
+      * If not, it increments the sample size (`current_n = current_n + n_step`) and repeats the process.
+4.  **Stopping Rules**: The search terminates if the sample size exceeds `max_n_per_arm` or, for bootstrap methods, if the power fails to improve for a set number of `patience` steps.
+
+## Avaailable Functions: A Quick Guide
+
+The package uses a consistent naming convention to help you select the correct function. The names are combinations of the `[Model Type]`, the `[Goal - power or ss]`, and the `[Method - analytical or boot]`. The table below provides a summary of the available functions for each model.
+
+| Model Type | Analytic Functions | Bootstrap Functions |
+| :--- | :--- | :--- |
+| **Linear IPCW** | `linear.power.analytical` <br>`linear.ss.analytical` | `linear.power.boot` <br>`linear.ss.boot` |
+| **Additive Stratified** | `additive.power.analytical` <br>`additive.ss.analytical` | *Not applicable* |
+| **Multiplicative Stratified**| `MS.power.analytical` <br>`MS.ss.analytical` | `MS.power.boot` <br>`MS.ss.boot` |
+| **Semiparametric GAM** | *Not applicable* | `GAM.power.boot` <br>`GAM.ss.boot` |
+| **Dependent Censoring** | `DC.power.analytical` <br>`DC.ss.analytical` | *Not applicable* |
+
+
+
+## Selecting an Appropriate Model
+
+Model selection depends on the assumptions made about the data structure and the design of the study. The following table summarizes recommended modeling strategies under various analytical scenarios:
+
+| Model                         | Key Assumption / Scenario                                                    | Recommended Use Case                                                                                                                                           |
+| :---------------------------- | :--------------------------------------------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Linear IPCW**               | Assumes a linear relationship between covariates and RMST.                   | Suitable for baseline analyses where there is no strong evidence of non-linear effects or complex stratification.                                              |
+| **Additive Stratified**       | Assumes the treatment adds a constant amount of survival time across strata. | Appropriate for multi-center trials where the treatment effect is expected to be uniform (e.g., a fixed increase in survival time across centers).             |
+| **Multiplicative Stratified** | Assumes the treatment multiplies survival time proportionally across strata. | Preferred in multi-center trials where the treatment is expected to produce proportional gains relative to baseline survival across different centers.         |
+| **Semiparametric GAM**        | Allows for non-linear covariate effects on RMST.                             | Useful when variables (e.g., age, biomarker levels) are believed to have complex, non-linear associations with the outcome.                                    |
+| **Dependent Censoring**       | Accounts for dependent censoring or competing risks.                         | Recommended for studies involving competing events, such as transplant studies where receiving a transplant precludes observation of pre-transplant mortality. |
+
+
+# Linear IPCW Models{.tabset}
+
+These functions implement the foundational direct linear regression model for the RMST. This model is appropriate when a linear relationship between covariates and the RMST is assumed, and when censoring is independent of the event of interest.
 
 ## Theory and Model
 
-Based on the methods of [@tian2014], these functions model the conditional RMST as $$\eta\{\mu(Z)\} = \beta'X$$, where $\\eta(\\cdot)$ is a link function. To account for right-censoring, the method uses Inverse Probability of Censoring Weighting (IPCW). The weight for an uncensored individual is the inverse of the probability of remaining uncensored up to their event time, where this probability is estimated from a Kaplan-Meier curve of the censoring distribution.
+Based on the methods of [@tian2014], these functions model the conditional RMST as a linear function of covariates:
+$$\mathbb{E}[\min(T_i, L) | Z_i] = \beta_0 + \beta_1 \text{Treatment}_i + \beta_2 \text{Covariate}_{i}$$
+In this model, the expected RMST up to a pre-specified time **L** for subject *i* is modeled as a linear combination of their treatment arm and other variables $Z_i$.
+
+To handle right-censoring, the method uses **Inverse Probability of Censoring Weighting (IPCW)**. This is achieved through the following steps:
+
+1.  A survival curve for the **censoring distribution** is estimated using the Kaplan-Meier method (where "failure" is being censored).
+2.  For each subject who experienced the primary event, a weight is calculated. This weight is the inverse of the probability of *not* being censored up to their event time.
+3.  A standard weighted linear model (`lm()`) is then fitted using these weights. The model only includes subjects who experienced the event.
+
+
 
 ## Analytical Methods
 
@@ -104,7 +186,7 @@ The results are returned as a data frame and a `ggplot` object.
 ```{r veteran_table_plot, echo=FALSE}
 
 kbl(power_results_vet$results_data , caption = "Power Analysis for Veteran Dataset") %>%
-  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+ kable_styling(bootstrap_options = "striped", full_width = FALSE, position = "center")
 
 ```
 
@@ -128,12 +210,14 @@ ss_results_vet <- linear.ss.analytical(
 ```{r veteran_ss_table, echo=FALSE}
 
 kbl(ss_results_vet$results_summary, caption = "Estimated Effect from Pilot Data") %>%
-  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+ kable_styling(bootstrap_options = "striped", full_width = FALSE, position = "center")
 
 ss_results_vet$results_plot +
   theme_bw(base_size = 14)
 
 ```
+
+
 
 ## Bootstrap Methods
 
@@ -184,13 +268,21 @@ ss_boot_vet$results_plot +
   theme_bw(base_size = 14)
 ```
 
-# Additive Stratified Models
+***
 
-In many trials, it is necessary to stratify by a categorical variable with many levels, such as clinical center or a discretized biomarker. Estimating a separate parameter for each stratum is inefficient. The additive stratified model elegantly handles this by conditioning out the stratum effect.
+# Additive Stratified Models {.tabset}
+
+In multi-center clinical trials, it is often necessary to stratify the analysis by a categorical variable with many levels, such as the clinical center or a discretized biomarker. Estimating a separate parameter for each stratum can be inefficient, particularly when the number of strata is large. The additive stratified model elegantly handles this situation by conditioning out the stratum-specific effects.
 
 ## Theory and Model
 
-The semiparametric additive model for RMST, $$\mu_{ij} = \mu_{0j} + \beta_{Z_i}$$, assumes that the effect of covariates $Z\_i$ is additive and constant across strata $j$, while allowing each stratum to have its own baseline RMST, $\\mu\_{0j}$. The implemented methods are based on Zhang & Schaubel (2024), who showed that the common effect, $\\beta$, can be estimated efficiently using a stratum-centering approach on the IPCW-weighted data, which avoids direct estimation of the numerous $\\mu\_{0j}$ parameters.
+The semiparametric additive model for RMST, as developed by [@zhang2024], is defined as:
+$$\mu_{ij} = \mu_{0j} + \beta'Z_i$$
+This model assumes that the effect of the covariates $Z_i$ (which includes the treatment arm) is **additive** and constant across all strata $j$. Crucially, it allows each stratum to have its own unique baseline RMST, denoted by $\mu_{0j}$.
+
+The estimation of the common treatment effect, $\beta$, is achieved efficiently through a **stratum-centering** approach applied to IPCW-weighted data. This method avoids the direct estimation of the numerous $\mu_{0j}$ parameters, making it computationally efficient even with a large number of strata.
+
+
 
 ## Analytical Methods
 
@@ -226,8 +318,7 @@ ss_results_colon <- additive.ss.analytical(
 ```{r colon_ss_table, echo=FALSE}
 
 kbl(ss_results_colon$results_summary , caption = "Estimated Effect from Pilot Data") %>%
-  kable_styling(bootstrap_options = "striped", full_width = FALSE)
-# Display enhanced search plot
+ kable_styling(bootstrap_options = "striped", full_width = FALSE, position = "center")
 final_n_colon <- ss_results_colon$results_data$Required_N_per_Stratum
 power_at_final_n_colon <- ss_results_colon$results_plot$data %>% 
   filter(N_per_Stratum == final_n_colon) %>% pull(Power)
@@ -241,7 +332,6 @@ ss_results_colon$results_plot
 This function calculates the power for a given set of sample sizes in a stratified additive model. We will use the `colon` dataset again for this example.
 
 ```{r additive_power_calc}
-# Calculate power for a range of sample sizes per stratum
 power_results_colon <- additive.power.analytical(
   pilot_data = colon_death,
   time_var = "time",
@@ -255,9 +345,8 @@ power_results_colon <- additive.power.analytical(
 ```
 
 ```{r additive_power_table_plot, echo=FALSE}
-# Display the results
 kbl(power_results_colon$results_data, caption = "Power for Additive Stratified Colon Trial") %>%
-  kable_styling(bootstrap_options = "striped", full_width = FALSE)
+ kable_styling(bootstrap_options = "striped", full_width = FALSE, position = "center")
 
 power_results_colon$results_plot +
   geom_hline(yintercept = 0.8, linetype = "dashed", color = "red") +
@@ -265,13 +354,22 @@ power_results_colon$results_plot +
   theme_bw(base_size = 14)
 ```
 
-# Multiplicative Stratified Models
 
-As an alternative to the additive model, the multiplicative model may be preferred if the treatment is expected to have a relative effect on the RMST, such as increasing or decreasing survival time by a certain percentage.
+***
+
+# Multiplicative Stratified Models {.tabset}
+
+As an alternative to the additive model, the multiplicative model may be preferred if the treatment is expected to have a relative, or proportional, effect on the RMST—for example, increasing or decreasing survival time by a certain percentage.
 
 ## Theory and Model
 
-The multiplicative model is of the form $$\mu_{ij} = \mu_{0j} \exp(\beta_{Z_i})$$, where the effect of covariates is a proportional change to the baseline stratum-specific RMST. This is particularly useful for applications like facility profiling, which can involve thousands of centers. The methods implemented here, based on [@wang2019], use a computationally efficient two-stage procedure that avoids creating thousands of indicator variables, making analysis of very large datasets feasible.
+The multiplicative model, based on the work of [@wang2019], is defined as:
+$$\mu_{ij} = \mu_{0j} \exp(\beta'Z_i)$$
+In this model, the covariates $Z_i$ have a **multiplicative** effect on the baseline stratum-specific RMST, $\mu_{0j}$. This structure is equivalent to a linear model on the log-RMST.
+
+While the formal estimation of $\beta$ requires a complex iterative solver, this package uses a practical and computationally efficient approximation. It fits a weighted log-linear model (`lm(log(Y_rmst) ~ ...)`) to the data, which provides robust estimates for the effect size (the log-RMST ratio) and its variance.
+
+
 
 ## Analytical Methods
 
@@ -280,7 +378,6 @@ The multiplicative model is of the form $$\mu_{ij} = \mu_{0j} \exp(\beta_{Z_i})$
 This function calculates the power for various sample sizes using the analytical method for the multiplicative stratified model.
 
 ```{r ms_power_analytical_example}
-# Calculate power using the multiplicative stratified analytical method
 power_ms_analytical <- MS.power.analytical(
    pilot_data = colon_death,
    time_var = "time", status_var = "status", arm_var = "arm", strata_var = "strata",
@@ -292,7 +389,7 @@ power_ms_analytical <- MS.power.analytical(
 ```{r echo=FALSE}
 
 kbl(power_ms_analytical$results_data, caption = "Power for Multiplicative Stratified Model") %>%
-   kable_styling(bootstrap_options = "striped", full_width = FALSE)
+  kable_styling(bootstrap_options = "striped", full_width = FALSE, position = "center")
 ```
 
 ### Sample Size Calculation - [`MS.ss.analytical`](../reference/MS.ss.analytical.html)
@@ -300,7 +397,6 @@ kbl(power_ms_analytical$results_data, caption = "Power for Multiplicative Strati
 The following example demonstrates the sample size calculation using the same model.
 
 ```{r ms_ss_analytical_example}
-# Calculate sample size
 ms_ss_results_colon <- MS.ss.analytical(
    pilot_data = colon_death, time_var = "time", status_var = "status", arm_var = "arm", strata_var = "strata",
    target_power = 0.6,tau = 1825)
@@ -309,11 +405,13 @@ ms_ss_results_colon <- MS.ss.analytical(
 ```{r echo=FALSE}
 
 kbl(ms_ss_results_colon$results_summary, caption = "Sample Size for Multiplicative Stratified Model") %>%
-   kable_styling(bootstrap_options = "striped", full_width = FALSE)
+  kable_styling(bootstrap_options = "striped", full_width = FALSE, position = "center")
 
 ms_ss_results_colon$results_plot +
    theme_bw(base_size = 14)
 ```
+
+
 
 ## Bootstrap Methods
 
@@ -339,7 +437,7 @@ power_ms_boot <- MS.power.boot(
 
 ```{r echo=FALSE}
 kbl(power_ms_boot$results_summary, caption = "Power for Multiplicative Stratified Model (Bootstrap)") %>%
-   kable_styling(bootstrap_options = "striped", full_width = FALSE)
+  kable_styling(bootstrap_options = "striped", full_width = FALSE, position = "center")
 power_ms_boot$results_plot 
 ```
 
@@ -367,16 +465,38 @@ ss_ms_boot <- MS.ss.boot(
 ```{r echo=FALSE}
 
 kbl(ss_ms_boot$results_summary, caption = "Sample Size for Multiplicative Stratified Model (Bootstrap)") %>%
-   kable_styling(bootstrap_options = "striped", full_width = FALSE)
+  kable_styling(bootstrap_options = "striped", full_width = FALSE, position = "center")
 ```
 
-# Semiparametric GAM Models
+***
 
-When a covariate is expected to have a non-linear effect on the outcome, standard linear models may be misspecified. Generalized Additive Models (GAMs) provide a flexible solution.
+# Semiparametric GAM Models {.tabset}
+
+When a covariate is expected to have a non-linear effect on the outcome (for example, the effect of age or a biomarker), standard linear models may be misspecified. Generalized Additive Models (GAMs) provide a flexible solution by modeling such relationships with smooth functions.
 
 ## Theory and Model
 
-These functions use a bootstrap simulation approach combined with a GAM. The time-to-event outcome is first converted into **jackknife pseudo-observations** for the RMST. A GAM is then fitted to these pseudo-observations, allowing for smooth, non-linear functions of specified covariates using `s()` terms from the `mgcv` package. This approach is powerful but computationally intensive.
+These functions use a bootstrap simulation approach combined with a GAM. The method involves two main steps:
+
+1.  **Jackknife Pseudo-Observations**: The time-to-event outcome is first converted into **jackknife pseudo-observations** for the RMST. This technique, explored in recent statistical literature for RMST estimation [@perdry2024], creates a continuous, uncensored variable that represents each subject's contribution to the RMST. This makes the outcome suitable for use in a standard regression framework.
+
+2.  **GAM Fitting**: A GAM is then fitted to these pseudo-observations. The model has the form:
+    $$\mathbb{E}[\text{pseudo}_i] = \beta_0 + \beta_1 \cdot \text{Treatment}_i + \sum_{k=1}^{q} f_k(\text{Covariate}_{ik})$$
+    Here, $f_k()$ are the non-linear **smooth functions** (splines) that the GAM estimates from the data.
+
+### Power Calculation Formula (`GAM.power.boot`)
+
+Because this is a bootstrap method, power is not calculated from a direct formula but is instead estimated empirically from the simulations:
+$$\text{Power} = \frac{1}{B} \sum_{b=1}^{B} \mathbb{I}(p_b < \alpha)$$
+Where:
+
+* $B$ is the total number of bootstrap simulations (`n_sim`).
+
+* $p_b$ is the p-value for the treatment effect in the $b$-th simulation.
+
+* $\mathbb{I}(\cdot)$ is the indicator function, which is 1 if the condition is true and 0 otherwise.
+
+
 
 ## Bootstrap Methods
 
@@ -433,13 +553,32 @@ ss_gam$results_plot +
    theme_bw(base_size = 14)
 ```
 
+
+***
+
 # Dependent Censoring Models
 
-In some studies, particularly observational or registry studies, censoring may not be independent of the event of interest. A classic example is in transplant medicine, where receiving an organ transplant removes a patient from being at risk of pre-transplant death. This is a form of competing risk, or dependent censoring.
+In some studies, particularly observational or registry studies, censoring may not be independent of the event of interest. A classic example is in transplant medicine, where receiving an organ transplant removes a patient from being at risk of pre-transplant death. This is a form of **competing risk**, which can also be viewed as dependent censoring.
 
 ## Theory and Model
 
-The methods from [@wang2019] address this by extending the IPCW framework. Instead of a single censoring model, **cause-specific Cox models** are fitted for each source of censoring (e.g., one model for administrative censoring, another for the competing event). The final weight for a subject is a product of the weights derived from all censoring causes, allowing for unbiased estimation of the RMST for the primary event. We will use the `mgus2` dataset for this scenario.
+The methods from [@wang2018] address this by extending the IPCW framework. Instead of a single model for the overall censoring distribution, **cause-specific Cox models** are fitted for each of the $K$ sources of censoring (e.g., one model for administrative censoring, another for the competing event).
+
+The final weight for a subject is then a product of the weights derived from all censoring causes, calculated as:
+$$W_i = \exp\left(\sum_{k=1}^{K} \hat{\Lambda}_{k}(Y_i)\right)$$
+where $\hat{\Lambda}_{k}$ is the estimated cumulative hazard for censoring cause `k`, and $Y_i = \min(T_i, L)$ is the truncated event time. The final analysis is a weighted linear regression on the RMST.
+
+
+
+### Power Calculation Formula (`DC.power.analytical`)
+
+Power is calculated analytically using the standard formula:
+$$\text{Power} = \Phi\left( \frac{|\beta_{\text{effect}}|}{\sigma_N} - z_{1-\alpha/2} \right)$$
+The key difference in this model is that the variance, $\sigma_N^2$, is derived from a robust sandwich estimator that properly accounts for the multiple weighting components from the different cause-specific hazard models.
+
+## Analytical Methods
+
+ We will use the `mgus2` dataset for this scenario.
 
 ```{r mgus2_data_prep, echo=FALSE}
 mgus_prepared <- mgus2 %>%
@@ -451,8 +590,6 @@ mgus_prepared <- mgus2 %>%
    rename(time = futime)
 head(mgus_prepared)
 ```
-
-## Analytical Methods
 
 ### Power Calculation - [`DC.power.analytical`](../reference/DC.power.analytical.html)
 
@@ -473,7 +610,7 @@ dc_power_results <- DC.power.analytical(
 
 ```{r echo=FALSE}
 kbl(dc_power_results$results_summary, caption = "Power Analysis for MGUS Progression Study") %>%
-   kable_styling(bootstrap_options = "striped", full_width = FALSE)
+  kable_styling(bootstrap_options = "striped", full_width = FALSE, position = "center")
 
 dc_power_results$results_plot
 ```
@@ -500,7 +637,7 @@ ss_dc_mgus <- DC.ss.analytical(
 ```{r mgus2_table, echo=FALSE}
 
 kbl(ss_dc_mgus$results_summary, caption = "Estimated Effect from Pilot Data") %>%
-   kable_styling(bootstrap_options = "striped", full_width = FALSE)
+  kable_styling(bootstrap_options = "striped", full_width = FALSE, position = "center")
 
 ss_dc_mgus$results_plot +
    theme_bw(base_size = 14)
