@@ -30,7 +30,7 @@ You can install the development version of `RMSTSS` from GitHub with:
 
 ```r
 # install.packages("remotes")
-remotes::install_github("https://github.com/UTHSC-Zhang/RMSTSS.git")
+remotes::install_github("https://github.com/UTHSC-Zhang/RMSTSS-package.git")
 ```
 
 ## Quick Example
