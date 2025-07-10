@@ -12,7 +12,7 @@ MS.ss.analytical(
   strata_var,
   target_power,
   linear_terms = NULL,
-  tau,
+  L,
   alpha = 0.05,
   n_start = 50,
   n_step = 25,
@@ -34,7 +34,7 @@ MS.ss.analytical(
 
 \item{linear_terms}{An optional character vector of other covariate names.}
 
-\item{tau}{The numeric value for the RMST truncation time.}
+\item{L}{The numeric value for the RMST truncation time.}
 
 \item{alpha}{The significance level (Type I error rate).}
 
@@ -74,7 +74,7 @@ pilot_df_strat_effect <- data.frame(
 ss_results <- MS.ss.analytical(
  pilot_data = pilot_df_strat_effect,
  time_var = "time", status_var = "status", arm_var = "arm", strata_var = "region",
- target_power = 0.80, tau = 10,
+ target_power = 0.80, L = 10,
  n_start = 100, n_step = 50
 )
 print(ss_results$results_data)

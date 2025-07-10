@@ -35,10 +35,9 @@ test_that("DC.power.analytical returns correct structure", {
       dep_cens_status_var = "comp_event",
       arm_var = "arm",
       sample_sizes = c(500, 1000),
-      tau = 15
+      L = 15
    )
 
-   # CORRECTED: Use expect_type for a base list
    expect_type(results, "list")
    expect_named(results, c("results_data", "results_plot"))
    expect_s3_class(results$results_data, "data.frame")
@@ -58,9 +57,8 @@ test_that("DC.ss.analytical returns correct structure", {
       dep_cens_status_var = "comp_event",
       arm_var = "arm",
       target_power = 0.80,
-      tau = 15
+      L = 15
    )
-   # CORRECTED: Use expect_type for a base list
    expect_type(results, "list")
    expect_named(results, c("results_data", "results_plot", "results_summary"))
    expect_gt(results$results_data$Required_N_per_Arm, 0)
@@ -73,13 +71,13 @@ test_that("DC.ss.analytical requires larger N for weaker effect", {
    ss_strong <- DC.ss.analytical(
       pilot_data = data_strong_effect, time_var = "time", status_var = "status",
       dep_cens_status_var = "comp_event", arm_var = "arm",
-      target_power = 0.80, tau = 20
+      target_power = 0.80, L = 20
    )
 
    ss_weak <- DC.ss.analytical(
       pilot_data = data_weak_effect, time_var = "time", status_var = "status",
       dep_cens_status_var = "comp_event", arm_var = "arm",
-      target_power = 0.80, tau = 20
+      target_power = 0.80, L = 20
    )
 
    expect_gt(ss_weak$results_data$Required_N_per_Arm, ss_strong$results_data$Required_N_per_Arm)
@@ -92,7 +90,7 @@ test_that("DC functions work correctly with no covariates", {
       DC.power.analytical(
          pilot_data = pilot_data, time_var = "time", status_var = "status",
          dep_cens_status_var = "comp_event", arm_var = "arm",
-         linear_terms = NULL, sample_sizes = c(500), tau = 15
+         linear_terms = NULL, sample_sizes = c(500), L = 15
       )
    )
 
@@ -100,7 +98,8 @@ test_that("DC functions work correctly with no covariates", {
       DC.ss.analytical(
          pilot_data = pilot_data, time_var = "time", status_var = "status",
          dep_cens_status_var = "comp_event", arm_var = "arm",
-         linear_terms = NULL, target_power = 0.80, tau = 15
+         linear_terms = NULL, target_power = 0.80, L = 15
       )
    )
 })
+

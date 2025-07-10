@@ -11,7 +11,7 @@
   arm_var,
   strata_var,
   linear_terms,
-  tau,
+  L,
   alpha,
   n_sim,
   parallel.cores = 10

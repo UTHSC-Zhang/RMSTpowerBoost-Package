@@ -12,7 +12,7 @@ additive.ss.analytical(
   strata_var,
   target_power,
   linear_terms = NULL,
-  tau,
+  L,
   alpha = 0.05,
   n_start = 50,
   n_step = 25,
@@ -34,7 +34,7 @@ additive.ss.analytical(
 
 \item{linear_terms}{An optional character vector of other covariate names.}
 
-\item{tau}{The numeric value for the RMST truncation time.}
+\item{L}{The numeric value for the RMST truncation time.}
 
 \item{alpha}{The significance level (Type I error rate).}
 
@@ -81,7 +81,7 @@ pilot_df_strat$time[pilot_df_strat$arm == 1] <-
     time_var = "time", status_var = "status",
     arm_var = "arm", strata_var = "region",
     target_power = 0.50,
-    tau = 18, #
+    L = 18, #
     n_start = 200,
     n_step = 50,
     max_n_per_arm = 1000

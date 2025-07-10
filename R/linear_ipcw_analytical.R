@@ -1,4 +1,4 @@
-# Power Calculation -------------------------------------------------------------------
+﻿# Power Calculation -------------------------------------------------------------------
 
 
 #' @title Analyze Power for a Linear RMST Model (Analytic)
@@ -10,7 +10,7 @@
 #' regression model of the Restricted Mean Survival Time (RMST) proposed by Tian et al. (2014).
 #' The core of the method is a weighted linear model of the form
 #' \deqn{E[Y_i|Z_i] = \beta_0 + \beta_1 Z_i}
-#' where \eqn{Y_i = \min(T_i, \tau)} is the event time truncated at \eqn{\tau}.
+#' where \eqn{Y_i = \min(T_i, \L)} is the event time truncated at \eqn{\L}.
 #'
 #' To handle right-censoring, the method uses Inverse Probability of Censoring
 #' Weighting (IPCW). The weight for an uncensored individual `i` is the inverse
@@ -31,7 +31,7 @@
 #' @param arm_var A character string specifying the name of the treatment arm variable (1=treatment, 0=control).
 #' @param sample_sizes A numeric vector of sample sizes *per arm* to calculate power for.
 #' @param linear_terms An optional character vector of other covariate names to include in the model.
-#' @param tau The numeric value for the RMST truncation time.
+#' @param L The numeric value for the RMST truncation time.
 #' @param alpha The significance level for the power calculation (Type I error rate).
 #'
 #' @return A `list` containing:
@@ -58,12 +58,12 @@
 #'   arm_var = "arm",
 #'   linear_terms = "age",
 #'   sample_sizes = c(100, 200, 300),
-#'   tau = 10
+#'   L = 10
 #' )
 #' print(power_results$results_data)
 #' print(power_results$results_plot)
 linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
-                                    sample_sizes, linear_terms = NULL, tau, alpha = 0.05) {
+                                    sample_sizes, linear_terms = NULL, L, alpha = 0.05) {
 
    # --- 1. Estimate Nuisance Parameters from Pilot Data ---
    cat("--- Estimating parameters from pilot data for analytic calculation... ---\n")
@@ -80,7 +80,7 @@ linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
    message("Model: Y_rmst ~ ", model_rhs)
 
    # Prepare data for IPCW
-   df$Y_rmst <- pmin(df[[time_var]], tau)
+   df$Y_rmst <- pmin(df[[time_var]], L)
    df$is_censored <- df[[status_var]] == 0
    df$is_event <- df[[status_var]] == 1
 
@@ -192,7 +192,7 @@ linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
 #' @param arm_var A character string specifying the name of the treatment arm variable (1=treatment, 0=control).
 #' @param target_power A single numeric value for the desired power (e.g., 0.80 or 0.90).
 #' @param linear_terms An optional character vector of other covariate names to include in the model.
-#' @param tau The numeric value for the RMST truncation time.
+#' @param L The numeric value for the RMST truncation time.
 #' @param alpha The significance level (Type I error rate).
 #' @param n_start The starting sample size *per arm* for the search.
 #' @param n_step The increment in sample size at each step of the search.
@@ -221,12 +221,12 @@ linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
 #'   status_var = "status",
 #'   arm_var = "arm",
 #'   target_power = 0.80,
-#'   tau = 10
+#'   L = 10
 #' )
 #' print(ss_results$results_data)
 #' print(ss_results$results_plot)
 linear.ss.analytical <- function(pilot_data, time_var, status_var, arm_var,
-                                 target_power, linear_terms = NULL, tau, alpha = 0.05,
+                                 target_power, linear_terms = NULL, L, alpha = 0.05,
                                  n_start = 50, n_step = 25, max_n_per_arm = 2000) {
 
    # --- 1. Estimate Parameters and Variance from Pilot Data (One Time) ---
@@ -242,7 +242,7 @@ linear.ss.analytical <- function(pilot_data, time_var, status_var, arm_var,
    model_formula <- stats::as.formula(paste("Y_rmst ~", model_rhs))
    message("Model: Y_rmst ~ ", model_rhs)
 
-   df$Y_rmst <- pmin(df[[time_var]], tau)
+   df$Y_rmst <- pmin(df[[time_var]], L)
    df$is_censored <- df[[status_var]] == 0
    df$is_event <- df[[status_var]] == 1
 
@@ -338,3 +338,4 @@ linear.ss.analytical <- function(pilot_data, time_var, status_var, arm_var,
 
    return(list(results_data = results_df, results_plot = p, results_summary = results_summary))
 }
+

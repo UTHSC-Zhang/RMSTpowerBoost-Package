@@ -13,7 +13,7 @@ GAM.power.boot(
   sample_sizes,
   linear_terms = NULL,
   smooth_terms = NULL,
-  tau,
+  L,
   n_sim = 1000,
   alpha = 0.05,
   parallel.cores = 1
@@ -36,7 +36,7 @@ GAM.power.boot(
 
 \item{smooth_terms}{Optional character vector of covariates with a non-linear effect.}
 
-\item{tau}{The numeric truncation time for RMST.}
+\item{L}{The numeric truncation time for RMST.}
 
 \item{n_sim}{Number of bootstrap simulations.}
 
@@ -92,7 +92,7 @@ power_results <- GAM.power.boot(
   arm_var = "arm",
   sample_sizes = c(100, 150),
   linear_terms = "age",
-  tau = 15,
+  L = 15,
   n_sim = 100, # Use more sims in practice, e.g., 1000
   parallel.cores = 2
 )

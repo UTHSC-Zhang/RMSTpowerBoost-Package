@@ -24,7 +24,7 @@
 #' @param strata_var A character string for the stratification variable.
 #' @param sample_sizes A numeric vector of sample sizes *per stratum* to calculate power for.
 #' @param linear_terms An optional character vector of other covariate names.
-#' @param tau The numeric value for the RMST truncation time.
+#' @param L The numeric value for the RMST truncation time.
 #' @param alpha The significance level (Type I error rate).
 #'
 #' @return A `list` containing:
@@ -55,13 +55,13 @@
 #'   time_var = "time", status_var = "status", arm_var = "arm", strata_var = "region",
 #'   sample_sizes = c(100, 150, 200),
 #'   linear_terms = "age",
-#'   tau = 12
+#'   L = 12
 #' )
 #' print(power_results$results_data)
 #' print(power_results$results_plot)
 #'
 additive.power.analytical <- function(pilot_data, time_var, status_var, arm_var, strata_var,
-                                      sample_sizes, linear_terms = NULL, tau, alpha = 0.05) {
+                                      sample_sizes, linear_terms = NULL, L, alpha = 0.05) {
 
    # --- 1. Prepare Data and Calculate IPCW Weights ---
    cat("--- Estimating parameters from pilot data... ---\n")
@@ -70,12 +70,12 @@ additive.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
    df <- pilot_data[stats::complete.cases(pilot_data[, all_vars]), ]
    n_pilot <- nrow(df)
 
-   df$Y_rmst <- pmin(df[[time_var]], tau)
+   df$Y_rmst <- pmin(df[[time_var]], L)
    df$is_event <- df[[status_var]] == 1
 
    cens_formula <- stats::as.formula(paste0("survival::Surv(Y_rmst, is_event == 0) ~ ",
                                             paste(covariates, collapse = " + "),
-                                            " + strata(", strata_var, ")"))
+                                            " + survival::strata(", strata_var, ")"))
    fit_cens <- survival::coxph(cens_formula, data = df, ties = "breslow")
 
    bh_cens <- survival::basehaz(fit_cens, centered = FALSE)
@@ -213,7 +213,7 @@ additive.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
 #' @param strata_var A character string for the stratification variable.
 #' @param target_power A single numeric value for the desired power.
 #' @param linear_terms An optional character vector of other covariate names.
-#' @param tau The numeric value for the RMST truncation time.
+#' @param L The numeric value for the RMST truncation time.
 #' @param alpha The significance level (Type I error rate).
 #' @param n_start The starting sample size *per stratum* for the search.
 #' @param n_step The increment in sample size at each step of the search.
@@ -249,7 +249,7 @@ additive.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
 #'     time_var = "time", status_var = "status",
 #'     arm_var = "arm", strata_var = "region",
 #'     target_power = 0.50,
-#'     tau = 18, #
+#'     L = 18, #
 #'     n_start = 200,
 #'     n_step = 50,
 #'     max_n_per_arm = 1000
@@ -257,7 +257,7 @@ additive.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
 #'   print(ss_results$results_data)
 #'   print(ss_results$results_plot)
 additive.ss.analytical <- function(pilot_data, time_var, status_var, arm_var, strata_var,
-                                   target_power, linear_terms = NULL, tau, alpha = 0.05,
+                                   target_power, linear_terms = NULL, L, alpha = 0.05,
                                    n_start = 50, n_step = 25, max_n_per_arm = 2000) {
 
    # --- 1. Estimate Parameters and Variance from Pilot Data (One Time) ---
@@ -267,12 +267,12 @@ additive.ss.analytical <- function(pilot_data, time_var, status_var, arm_var, st
    df <- pilot_data[stats::complete.cases(pilot_data[, all_vars]), ]
    n_pilot <- nrow(df)
 
-   df$Y_rmst <- pmin(df[[time_var]], tau)
+   df$Y_rmst <- pmin(df[[time_var]], L)
    df$is_event <- df[[status_var]] == 1
 
    cens_formula <- stats::as.formula(paste0("survival::Surv(Y_rmst, is_event == 0) ~ ",
                                             paste(covariates, collapse = " + "),
-                                            " + strata(", strata_var, ")"))
+                                            " + survival::strata(", strata_var, ")"))
    fit_cens <- survival::coxph(cens_formula, data = df, ties = "breslow")
 
    bh_cens <- survival::basehaz(fit_cens, centered = FALSE)
@@ -405,3 +405,4 @@ additive.ss.analytical <- function(pilot_data, time_var, status_var, arm_var, st
 
    return(list(results_data = results_df, results_plot = p, results_summary = results_summary))
 }
+

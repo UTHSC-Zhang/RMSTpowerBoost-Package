@@ -1,4 +1,4 @@
-
+﻿
 
 # Power Calculation -------------------------------------------------------
 
@@ -29,7 +29,7 @@
 #' @param dep_cens_status_var A character string for the dependent censoring status (1=dependent event, 0=otherwise).
 #' @param sample_sizes A numeric vector of sample sizes *per arm* to calculate power for.
 #' @param linear_terms An optional character vector of other covariate names.
-#' @param tau The numeric value for the RMST truncation time.
+#' @param L The numeric value for the RMST truncation time.
 #' @param alpha The significance level (Type I error rate).
 #'
 #' @return A `list` containing:
@@ -68,7 +68,7 @@
 #'   dep_cens_status_var = "dep_cens_status",
 #'   sample_sizes = c(200, 300, 400),
 #'   linear_terms = "age",
-#'   tau = 20,
+#'   L = 20,
 #'   alpha = 0.05
 #' )
 #' print(dc_power_results$results_data)
@@ -80,7 +80,7 @@ DC.power.analytical <- function(pilot_data,
                                 dep_cens_status_var,
                                 sample_sizes,
                                 linear_terms = NULL,
-                                tau,
+                                L,
                                 alpha = 0.05) {
 
    # --- 1. Estimate Nuisance Parameters from Pilot Data ---
@@ -103,7 +103,7 @@ DC.power.analytical <- function(pilot_data,
    # Define censoring indicators and truncated time
    df$cens_ind <- df[[status_var]] == 0 & df[[dep_cens_status_var]] == 0
    df$dep_cens_ind <- df[[dep_cens_status_var]] == 1
-   df$Y_rmst <- pmin(df[[time_var]], tau)
+   df$Y_rmst <- pmin(df[[time_var]], L)
 
    # Fit censoring models
    fit_cens <- tryCatch(survival::coxph(cens_formula, data = df, ties = "breslow"), error = function(e) NULL)
@@ -221,7 +221,7 @@ DC.power.analytical <- function(pilot_data,
 #' @param dep_cens_status_var A character string for the dependent censoring status (1=dependent event, 0=otherwise).
 #' @param target_power A single numeric value for the desired power.
 #' @param linear_terms An optional character vector of other covariate names.
-#' @param tau The numeric value for the RMST truncation time.
+#' @param L The numeric value for the RMST truncation time.
 #' @param alpha The significance level (Type I error rate).
 #' @param n_start The starting sample size *per arm* for the search.
 #' @param n_step The increment in sample size at each step of the search.
@@ -263,7 +263,7 @@ DC.power.analytical <- function(pilot_data,
 #'   dep_cens_status_var = "dep_cens_status",
 #'   target_power = 0.80,
 #'   linear_terms = "age",
-#'   tau = 15,
+#'   L = 15,
 #'   alpha = 0.05,
 #'   n_start = 100,
 #'   n_step = 50
@@ -277,7 +277,7 @@ DC.ss.analytical <- function(pilot_data,
                              dep_cens_status_var,
                              target_power,
                              linear_terms = NULL,
-                             tau,
+                             L,
                              alpha = 0.05,
                              n_start = 50,
                              n_step = 25,
@@ -301,7 +301,7 @@ DC.ss.analytical <- function(pilot_data,
 
    df$cens_ind <- df[[status_var]] == 0 & df[[dep_cens_status_var]] == 0
    df$dep_cens_ind <- df[[dep_cens_status_var]] == 1
-   df$Y_rmst <- pmin(df[[time_var]], tau)
+   df$Y_rmst <- pmin(df[[time_var]], L)
 
    fit_cens <- tryCatch(survival::coxph(cens_formula, data = df, ties = "breslow"), error = function(e) NULL)
    fit_dep_cens <- tryCatch(survival::coxph(dep_cens_formula, data = df, ties = "breslow"), error = function(e) NULL)
@@ -407,3 +407,4 @@ DC.ss.analytical <- function(pilot_data,
 
    return(list(results_data = results_df, results_plot = p, results_summary = results_summary))
 }
+

@@ -1,4 +1,4 @@
-# Power Calculation -------------------------------------------------------
+﻿# Power Calculation -------------------------------------------------------
 
 #' @title Analyze Power for a Linear RMST Model via Simulation
 #' @description Performs a power analysis for given sample sizes based on the direct
@@ -26,7 +26,7 @@
 #' @param arm_var A character string for the treatment arm variable.
 #' @param sample_sizes A numeric vector of sample sizes *per arm* to calculate power for.
 #' @param linear_terms Optional character vector of other covariates for the linear model.
-#' @param tau The numeric truncation time for RMST.
+#' @param L The numeric truncation time for RMST.
 #' @param n_sim The number of bootstrap simulations to run for each sample size.
 #' @param alpha The significance level (Type I error rate).
 #'
@@ -58,14 +58,14 @@
 #'   arm_var = "arm",
 #'   linear_terms = "age",
 #'   sample_sizes = c(100, 150, 200),
-#'   tau = 10,
+#'   L = 10,
 #'   n_sim = 200 # Use more simulations in practice (e.g., 1000)
 #' )
 #' print(power_results$results_data)
 #' print(power_results$results_plot)
 #' }
 linear.power.boot <- function(pilot_data, time_var, status_var, arm_var,
-                              sample_sizes,linear_terms = NULL, tau, n_sim = 1000, alpha = 0.05)
+                              sample_sizes,linear_terms = NULL, L, n_sim = 1000, alpha = 0.05)
 {
 
    start_time <- proc.time()
@@ -103,7 +103,7 @@ linear.power.boot <- function(pilot_data, time_var, status_var, arm_var,
          is_censored <- boot_data[[status_var]] == 0
          cens_fit <- tryCatch(survival::survfit(Surv(boot_data[[time_var]], is_censored) ~ 1), error = function(e) NULL)
          if (is.null(cens_fit)) next
-         surv_summary <- tryCatch(summary(cens_fit, times = pmin(boot_data[[time_var]], tau), extend = TRUE), error = function(e) NULL)
+         surv_summary <- tryCatch(summary(cens_fit, times = pmin(boot_data[[time_var]], L), extend = TRUE), error = function(e) NULL)
          if (is.null(surv_summary)) next
 
          weights <- 1 / surv_summary$surv
@@ -114,7 +114,7 @@ linear.power.boot <- function(pilot_data, time_var, status_var, arm_var,
          }
          weights[!is.finite(weights)] <- NA
 
-         boot_data$Y_rmst <- pmin(boot_data[[time_var]], tau)
+         boot_data$Y_rmst <- pmin(boot_data[[time_var]], L)
          fit_data <- boot_data[boot_data[[status_var]] == 1 & is.finite(weights), ]
          fit_weights <- weights[boot_data[[status_var]] == 1 & is.finite(weights)]
 
@@ -196,7 +196,7 @@ linear.power.boot <- function(pilot_data, time_var, status_var, arm_var,
 #' @param arm_var A character string for the treatment arm variable.
 #' @param target_power A single numeric value for the target power (e.g., 0.80).
 #' @param linear_terms Optional character vector of other covariates for the linear model.
-#' @param tau The numeric truncation time for RMST.
+#' @param L The numeric truncation time for RMST.
 #' @param n_sim The number of bootstrap simulations per search step.
 #' @param alpha The significance level.
 #' @param patience The number of consecutive non-improving steps in the search before terminating.
@@ -227,7 +227,7 @@ linear.power.boot <- function(pilot_data, time_var, status_var, arm_var,
 #'   status_var = "status",
 #'   arm_var = "arm",
 #'   target_power = 0.80,
-#'   tau = 10,
+#'   L = 10,
 #'   n_sim = 200, # Low n_sim for example
 #'   patience = 2,
 #'   n_start = 100,
@@ -239,7 +239,7 @@ linear.power.boot <- function(pilot_data, time_var, status_var, arm_var,
 #' }
 linear.ss.boot <- function(pilot_data, time_var, status_var, arm_var,
                            target_power,
-                           linear_terms = NULL, tau, n_sim = 1000, alpha = 0.05,
+                           linear_terms = NULL, L, n_sim = 1000, alpha = 0.05,
                            patience = 5,
                            n_start = 50, n_step = 25, max_n_per_arm = 2000) {
 
@@ -283,7 +283,7 @@ linear.ss.boot <- function(pilot_data, time_var, status_var, arm_var,
          is_censored <- boot_data[[status_var]] == 0
          cens_fit <- tryCatch(survival::survfit(Surv(boot_data[[time_var]], is_censored) ~ 1), error = function(e) NULL)
          if (is.null(cens_fit)) next
-         surv_summary <- tryCatch(summary(cens_fit, times = pmin(boot_data[[time_var]], tau), extend = TRUE), error = function(e) NULL)
+         surv_summary <- tryCatch(summary(cens_fit, times = pmin(boot_data[[time_var]], L), extend = TRUE), error = function(e) NULL)
          if (is.null(surv_summary)) next
          weights <- 1 / surv_summary$surv
          finite_weights <- weights[is.finite(weights)]
@@ -292,7 +292,7 @@ linear.ss.boot <- function(pilot_data, time_var, status_var, arm_var,
             weights[weights > weight_cap] <- weight_cap
          }
          weights[!is.finite(weights)] <- NA
-         boot_data$Y_rmst <- pmin(boot_data[[time_var]], tau)
+         boot_data$Y_rmst <- pmin(boot_data[[time_var]], L)
          fit_data <- boot_data[boot_data[[status_var]] == 1 & is.finite(weights), ]
          fit_weights <- weights[boot_data[[status_var]] == 1 & is.finite(weights)]
 
@@ -385,3 +385,4 @@ linear.ss.boot <- function(pilot_data, time_var, status_var, arm_var,
 
    return(list(results_data = results_df, results_plot = p, results_summary = results_summary))
 }
+

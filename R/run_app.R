@@ -19,7 +19,7 @@ run_app <- function() {
    if (app_dir == "") {
       stop(
          "Could not find the app directory. ",
-         "Try re-installing the `RMSTSS-Package`.",
+         "Try re-installing the `RMSTdesign-Package`.",
          call. = FALSE
       )
    }
@@ -27,3 +27,4 @@ run_app <- function() {
    # Launch the app
    shiny::runApp(app_dir, display.mode = "normal")
 }
+

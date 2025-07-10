@@ -12,7 +12,7 @@ DC.power.analytical(
   dep_cens_status_var,
   sample_sizes,
   linear_terms = NULL,
-  tau,
+  L,
   alpha = 0.05
 )
 }
@@ -31,7 +31,7 @@ DC.power.analytical(
 
 \item{linear_terms}{An optional character vector of other covariate names.}
 
-\item{tau}{The numeric value for the RMST truncation time.}
+\item{L}{The numeric value for the RMST truncation time.}
 
 \item{alpha}{The significance level (Type I error rate).}
 }
@@ -88,7 +88,7 @@ dc_power_results <- DC.power.analytical(
   dep_cens_status_var = "dep_cens_status",
   sample_sizes = c(200, 300, 400),
   linear_terms = "age",
-  tau = 20,
+  L = 20,
   alpha = 0.05
 )
 print(dc_power_results$results_data)

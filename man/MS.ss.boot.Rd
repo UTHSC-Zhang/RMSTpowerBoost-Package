@@ -12,7 +12,7 @@ MS.ss.boot(
   strata_var,
   target_power,
   linear_terms = NULL,
-  tau,
+  L,
   n_sim = 1000,
   alpha = 0.05,
   parallel.cores = 1,
@@ -37,7 +37,7 @@ MS.ss.boot(
 
 \item{linear_terms}{Optional vector of covariates for the model.}
 
-\item{tau}{The numeric truncation time for RMST.}
+\item{L}{The numeric truncation time for RMST.}
 
 \item{n_sim}{Number of bootstrap simulations per search step.}
 
@@ -86,7 +86,7 @@ pilot_df_strat_effect <- data.frame(
 ss_results <- MS.ss.boot(
  pilot_data = pilot_df_strat_effect,
  time_var = "time", status_var = "status", arm_var = "arm", strata_var = "region",
- target_power = 0.80, tau = 10,
+ target_power = 0.80, L = 10,
  n_sim = 100, # Low n_sim for example
  n_start = 100,
  n_step = 50, patience = 2

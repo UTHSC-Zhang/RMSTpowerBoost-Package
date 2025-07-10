@@ -19,21 +19,22 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-# This setup chunk configures the vignette's appearance and loads necessary packages.
 knitr::opts_chunk$set(
    message = FALSE,
-    eval = FALSE,
+    # eval = FALSE,
    warning = FALSE,
    comment = NA,
    fig.align = 'center',
    fig.width = 7,
    fig.height = 5,
+   table.width = "100%",
+   table.align = "center",
    collapse = TRUE
 )
 packages = c("survival", "dplyr", "tidyr", "knitr", "ggplot2", "mgcv", "kableExtra", "bibtex")
 lapply(packages, require, character.only = TRUE)
 
- library(RMSTSS)
+library(RMSTSS)
 ```
 
 # Introduction
@@ -177,7 +178,7 @@ power_results_vet <- linear.power.analytical(
   arm_var = "arm",
   linear_terms = "karno",
   sample_sizes = c(100, 150, 200, 250),
-  tau = 270
+  L = 270
 )
 ```
 
@@ -202,7 +203,7 @@ ss_results_vet <- linear.ss.analytical(
   arm_var = "arm",
   target_power = 0.40,
   linear_terms = "karno",
-  tau = 365,
+  L = 365,
   n_start = 1000, n_step = 250, max_n_per_arm = 5000
 )
 ```
@@ -237,7 +238,7 @@ power_boot_vet <- linear.power.boot(
   arm_var = "arm",
   linear_terms = "karno",
   sample_sizes = c(150, 200, 250),
-  tau = 365,
+  L = 365,
   n_sim = 200 
 )
 ```
@@ -256,7 +257,7 @@ ss_boot_vet <- linear.ss.boot(
   arm_var = "arm",
   target_power = 0.5,
   linear_terms = "karno",
-  tau = 180,
+  L = 180,
   n_sim = 500, 
   patience = 5
 )
@@ -310,7 +311,7 @@ ss_results_colon <- additive.ss.analytical(
   pilot_data = colon_death,
   time_var = "time", status_var = "status", arm_var = "arm", strata_var = "strata",
   target_power = 0.60,
-  tau = 1825,
+  L = 1825,
   n_start = 100, n_step = 100, max_n_per_arm = 10000
 )
 ```
@@ -339,7 +340,7 @@ power_results_colon <- additive.power.analytical(
   arm_var = "arm",
   strata_var = "strata",
   sample_sizes = c(1000, 3000, 5000),
-  tau = 1825 # 5 years
+  L = 1825 # 5 years
 )
 
 ```
@@ -382,7 +383,7 @@ power_ms_analytical <- MS.power.analytical(
    pilot_data = colon_death,
    time_var = "time", status_var = "status", arm_var = "arm", strata_var = "strata",
    sample_sizes = c(300, 400, 500),
-   tau = 1825
+   L = 1825
 )
 ```
 
@@ -399,7 +400,7 @@ The following example demonstrates the sample size calculation using the same mo
 ```{r ms_ss_analytical_example}
 ms_ss_results_colon <- MS.ss.analytical(
    pilot_data = colon_death, time_var = "time", status_var = "status", arm_var = "arm", strata_var = "strata",
-   target_power = 0.6,tau = 1825)
+   target_power = 0.6,L = 1825)
 ```
 
 ```{r echo=FALSE}
@@ -429,7 +430,7 @@ power_ms_boot <- MS.power.boot(
    arm_var = "arm",
    strata_var = "strata",
    sample_sizes = c(100, 300, 500),
-   tau = 1825,
+   L = 1825,
    n_sim = 100, 
    parallel.cores = 10 
 )
@@ -453,7 +454,7 @@ ss_ms_boot <- MS.ss.boot(
    arm_var = "arm",
    strata_var = "strata", 
    target_power = 0.5,
-   tau = 1825,
+   L = 1825,
    n_sim = 100,
    n_start = 100,
    n_step = 50,
@@ -522,7 +523,7 @@ power_gam <- GAM.power.boot(
    arm_var = "arm",
    smooth_terms = "pgr", # Model pgr with a smooth term
    sample_sizes = c(50, 200, 400),
-   tau = 2825, # 5 years
+   L = 2825, # 5 years
    n_sim = 500,
    parallel.cores = 10
 )
@@ -541,7 +542,7 @@ ss_gam <- GAM.ss.boot(
    status_var = "status",
    arm_var = "arm",
    target_power = 0.95,
-   tau = 182, 
+   L = 182, 
    n_sim = 500, 
    patience = 5,
    parallel.cores = 10
@@ -604,7 +605,7 @@ dc_power_results <- DC.power.analytical(
    dep_cens_status_var = "event_dependent",
    sample_sizes = c(100, 250, 500),
    linear_terms = "age",
-   tau = 120 # 10 years
+   L = 120 # 10 years
 )
 ```
 
@@ -628,7 +629,7 @@ ss_dc_mgus <- DC.ss.analytical(
    dep_cens_status_var = "event_dependent",
    target_power = 0.80,
    linear_terms = "age",
-   tau = 120, # 10 years
+   L = 120, # 10 years
    n_start = 100, n_step = 50, max_n_per_arm = 5000
 )
 
@@ -686,3 +687,4 @@ Future development could involve extending the bootstrap approach to the depende
 # References
 
 \`\`\`
+

@@ -11,7 +11,7 @@ linear.ss.boot(
   arm_var,
   target_power,
   linear_terms = NULL,
-  tau,
+  L,
   n_sim = 1000,
   alpha = 0.05,
   patience = 5,
@@ -33,7 +33,7 @@ linear.ss.boot(
 
 \item{linear_terms}{Optional character vector of other covariates for the linear model.}
 
-\item{tau}{The numeric truncation time for RMST.}
+\item{L}{The numeric truncation time for RMST.}
 
 \item{n_sim}{The number of bootstrap simulations per search step.}
 
@@ -82,7 +82,7 @@ ss_results <- linear.ss.boot(
   status_var = "status",
   arm_var = "arm",
   target_power = 0.80,
-  tau = 10,
+  L = 10,
   n_sim = 200, # Low n_sim for example
   patience = 2,
   n_start = 100,

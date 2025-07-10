@@ -11,7 +11,7 @@ linear.power.boot(
   arm_var,
   sample_sizes,
   linear_terms = NULL,
-  tau,
+  L,
   n_sim = 1000,
   alpha = 0.05
 )
@@ -29,7 +29,7 @@ linear.power.boot(
 
 \item{linear_terms}{Optional character vector of other covariates for the linear model.}
 
-\item{tau}{The numeric truncation time for RMST.}
+\item{L}{The numeric truncation time for RMST.}
 
 \item{n_sim}{The number of bootstrap simulations to run for each sample size.}
 
@@ -82,7 +82,7 @@ power_results <- linear.power.boot(
   arm_var = "arm",
   linear_terms = "age",
   sample_sizes = c(100, 150, 200),
-  tau = 10,
+  L = 10,
   n_sim = 200 # Use more simulations in practice (e.g., 1000)
 )
 print(power_results$results_data)

@@ -12,7 +12,7 @@ MS.power.analytical(
   strata_var,
   sample_sizes,
   linear_terms = NULL,
-  tau,
+  L,
   alpha = 0.05
 )
 }
@@ -31,7 +31,7 @@ MS.power.analytical(
 
 \item{linear_terms}{An optional character vector of other covariate names.}
 
-\item{tau}{The numeric value for the RMST truncation time.}
+\item{L}{The numeric value for the RMST truncation time.}
 
 \item{alpha}{The significance level (Type I error rate).}
 }
@@ -74,7 +74,7 @@ power_results <- MS.power.analytical(
  pilot_data = pilot_df_strat,
  time_var = "time", status_var = "status", arm_var = "arm", strata_var = "region",
  sample_sizes = c(50, 75, 100),
- tau = 10, alpha = 0.05
+ L = 10, alpha = 0.05
 )
 print(power_results$results_data)
 }

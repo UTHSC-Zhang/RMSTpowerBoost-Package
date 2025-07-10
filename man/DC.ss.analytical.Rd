@@ -12,7 +12,7 @@ DC.ss.analytical(
   dep_cens_status_var,
   target_power,
   linear_terms = NULL,
-  tau,
+  L,
   alpha = 0.05,
   n_start = 50,
   n_step = 25,
@@ -34,7 +34,7 @@ DC.ss.analytical(
 
 \item{linear_terms}{An optional character vector of other covariate names.}
 
-\item{tau}{The numeric value for the RMST truncation time.}
+\item{L}{The numeric value for the RMST truncation time.}
 
 \item{alpha}{The significance level (Type I error rate).}
 
@@ -88,7 +88,7 @@ dc_ss_results <- DC.ss.analytical(
   dep_cens_status_var = "dep_cens_status",
   target_power = 0.80,
   linear_terms = "age",
-  tau = 15,
+  L = 15,
   alpha = 0.05,
   n_start = 100,
   n_step = 50
