@@ -21,7 +21,7 @@ vignette: >
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
    message = FALSE,
-    # eval = FALSE,
+    eval = FALSE,
    warning = FALSE,
    comment = NA,
    fig.align = 'center',
@@ -59,11 +59,10 @@ This vignette will guide you through the theory and application of each of these
 
 ------------------------------------------------------------------------
 
-# Core Concepts of `RMSTSS` Package{.tabset}
+# Core Concepts of `RMSTSS` Package {.tabset}
+## The Analytic Method (`.analytical` functions)
 
 The `RMSTSS` package uses two primary approaches for its calculations: a fast **Analytic Method** and a robust **Bootstrap Method**. All functions for finding sample size then use a common search algorithm. Understanding these three components is key to choosing the right function for your needs.
-
-## The Analytic Method (`.analytical` functions)
 
 The analytical functions are extremely fast because they use a direct mathematical formula to calculate power. This makes them ideal for quickly exploring different scenarios. The process is:
 
@@ -131,12 +130,9 @@ Model selection depends on the assumptions made about the data structure and the
 | **Dependent Censoring**       | Accounts for dependent censoring or competing risks.                         | Recommended for studies involving competing events, such as transplant studies where receiving a transplant precludes observation of pre-transplant mortality. |
 
 
-# Linear IPCW Models{.tabset}
-
-These functions implement the foundational direct linear regression model for the RMST. This model is appropriate when a linear relationship between covariates and the RMST is assumed, and when censoring is independent of the event of interest.
-
+# Linear IPCW Models .tabset}
 ## Theory and Model
-
+These functions implement the foundational direct linear regression model for the RMST. This model is appropriate when a linear relationship between covariates and the RMST is assumed, and when censoring is independent of the event of interest.
 Based on the methods of [@tian2014], these functions model the conditional RMST as a linear function of covariates:
 $$\mathbb{E}[\min(T_i, L) | Z_i] = \beta_0 + \beta_1 \text{Treatment}_i + \beta_2 \text{Covariate}_{i}$$
 In this model, the expected RMST up to a pre-specified time **L** for subject *i* is modeled as a linear combination of their treatment arm and other variables $Z_i$.
@@ -272,11 +268,8 @@ ss_boot_vet$results_plot +
 ***
 
 # Additive Stratified Models {.tabset}
-
-In multi-center clinical trials, it is often necessary to stratify the analysis by a categorical variable with many levels, such as the clinical center or a discretized biomarker. Estimating a separate parameter for each stratum can be inefficient, particularly when the number of strata is large. The additive stratified model elegantly handles this situation by conditioning out the stratum-specific effects.
-
 ## Theory and Model
-
+In multi-center clinical trials, it is often necessary to stratify the analysis by a categorical variable with many levels, such as the clinical center or a discretized biomarker. Estimating a separate parameter for each stratum can be inefficient, particularly when the number of strata is large. The additive stratified model elegantly handles this situation by conditioning out the stratum-specific effects.
 The semiparametric additive model for RMST, as developed by [@zhang2024], is defined as:
 $$\mu_{ij} = \mu_{0j} + \beta'Z_i$$
 This model assumes that the effect of the covariates $Z_i$ (which includes the treatment arm) is **additive** and constant across all strata $j$. Crucially, it allows each stratum to have its own unique baseline RMST, denoted by $\mu_{0j}$.
@@ -359,11 +352,8 @@ power_results_colon$results_plot +
 ***
 
 # Multiplicative Stratified Models {.tabset}
-
-As an alternative to the additive model, the multiplicative model may be preferred if the treatment is expected to have a relative, or proportional, effect on the RMST—for example, increasing or decreasing survival time by a certain percentage.
-
 ## Theory and Model
-
+As an alternative to the additive model, the multiplicative model may be preferred if the treatment is expected to have a relative, or proportional, effect on the RMST—for example, increasing or decreasing survival time by a certain percentage.
 The multiplicative model, based on the work of [@wang2019], is defined as:
 $$\mu_{ij} = \mu_{0j} \exp(\beta'Z_i)$$
 In this model, the covariates $Z_i$ have a **multiplicative** effect on the baseline stratum-specific RMST, $\mu_{0j}$. This structure is equivalent to a linear model on the log-RMST.
@@ -472,11 +462,9 @@ kbl(ss_ms_boot$results_summary, caption = "Sample Size for Multiplicative Strati
 ***
 
 # Semiparametric GAM Models {.tabset}
-
-When a covariate is expected to have a non-linear effect on the outcome (for example, the effect of age or a biomarker), standard linear models may be misspecified. Generalized Additive Models (GAMs) provide a flexible solution by modeling such relationships with smooth functions.
-
 ## Theory and Model
 
+When a covariate is expected to have a non-linear effect on the outcome (for example, the effect of age or a biomarker), standard linear models may be misspecified. Generalized Additive Models (GAMs) provide a flexible solution by modeling such relationships with smooth functions.
 These functions use a bootstrap simulation approach combined with a GAM. The method involves two main steps:
 
 1.  **Jackknife Pseudo-Observations**: The time-to-event outcome is first converted into **jackknife pseudo-observations** for the RMST. This technique, explored in recent statistical literature for RMST estimation [@perdry2024], creates a continuous, uncensored variable that represents each subject's contribution to the RMST. This makes the outcome suitable for use in a standard regression framework.
@@ -558,11 +546,8 @@ ss_gam$results_plot +
 ***
 
 # Dependent Censoring Models
-
-In some studies, particularly observational or registry studies, censoring may not be independent of the event of interest. A classic example is in transplant medicine, where receiving an organ transplant removes a patient from being at risk of pre-transplant death. This is a form of **competing risk**, which can also be viewed as dependent censoring.
-
 ## Theory and Model
-
+In some studies, particularly observational or registry studies, censoring may not be independent of the event of interest. A classic example is in transplant medicine, where receiving an organ transplant removes a patient from being at risk of pre-transplant death. This is a form of **competing risk**, which can also be viewed as dependent censoring.
 The methods from [@wang2018] address this by extending the IPCW framework. Instead of a single model for the overall censoring distribution, **cause-specific Cox models** are fitted for each of the $K$ sources of censoring (e.g., one model for administrative censoring, another for the competing event).
 
 The final weight for a subject is then a product of the weights derived from all censoring causes, calculated as:
@@ -646,11 +631,8 @@ ss_dc_mgus$results_plot +
 ```
 
 # Interactive Shiny Application
-
+## Accessing the Application
 For users who prefer a graphical interface, `RMSTSS` provides an interactive Shiny web application that offers a point-and-click interface to all the models and methods described in this vignette.
-
-### Accessing the Application
-
 There are two ways to access the application:
 
 1.  **Live Web Version (Recommended)**: Access the application directly in your browser without any installation.
@@ -663,7 +645,7 @@ There are two ways to access the application:
 RMSTSS::run_app()
 ```
 
-### App Features
+## App Features
 
 -   **Interactive Data Upload**: Upload your pilot dataset in `.csv` format.
 -   **Visual Column Mapping**: Visually map the columns in your data to the required variables for the analysis (e.g., time, status, treatment arm).
