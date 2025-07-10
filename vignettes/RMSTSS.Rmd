@@ -686,5 +686,4 @@ Future development could involve extending the bootstrap approach to the depende
 
 # References
 
-\`\`\`
 
