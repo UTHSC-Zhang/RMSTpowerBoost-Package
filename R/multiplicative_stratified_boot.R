@@ -7,7 +7,7 @@
 #' @return A function that takes `n_per_stratum` and runs the simulation.
 #' @keywords internal
 .get_internal_simulation_runner <- function(pilot_data, time_var, status_var, arm_var, strata_var,
-                                            linear_terms, tau, alpha, n_sim, parallel.cores=10) {
+                                            linear_terms, L, alpha, n_sim, parallel.cores=10) {
 
    # --- Data Preparation & Model Formula ---
    core_vars <- c(time_var, status_var, arm_var, strata_var)
@@ -25,18 +25,18 @@
    test_term_pattern <- paste0(":", arm_var, "1$")
 
    # --- Helper to calculate jackknife pseudo-observations ---
-   get_pseudo_obs <- function(time, status, tau_val) {
+   get_pseudo_obs <- function(time, status, L_val) {
       n <- length(time)
       if (n == 0) return(numeric(0))
       km_fit_full <- survival::survfit(survival::Surv(time, status) ~ 1)
       km_step_full <- stats::stepfun(km_fit_full$time, c(1, km_fit_full$surv))
-      rmst_full <- tryCatch(stats::integrate(km_step_full, 0, tau_val, subdivisions = 2000, stop.on.error = FALSE)$value, error = function(e) 0)
+      rmst_full <- tryCatch(stats::integrate(km_step_full, 0, L_val, subdivisions = 2000, stop.on.error = FALSE)$value, error = function(e) 0)
 
       rmst_loo <- vapply(seq_len(n), function(i) {
          if (n > 1) {
             km_fit_loo <- survival::survfit(survival::Surv(time[-i], status[-i]) ~ 1)
             km_step_loo <- stats::stepfun(km_fit_loo$time, c(1, km_fit_loo$surv))
-            tryCatch(stats::integrate(km_step_loo, 0, tau_val, subdivisions = 2000, stop.on.error = FALSE)$value, error = function(e) 0)
+            tryCatch(stats::integrate(km_step_loo, 0, L_val, subdivisions = 2000, stop.on.error = FALSE)$value, error = function(e) 0)
          } else { 0 }
       }, FUN.VALUE = numeric(1))
 
@@ -62,7 +62,7 @@
          boot_data[[arm_var]] <- factor(boot_data[[arm_var]], levels = c(0, 1))
 
          pseudo_obs_list <- by(boot_data, boot_data[[strata_var]], function(sub_data) {
-            sub_data$pseudo_obs <- get_pseudo_obs(sub_data[[time_var]], sub_data[[status_var]], tau)
+            sub_data$pseudo_obs <- get_pseudo_obs(sub_data[[time_var]], sub_data[[status_var]], L)
             sub_data
          })
          boot_data <- do.call(rbind, pseudo_obs_list)
@@ -141,7 +141,7 @@
 #' @param strata_var A character string for the stratification variable.
 #' @param sample_sizes A numeric vector of sample sizes *per stratum* to calculate power for.
 #' @param linear_terms Optional character vector of covariates for the model.
-#' @param tau The numeric truncation time for RMST.
+#' @param L The numeric truncation time for RMST.
 #' @param n_sim Number of bootstrap simulations.
 #' @param alpha The significance level.
 #' @param parallel.cores Number of cores for parallel processing.
@@ -172,13 +172,13 @@
 #'  pilot_data = pilot_df_strat,
 #'  time_var = "time", status_var = "status", arm_var = "arm", strata_var = "region",
 #'  sample_sizes = c(50, 75),
-#'  tau = 10,
+#'  L = 10,
 #'  n_sim = 100 # Low n_sim for example
 #' )
 #' print(power_results$results_data)
 #' }
 MS.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
-                          sample_sizes, linear_terms = NULL, tau, n_sim = 1000,
+                          sample_sizes, linear_terms = NULL, L, n_sim = 1000,
                           alpha = 0.05, parallel.cores = 1) {
    # --- Input Validation ---
    if (is.null(sample_sizes)) stop("You must provide the 'sample_sizes' argument.")
@@ -192,7 +192,7 @@ MS.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
    sim_function <- .get_internal_simulation_runner(
       pilot_data = pilot_data,
       time_var = time_var, status_var = status_var, arm_var = arm_var,
-      strata_var = strata_var, linear_terms = linear_terms, tau = tau,
+      strata_var = strata_var, linear_terms = linear_terms, L = L,
       alpha = alpha, n_sim = n_sim, parallel.cores = parallel.cores
    )
 
@@ -270,7 +270,7 @@ MS.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
 #' @param strata_var A character string for the stratification variable.
 #' @param target_power A single numeric value for the target power (e.g., 0.80).
 #' @param linear_terms Optional vector of covariates for the model.
-#' @param tau The numeric truncation time for RMST.
+#' @param L The numeric truncation time for RMST.
 #' @param n_sim Number of bootstrap simulations per search step.
 #' @param alpha The significance level.
 #' @param parallel.cores Number of cores for parallel processing.
@@ -302,7 +302,7 @@ MS.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
 #' ss_results <- MS.ss.boot(
 #'  pilot_data = pilot_df_strat_effect,
 #'  time_var = "time", status_var = "status", arm_var = "arm", strata_var = "region",
-#'  target_power = 0.80, tau = 10,
+#'  target_power = 0.80, L = 10,
 #'  n_sim = 100, # Low n_sim for example
 #'  n_start = 100,
 #'  n_step = 50, patience = 2
@@ -310,7 +310,7 @@ MS.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
 #' print(ss_results$results_data)
 #' }
 MS.ss.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
-                       target_power, linear_terms = NULL, tau, n_sim = 1000,
+                       target_power, linear_terms = NULL, L, n_sim = 1000,
                        alpha = 0.05, parallel.cores = 1, patience = 5,
                        n_start = 50, n_step = 25, max_n_per_arm = 2000) {
    # --- Input Validation ---
@@ -327,7 +327,7 @@ MS.ss.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
    sim_function <- .get_internal_simulation_runner(
       pilot_data = pilot_data,
       time_var = time_var, status_var = status_var, arm_var = arm_var,
-      strata_var = strata_var, linear_terms = linear_terms, tau = tau,
+      strata_var = strata_var, linear_terms = linear_terms, L = L,
       alpha = alpha, n_sim = n_sim, parallel.cores = parallel.cores
    )
 

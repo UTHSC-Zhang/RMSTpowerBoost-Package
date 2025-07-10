@@ -21,7 +21,7 @@ test_that("MS.power.boot returns correct structure", {
    results <- MS.power.boot(
       pilot_data = pilot_data_mult_strat,
       time_var = "time", status_var = "status", arm_var = "arm", strata_var = "region",
-      sample_sizes = c(60), tau = 10, n_sim = 10
+      sample_sizes = c(60), L = 10, n_sim = 10
    )
    expect_type(results, "list")
    expect_named(results, c("results_data", "results_plot", "results_summary"))
@@ -37,7 +37,7 @@ test_that("MS.ss.boot finds a plausible N", {
    results <- MS.ss.boot(
       pilot_data = pilot_data_mult_strat,
       time_var = "time", status_var = "status", arm_var = "arm", strata_var = "region",
-      target_power = 0.7, tau = 10, n_sim = 10,
+      target_power = 0.7, L = 10, n_sim = 10,
       n_start = 50, n_step = 50, patience = 2
    )
    expect_s3_class(results$results_data, "data.frame")
@@ -52,7 +52,7 @@ test_that("MS.power.analytical returns correct structure", {
    results <- MS.power.analytical(
       pilot_data = pilot_data_mult_strat,
       time_var = "time", status_var = "status", arm_var = "arm", strata_var = "region",
-      sample_sizes = c(80, 100), tau = 10
+      sample_sizes = c(80, 100), L = 10
    )
    expect_type(results, "list")
    expect_named(results, c("results_data", "results_plot"))
@@ -66,7 +66,7 @@ test_that("MS.ss.analytical finds a plausible N", {
    results <- MS.ss.analytical(
       pilot_data = pilot_data_mult_strat,
       time_var = "time", status_var = "status", arm_var = "arm", strata_var = "region",
-      target_power = 0.8, tau = 10
+      target_power = 0.8, L = 10
    )
    expect_s3_class(results$results_data, "data.frame")
    expect_true(results$results_data$Required_N_per_Stratum > 0)
@@ -81,14 +81,14 @@ test_that("Analytical and Bootstrap methods give comparable results for multipli
    ss_analytic <- MS.ss.analytical(
       pilot_data = pilot_data_mult_strat,
       time_var = "time", status_var = "status", arm_var = "arm", strata_var = "region",
-      target_power = 0.7, tau = 10
+      target_power = 0.7, L = 10
    )$results_data$Required_N_per_Stratum
 
    power_boot <- MS.power.boot(
       pilot_data = pilot_data_mult_strat,
       time_var = "time", status_var = "status", arm_var = "arm", strata_var = "region",
       sample_sizes = ss_analytic,
-      tau = 10,
+      L = 10,
       n_sim = 10 # CORRECTED: Reduced n_sim to make test faster
    )$results_data$Power
 
@@ -97,3 +97,4 @@ test_that("Analytical and Bootstrap methods give comparable results for multipli
    # Check that the result is a valid probability, which is a more robust test for low n_sim
    expect_true(is.numeric(power_boot) && power_boot >= 0 && power_boot <= 1)
 })
+

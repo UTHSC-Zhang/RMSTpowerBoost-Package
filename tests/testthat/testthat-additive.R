@@ -31,7 +31,7 @@ test_that("GAM.power.boot works for non-stratified case", {
    results <- GAM.power.boot(
       pilot_data = pilot_data_add_simple,
       time_var = "time", status_var = "status", arm_var = "arm",
-      sample_sizes = c(100), tau = 15, n_sim = 10
+      sample_sizes = c(100), L = 15, n_sim = 10
    )
    # CORRECTED: Use expect_type for a base list
    expect_type(results, "list")
@@ -45,7 +45,7 @@ test_that("GAM.power.boot works for stratified case", {
    results <- GAM.power.boot(
       pilot_data = pilot_data_add_strat,
       time_var = "time", status_var = "status", arm_var = "arm", strata_var = "region",
-      sample_sizes = c(50), tau = 15, n_sim = 10
+      sample_sizes = c(50), L = 15, n_sim = 10
    )
    # CORRECTED: Use expect_type for a base list
    expect_type(results, "list")
@@ -57,7 +57,7 @@ test_that("GAM.ss.boot finds a plausible N", {
    results <- GAM.ss.boot(
       pilot_data = pilot_data_add_simple,
       time_var = "time", status_var = "status", arm_var = "arm",
-      target_power = 0.6, tau = 15, n_sim = 10,
+      target_power = 0.6, L = 15, n_sim = 10,
       n_start = 50, n_step = 50, patience = 2
    )
    expect_s3_class(results$results_data, "data.frame")
@@ -72,7 +72,7 @@ test_that("additive.power.analytical works for stratified case", {
    results <- additive.power.analytical(
       pilot_data = pilot_data_add_strat,
       time_var = "time", status_var = "status", arm_var = "arm", strata_var = "region",
-      sample_sizes = c(100, 150), tau = 15
+      sample_sizes = c(100, 150), L = 15
    )
    expect_type(results, "list")
    expect_named(results$results_data, c("N_per_Stratum", "Power"))
@@ -83,8 +83,9 @@ test_that("additive.ss.analytical finds a plausible N", {
    results <- additive.ss.analytical(
       pilot_data = pilot_data_add_strat,
       time_var = "time", status_var = "status", arm_var = "arm", strata_var = "region",
-      target_power = 0.8, tau = 15
+      target_power = 0.8, L = 15
    )
    expect_s3_class(results$results_data, "data.frame")
    expect_true(results$results_data$Required_N_per_Stratum > 0)
 })
+

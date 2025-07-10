@@ -12,7 +12,7 @@ MS.power.boot(
   strata_var,
   sample_sizes,
   linear_terms = NULL,
-  tau,
+  L,
   n_sim = 1000,
   alpha = 0.05,
   parallel.cores = 1
@@ -33,7 +33,7 @@ MS.power.boot(
 
 \item{linear_terms}{Optional character vector of covariates for the model.}
 
-\item{tau}{The numeric truncation time for RMST.}
+\item{L}{The numeric truncation time for RMST.}
 
 \item{n_sim}{Number of bootstrap simulations.}
 
@@ -84,7 +84,7 @@ power_results <- MS.power.boot(
  pilot_data = pilot_df_strat,
  time_var = "time", status_var = "status", arm_var = "arm", strata_var = "region",
  sample_sizes = c(50, 75),
- tau = 10,
+ L = 10,
  n_sim = 100 # Low n_sim for example
 )
 print(power_results$results_data)

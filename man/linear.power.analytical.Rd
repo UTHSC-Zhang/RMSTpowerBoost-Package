@@ -11,7 +11,7 @@ linear.power.analytical(
   arm_var,
   sample_sizes,
   linear_terms = NULL,
-  tau,
+  L,
   alpha = 0.05
 )
 }
@@ -28,7 +28,7 @@ linear.power.analytical(
 
 \item{linear_terms}{An optional character vector of other covariate names to include in the model.}
 
-\item{tau}{The numeric value for the RMST truncation time.}
+\item{L}{The numeric value for the RMST truncation time.}
 
 \item{alpha}{The significance level for the power calculation (Type I error rate).}
 }
@@ -47,7 +47,7 @@ This function implements the analytic power calculation for the direct linear
 regression model of the Restricted Mean Survival Time (RMST) proposed by Tian et al. (2014).
 The core of the method is a weighted linear model of the form
 \deqn{E[Y_i|Z_i] = \beta_0 + \beta_1 Z_i}
-where \eqn{Y_i = \min(T_i, \tau)} is the event time truncated at \eqn{\tau}.
+where \eqn{Y_i = \min(T_i, \L)} is the event time truncated at \eqn{\L}.
 
 To handle right-censoring, the method uses Inverse Probability of Censoring
 Weighting (IPCW). The weight for an uncensored individual \code{i} is the inverse
@@ -76,7 +76,7 @@ power_results <- linear.power.analytical(
   arm_var = "arm",
   linear_terms = "age",
   sample_sizes = c(100, 200, 300),
-  tau = 10
+  L = 10
 )
 print(power_results$results_data)
 print(power_results$results_plot)

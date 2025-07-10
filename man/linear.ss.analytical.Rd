@@ -11,7 +11,7 @@ linear.ss.analytical(
   arm_var,
   target_power,
   linear_terms = NULL,
-  tau,
+  L,
   alpha = 0.05,
   n_start = 50,
   n_step = 25,
@@ -31,7 +31,7 @@ linear.ss.analytical(
 
 \item{linear_terms}{An optional character vector of other covariate names to include in the model.}
 
-\item{tau}{The numeric value for the RMST truncation time.}
+\item{L}{The numeric value for the RMST truncation time.}
 
 \item{alpha}{The significance level (Type I error rate).}
 
@@ -72,7 +72,7 @@ ss_results <- linear.ss.analytical(
   status_var = "status",
   arm_var = "arm",
   target_power = 0.80,
-  tau = 10
+  L = 10
 )
 print(ss_results$results_data)
 print(ss_results$results_plot)

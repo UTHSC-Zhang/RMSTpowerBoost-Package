@@ -12,7 +12,7 @@ additive.power.analytical(
   strata_var,
   sample_sizes,
   linear_terms = NULL,
-  tau,
+  L,
   alpha = 0.05
 )
 }
@@ -31,7 +31,7 @@ additive.power.analytical(
 
 \item{linear_terms}{An optional character vector of other covariate names.}
 
-\item{tau}{The numeric value for the RMST truncation time.}
+\item{L}{The numeric value for the RMST truncation time.}
 
 \item{alpha}{The significance level (Type I error rate).}
 }
@@ -77,7 +77,7 @@ power_results <- additive.power.analytical(
   time_var = "time", status_var = "status", arm_var = "arm", strata_var = "region",
   sample_sizes = c(100, 150, 200),
   linear_terms = "age",
-  tau = 12
+  L = 12
 )
 print(power_results$results_data)
 print(power_results$results_plot)

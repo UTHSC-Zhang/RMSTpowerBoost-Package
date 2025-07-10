@@ -1,4 +1,4 @@
-# Power Calculations -------------------------------------------------------
+﻿# Power Calculations -------------------------------------------------------
 
 #' @title Calculate Power for a Semiparametric Additive RMST Model via Simulation
 #' @description Performs a power analysis for given sample sizes using a flexible,
@@ -29,7 +29,7 @@
 #' @param sample_sizes A numeric vector of sample sizes per arm/stratum.
 #' @param linear_terms Optional character vector of covariates with a linear effect.
 #' @param smooth_terms Optional character vector of covariates with a non-linear effect.
-#' @param tau The numeric truncation time for RMST.
+#' @param L The numeric truncation time for RMST.
 #' @param n_sim Number of bootstrap simulations.
 #' @param alpha The significance level.
 #' @param parallel.cores Number of cores for parallel processing.
@@ -65,7 +65,7 @@
 #'   arm_var = "arm",
 #'   sample_sizes = c(100, 150),
 #'   linear_terms = "age",
-#'   tau = 15,
+#'   L = 15,
 #'   n_sim = 100, # Use more sims in practice, e.g., 1000
 #'   parallel.cores = 2
 #' )
@@ -74,7 +74,7 @@
 #' }
 GAM.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var = NULL,
                            sample_sizes, linear_terms = NULL, smooth_terms = NULL,
-                           tau, n_sim = 1000, alpha = 0.05,
+                           L, n_sim = 1000, alpha = 0.05,
                            parallel.cores = 1) {
    start_time <- proc.time()
    if (is.null(sample_sizes)) stop("You must provide a numeric vector for 'sample_sizes'.")
@@ -107,17 +107,17 @@ GAM.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var
    model_formula <- stats::as.formula(paste("pseudo_obs ~", model_rhs))
 
    # --- Helper to calculate jackknife pseudo-observations ---
-   get_pseudo_obs <- function(time, status, tau) {
+   get_pseudo_obs <- function(time, status, L) {
       n <- length(time)
       if (n == 0) return(numeric(0))
       km_fit_full <- survival::survfit(survival::Surv(time, status) ~ 1)
       km_step_full <- stats::stepfun(km_fit_full$time, c(1, km_fit_full$surv))
-      rmst_full <- tryCatch(stats::integrate(km_step_full, 0, tau, subdivisions=2000, stop.on.error = FALSE)$value, error = function(e) 0)
+      rmst_full <- tryCatch(stats::integrate(km_step_full, 0, L, subdivisions=2000, stop.on.error = FALSE)$value, error = function(e) 0)
       rmst_loo <- vapply(seq_len(n), function(i) {
          if(n > 1) {
             km_fit_loo <- survival::survfit(survival::Surv(time[-i], status[-i]) ~ 1)
             km_step_loo <- stats::stepfun(km_fit_loo$time, c(1, km_fit_loo$surv))
-            tryCatch(stats::integrate(km_step_loo, 0, tau, subdivisions=2000, stop.on.error = FALSE)$value, error = function(e) 0)
+            tryCatch(stats::integrate(km_step_loo, 0, L, subdivisions=2000, stop.on.error = FALSE)$value, error = function(e) 0)
          } else { 0 }
       }, FUN.VALUE = numeric(1))
       return(n * rmst_full - (n - 1) * rmst_loo)
@@ -152,7 +152,7 @@ GAM.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var
          boot_data <- do.call(rbind, boot_list)
          grouping_var <- if(is_stratified) strata_var else arm_var
          pseudo_obs_list <- by(boot_data, boot_data[[grouping_var]], function(sub_data) {
-            sub_data$pseudo_obs <- get_pseudo_obs(sub_data[[time_var]], sub_data[[status_var]], tau)
+            sub_data$pseudo_obs <- get_pseudo_obs(sub_data[[time_var]], sub_data[[status_var]], L)
             sub_data
          })
          boot_data <- do.call(rbind, pseudo_obs_list)
@@ -237,7 +237,7 @@ GAM.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var
 #' @param strata_var An optional string for a stratification variable.
 #' @param linear_terms Optional character vector of covariates with a linear effect.
 #' @param smooth_terms Optional character vector of covariates with a non-linear effect.
-#' @param tau The numeric truncation time for RMST.
+#' @param L The numeric truncation time for RMST.
 #' @param n_sim Number of bootstrap simulations per search step.
 #' @param alpha The significance level.
 #' @param parallel.cores Number of cores for parallel processing.
@@ -273,7 +273,7 @@ GAM.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var
 #'   status_var = "status",
 #'   arm_var = "arm",
 #'   target_power = 0.80,
-#'   tau = 15,
+#'   L = 15,
 #'   n_sim = 100,      # Low n_sim for example
 #'   n_start = 100,
 #'   n_step = 50,
@@ -286,7 +286,7 @@ GAM.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var
 GAM.ss.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var = NULL,
                         target_power,
                         linear_terms = NULL, smooth_terms = NULL,
-                        tau, n_sim = 1000, alpha = 0.05,
+                        L, n_sim = 1000, alpha = 0.05,
                         parallel.cores = 1, patience = 5,
                         n_start = 50, n_step = 25, max_n_per_arm = 2000) {
 
@@ -322,17 +322,17 @@ GAM.ss.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var = 
    model_formula <- stats::as.formula(paste("pseudo_obs ~", model_rhs))
 
    # --- Helper to calculate jackknife pseudo-observations ---
-   get_pseudo_obs <- function(time, status, tau) {
+   get_pseudo_obs <- function(time, status, L) {
       n <- length(time)
       if (n == 0) return(numeric(0))
       km_fit_full <- survival::survfit(survival::Surv(time, status) ~ 1)
       km_step_full <- stats::stepfun(km_fit_full$time, c(1, km_fit_full$surv))
-      rmst_full <- tryCatch(stats::integrate(km_step_full, 0, tau, subdivisions=2000, stop.on.error = FALSE)$value, error = function(e) 0)
+      rmst_full <- tryCatch(stats::integrate(km_step_full, 0, L, subdivisions=2000, stop.on.error = FALSE)$value, error = function(e) 0)
       rmst_loo <- vapply(seq_len(n), function(i) {
          if(n > 1) {
             km_fit_loo <- survival::survfit(survival::Surv(time[-i], status[-i]) ~ 1)
             km_step_loo <- stats::stepfun(km_fit_loo$time, c(1, km_fit_loo$surv))
-            tryCatch(stats::integrate(km_step_loo, 0, tau, subdivisions=2000, stop.on.error = FALSE)$value, error = function(e) 0)
+            tryCatch(stats::integrate(km_step_loo, 0, L, subdivisions=2000, stop.on.error = FALSE)$value, error = function(e) 0)
          } else { 0 }
       }, FUN.VALUE = numeric(1))
       return(n * rmst_full - (n - 1) * rmst_loo)
@@ -373,7 +373,7 @@ GAM.ss.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var = 
          boot_data <- do.call(rbind, boot_list)
          grouping_var <- if(is_stratified) strata_var else arm_var
          pseudo_obs_list <- by(boot_data, boot_data[[grouping_var]], function(sub_data) {
-            sub_data$pseudo_obs <- get_pseudo_obs(sub_data[[time_var]], sub_data[[status_var]], tau)
+            sub_data$pseudo_obs <- get_pseudo_obs(sub_data[[time_var]], sub_data[[status_var]], L)
             sub_data
          })
          boot_data <- do.call(rbind, pseudo_obs_list)
@@ -469,3 +469,4 @@ GAM.ss.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var = 
 
    return(list(results_data = results_df, results_plot = p, results_summary = results_summary))
 }
+
