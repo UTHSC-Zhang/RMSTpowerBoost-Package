@@ -49,7 +49,7 @@ with dependent censoring.</p>
 <span>  <span class="va">dep_cens_status_var</span>,</span>
 <span>  <span class="va">target_power</span>,</span>
 <span>  linear_terms <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">tau</span>,</span>
+<span>  <span class="va">L</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  n_start <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  n_step <span class="op">=</span> <span class="fl">25</span>,</span>
@@ -89,7 +89,7 @@ with dependent censoring.</p>
 <dd><p>An optional character vector of other covariate names.</p></dd>
 
 
-<dt id="arg-tau">tau<a class="anchor" aria-label="anchor" href="#arg-tau"></a></dt>
+<dt id="arg-l">L<a class="anchor" aria-label="anchor" href="#arg-l"></a></dt>
 <dd><p>The numeric value for the RMST truncation time.</p></dd>
 
 
@@ -159,7 +159,7 @@ parameters in an analytic formula to efficiently search for the required sample 
 <span class="r-in"><span>  dep_cens_status_var <span class="op">=</span> <span class="st">"dep_cens_status"</span>,</span></span>
 <span class="r-in"><span>  target_power <span class="op">=</span> <span class="fl">0.80</span>,</span></span>
 <span class="r-in"><span>  linear_terms <span class="op">=</span> <span class="st">"age"</span>,</span></span>
-<span class="r-in"><span>  tau <span class="op">=</span> <span class="fl">15</span>,</span></span>
+<span class="r-in"><span>  L <span class="op">=</span> <span class="fl">15</span>,</span></span>
 <span class="r-in"><span>  alpha <span class="op">=</span> <span class="fl">0.05</span>,</span></span>
 <span class="r-in"><span>  n_start <span class="op">=</span> <span class="fl">100</span>,</span></span>
 <span class="r-in"><span>  n_step <span class="op">=</span> <span class="fl">50</span></span></span>

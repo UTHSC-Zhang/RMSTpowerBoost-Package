@@ -48,7 +48,7 @@ linear regression model for RMST, using a bootstrap simulation approach.</p>
 <span>  <span class="va">arm_var</span>,</span>
 <span>  <span class="va">sample_sizes</span>,</span>
 <span>  linear_terms <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  <span class="va">tau</span>,</span>
+<span>  <span class="va">L</span>,</span>
 <span>  n_sim <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.05</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -82,7 +82,7 @@ linear regression model for RMST, using a bootstrap simulation approach.</p>
 <dd><p>Optional character vector of other covariates for the linear model.</p></dd>
 
 
-<dt id="arg-tau">tau<a class="anchor" aria-label="anchor" href="#arg-tau"></a></dt>
+<dt id="arg-l">L<a class="anchor" aria-label="anchor" href="#arg-l"></a></dt>
 <dd><p>The numeric truncation time for RMST.</p></dd>
 
 
@@ -144,7 +144,7 @@ should be <code>1</code> for treatment, <code>0</code> for control.</p>
 <span class="r-in"><span>  arm_var <span class="op">=</span> <span class="st">"arm"</span>,</span></span>
 <span class="r-in"><span>  linear_terms <span class="op">=</span> <span class="st">"age"</span>,</span></span>
 <span class="r-in"><span>  sample_sizes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">150</span>, <span class="fl">200</span><span class="op">)</span>,</span></span>
-<span class="r-in"><span>  tau <span class="op">=</span> <span class="fl">10</span>,</span></span>
+<span class="r-in"><span>  L <span class="op">=</span> <span class="fl">10</span>,</span></span>
 <span class="r-in"><span>  n_sim <span class="op">=</span> <span class="fl">200</span> <span class="co"># Use more simulations in practice (e.g., 1000)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">power_results</span><span class="op">$</span><span class="va">results_data</span><span class="op">)</span></span></span>
