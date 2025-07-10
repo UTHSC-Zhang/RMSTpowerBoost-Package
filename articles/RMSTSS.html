@@ -184,7 +184,7 @@ estimate power for a trial comparing standard vs. test chemotherapy
 (<code>trt</code>), adjusting for the Karnofsky performance score
 (<code>karno</code>).</p>
 <div class="section level4">
-<h4 id="power-calculation---linear-power-analytical">Power Calculation - <a href="https://www.google.com/search?q=../reference/linear.power.analytical.html" class="external-link"><code>linear.power.analytical</code></a><a class="anchor" aria-label="anchor" href="#power-calculation---linear-power-analytical"></a>
+<h4 id="power-calculation---linear-power-analytical">Power Calculation - <a href="../reference/linear.power.analytical.html"><code>linear.power.analytical</code></a><a class="anchor" aria-label="anchor" href="#power-calculation---linear-power-analytical"></a>
 </h4>
 <p>First, lets inspect the prepared <code>veteran</code> dataset.</p>
 <pre><code>  trt celltype time status karno diagtime age prior arm
@@ -259,7 +259,7 @@ Power
 </table>
 </div>
 <div class="section level4">
-<h4 id="sample-size-calculation---linear-ss-analytical">Sample Size Calculation - <a href="https://www.google.com/search?q=../reference/linear.ss.analytical.html" class="external-link"><code>linear.ss.analytical</code></a><a class="anchor" aria-label="anchor" href="#sample-size-calculation---linear-ss-analytical"></a>
+<h4 id="sample-size-calculation---linear-ss-analytical">Sample Size Calculation - <a href="../reference/linear.ss.analytical.html"><code>linear.ss.analytical</code></a><a class="anchor" aria-label="anchor" href="#sample-size-calculation---linear-ss-analytical"></a>
 </h4>
 <p>We can also use the analytical method to find the required sample
 size to achieve a target power for a truncation time of one year (365
@@ -346,7 +346,7 @@ linear model. The following examples use the same <code>veteran</code>
 dataset, but with a smaller number of simulations for demonstration
 purposes. In practice, a larger number of simulations (e.g., 1,000 or
 more) is recommended to ensure stable results.</p>
-<p>First we calculate the power for a range of sample sizes. The <a href="https://www.google.com/search?q=../reference/linear.power.boot.html" class="external-link"><code>linear.power.boot</code></a>
+<p>First we calculate the power for a range of sample sizes. The <a href="../reference/linear.power.boot.html"><code>linear.power.boot</code></a>
 function takes the pilot data and returns a data frame with the
 estimated power for each sample size.</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>power_boot_vet <span class="ot">&lt;-</span> <span class="fu">linear.power.boot</span>(</span>
@@ -377,7 +377,7 @@ estimated power for each sample size.</p>
 <span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a><span class="er">|</span><span class="dv">95</span>% CI Upper         <span class="sc">|</span>  <span class="fl">16.588940</span><span class="sc">|</span></span></code></pre></div>
 <p><img src="RMSTSS_files/figure-html/unnamed-chunk-1-1.png" width="672" style="display: block; margin: auto;"></p>
 <p>Here is how you would call the bootstrap function for sample size
-calculation. We will use the function <a href="https://www.google.com/search?q=../reference/linear.ss.boot.html" class="external-link"><code>linear.ss.boot</code></a>
+calculation. We will use the function <a href="../reference/linear.ss.boot.html"><code>linear.ss.boot</code></a>
 to find the sample size needed to achieve a target power of 0.5,
 truncating at 180 days (6 months).</p>
 <div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>ss_boot_vet <span class="ot">&lt;-</span> <span class="fu">linear.ss.boot</span>(</span>
@@ -443,7 +443,7 @@ avoids direct estimation of the numerous <span class="math inline">$\\mu\_{0j}$<
 <h3 id="analytical-methods-1">Analytical Methods<a class="anchor" aria-label="anchor" href="#analytical-methods-1"></a>
 </h3>
 <div class="section level4">
-<h4 id="sample-size-calculation---additive-ss-analytical">Sample Size Calculation - <a href="https://www.google.com/search?q=../reference/additive.ss.analytical.html" class="external-link"><code>additive.ss.analytical</code></a><a class="anchor" aria-label="anchor" href="#sample-size-calculation---additive-ss-analytical"></a>
+<h4 id="sample-size-calculation---additive-ss-analytical">Sample Size Calculation - <a href="../reference/additive.ss.analytical.html"><code>additive.ss.analytical</code></a><a class="anchor" aria-label="anchor" href="#sample-size-calculation---additive-ss-analytical"></a>
 </h4>
 <p><strong>Scenario</strong>: We use the <code>colon</code> dataset to
 design a trial stratified by the extent of local disease
@@ -528,7 +528,7 @@ Assumed RMST Difference (from pilot)
 <p><img src="RMSTSS_files/figure-html/colon_ss_table-1.png" width="672" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level4">
-<h4 id="power-calculation---additive-power-analytical">Power Calculation - <a href="https://www.google.com/search?q=../reference/additive.power.analytical.html" class="external-link"><code>additive.power.analytical</code></a><a class="anchor" aria-label="anchor" href="#power-calculation---additive-power-analytical"></a>
+<h4 id="power-calculation---additive-power-analytical">Power Calculation - <a href="../reference/additive.power.analytical.html"><code>additive.power.analytical</code></a><a class="anchor" aria-label="anchor" href="#power-calculation---additive-power-analytical"></a>
 </h4>
 <p>This function calculates the power for a given set of sample sizes in
 a stratified additive model. We will use the <code>colon</code> dataset
@@ -614,7 +614,7 @@ feasible.</p>
 <h3 id="analytical-methods-2">Analytical Methods<a class="anchor" aria-label="anchor" href="#analytical-methods-2"></a>
 </h3>
 <div class="section level4">
-<h4 id="power-calculation---ms-power-analytical">Power Calculation - <a href="https://www.google.com/search?q=../reference/MS.power.analytical.html" class="external-link"><code>MS.power.analytical</code></a><a class="anchor" aria-label="anchor" href="#power-calculation---ms-power-analytical"></a>
+<h4 id="power-calculation---ms-power-analytical">Power Calculation - <a href="../reference/MS.power.analytical.html"><code>MS.power.analytical</code></a><a class="anchor" aria-label="anchor" href="#power-calculation---ms-power-analytical"></a>
 </h4>
 <p>This function calculates the power for various sample sizes using the
 analytical method for the multiplicative stratified model.</p>
@@ -668,7 +668,7 @@ Power
 </table>
 </div>
 <div class="section level4">
-<h4 id="sample-size-calculation---ms-ss-analytical">Sample Size Calculation - <a href="https://www.google.com/search?q=../reference/MS.ss.analytical.html" class="external-link"><code>MS.ss.analytical</code></a><a class="anchor" aria-label="anchor" href="#sample-size-calculation---ms-ss-analytical"></a>
+<h4 id="sample-size-calculation---ms-ss-analytical">Sample Size Calculation - <a href="../reference/MS.ss.analytical.html"><code>MS.ss.analytical</code></a><a class="anchor" aria-label="anchor" href="#sample-size-calculation---ms-ss-analytical"></a>
 </h4>
 <p>The following example demonstrates the sample size calculation using
 the same model.</p>
@@ -732,7 +732,7 @@ Assumed log(RMST Ratio) (from pilot)
 <p>The bootstrap approach provides a more robust, simulation-based
 analysis for the multiplicative model.</p>
 <div class="section level4">
-<h4 id="power-calculation---ms-power-boot">Power Calculation - <a href="https://www.google.com/search?q=../reference/MS.power.boot.html" class="external-link"><code>MS.power.boot</code></a><a class="anchor" aria-label="anchor" href="#power-calculation---ms-power-boot"></a>
+<h4 id="power-calculation---ms-power-boot">Power Calculation - <a href="../reference/MS.power.boot.html"><code>MS.power.boot</code></a><a class="anchor" aria-label="anchor" href="#power-calculation---ms-power-boot"></a>
 </h4>
 <p>The following code demonstrates how to call the
 <code>MS.power.boot</code> function.</p>
@@ -814,7 +814,7 @@ Mean RMST Ratio
 <p><img src="RMSTSS_files/figure-html/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level4">
-<h4 id="sample-size-calculation---ms-ss-boot">Sample Size Calculation - <a href="https://www.google.com/search?q=../reference/MS.ss.boot.html" class="external-link"><code>MS.ss.boot</code></a><a class="anchor" aria-label="anchor" href="#sample-size-calculation---ms-ss-boot"></a>
+<h4 id="sample-size-calculation---ms-ss-boot">Sample Size Calculation - <a href="../reference/MS.ss.boot.html"><code>MS.ss.boot</code></a><a class="anchor" aria-label="anchor" href="#sample-size-calculation---ms-ss-boot"></a>
 </h4>
 <p>Similarly, the sample size can be calculated using bootstrap
 simulation.</p>
@@ -921,7 +921,7 @@ intensive.</p>
 <h3 id="bootstrap-methods-2">Bootstrap Methods<a class="anchor" aria-label="anchor" href="#bootstrap-methods-2"></a>
 </h3>
 <div class="section level4">
-<h4 id="power-calculation---gam-power-boot">Power Calculation - <a href="https://www.google.com/search?q=../reference/GAM.power.boot.html" class="external-link"><code>GAM.power.boot</code></a><a class="anchor" aria-label="anchor" href="#power-calculation---gam-power-boot"></a>
+<h4 id="power-calculation---gam-power-boot">Power Calculation - <a href="../reference/GAM.power.boot.html"><code>GAM.power.boot</code></a><a class="anchor" aria-label="anchor" href="#power-calculation---gam-power-boot"></a>
 </h4>
 <p><strong>Scenario</strong>: We use the <code>gbsg</code> (German
 Breast Cancer Study Group) dataset, suspecting that the progesterone
@@ -968,7 +968,7 @@ recurrence-free survival. Here is a look at the prepared
 <p><img src="RMSTSS_files/figure-html/gbsg_power_calc-1.png" width="672" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level4">
-<h4 id="sample-size-calculation---gam-ss-boot">Sample Size Calculation - <a href="https://www.google.com/search?q=../reference/GAM.ss.boot.html" class="external-link"><code>GAM.ss.boot</code></a><a class="anchor" aria-label="anchor" href="#sample-size-calculation---gam-ss-boot"></a>
+<h4 id="sample-size-calculation---gam-ss-boot">Sample Size Calculation - <a href="../reference/GAM.ss.boot.html"><code>GAM.ss.boot</code></a><a class="anchor" aria-label="anchor" href="#sample-size-calculation---gam-ss-boot"></a>
 </h4>
 <p><strong>Scenario</strong>: We want to find the sample size needed to
 achieve 80% power for detecting an effect of <code>pgr</code> on
@@ -1041,7 +1041,7 @@ scenario.</p>
 <h3 id="analytical-methods-3">Analytical Methods<a class="anchor" aria-label="anchor" href="#analytical-methods-3"></a>
 </h3>
 <div class="section level4">
-<h4 id="power-calculation---dc-power-analytical">Power Calculation - <a href="https://www.google.com/search?q=../reference/DC.power.analytical.html" class="external-link"><code>DC.power.analytical</code></a><a class="anchor" aria-label="anchor" href="#power-calculation---dc-power-analytical"></a>
+<h4 id="power-calculation---dc-power-analytical">Power Calculation - <a href="../reference/DC.power.analytical.html"><code>DC.power.analytical</code></a><a class="anchor" aria-label="anchor" href="#power-calculation---dc-power-analytical"></a>
 </h4>
 <p>This function calculates power for a study with dependent censoring
 (competing risks) for a given set of sample sizes.</p>
@@ -1067,7 +1067,7 @@ Power Analysis for MGUS Progression Study
 <p><img src="RMSTSS_files/figure-html/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level4">
-<h4 id="sample-size-calculation---dc-ss-analytical">Sample Size Calculation - <a href="https://www.google.com/search?q=../reference/DC.ss.analytical.html" class="external-link"><code>DC.ss.analytical</code></a><a class="anchor" aria-label="anchor" href="#sample-size-calculation---dc-ss-analytical"></a>
+<h4 id="sample-size-calculation---dc-ss-analytical">Sample Size Calculation - <a href="../reference/DC.ss.analytical.html"><code>DC.ss.analytical</code></a><a class="anchor" aria-label="anchor" href="#sample-size-calculation---dc-ss-analytical"></a>
 </h4>
 <p>Now, find the sample size needed for 80% power, truncating at 10
 years (120 months).</p>
