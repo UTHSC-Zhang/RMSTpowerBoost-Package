@@ -61,6 +61,7 @@ print(power_results$results_data)
 
 # View the power curve plot
 print(power_results$results_plot)
+
 ```
 
 ## Interactive Shiny Application
