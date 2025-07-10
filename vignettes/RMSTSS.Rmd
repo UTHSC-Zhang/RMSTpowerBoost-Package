@@ -72,7 +72,7 @@ The analytical functions use a formula based on the asymptotic variance of the r
 
 **Scenario**: We use the `veteran` dataset to estimate power for a trial comparing standard vs. test chemotherapy (`trt`), adjusting for the Karnofsky performance score (`karno`).
 
-### Power Calculation - [`linear.power.analytical`](https://www.google.com/search?q=../reference/linear.power.analytical.html)
+### Power Calculation - [`linear.power.analytical`](../reference/linear.power.analytical.html)
 
 First, lets inspect the prepared `veteran` dataset.
 
@@ -108,7 +108,7 @@ kbl(power_results_vet$results_data , caption = "Power Analysis for Veteran Datas
 
 ```
 
-### Sample Size Calculation - [`linear.ss.analytical`](https://www.google.com/search?q=../reference/linear.ss.analytical.html)
+### Sample Size Calculation - [`linear.ss.analytical`](../reference/linear.ss.analytical.html)
 
 We can also use the analytical method to find the required sample size to achieve a target power for a truncation time of one year (365 days).
 
@@ -143,7 +143,7 @@ The `.boot` suffix in function names indicates a bootstrap, or simulation-based,
 
 Here is how you would call the bootstrap functions for power for the linear model. The following examples use the same `veteran` dataset, but with a smaller number of simulations for demonstration purposes. In practice, a larger number of simulations (e.g., 1,000 or more) is recommended to ensure stable results.
 
-First we calculate the power for a range of sample sizes. The [`linear.power.boot`](https://www.google.com/search?q=../reference/linear.power.boot.html) function takes the pilot data and returns a data frame with the estimated power for each sample size.
+First we calculate the power for a range of sample sizes. The [`linear.power.boot`](../reference/linear.power.boot.html) function takes the pilot data and returns a data frame with the estimated power for each sample size.
 
 ```{r linear_boot_example}
 power_boot_vet <- linear.power.boot(
@@ -162,7 +162,7 @@ power_boot_vet <- linear.power.boot(
 power_boot_vet$results_plot
 ```
 
-Here is how you would call the bootstrap function for sample size calculation. We will use the function [`linear.ss.boot`](https://www.google.com/search?q=../reference/linear.ss.boot.html) to find the sample size needed to achieve a target power of 0.5, truncating at 180 days (6 months).
+Here is how you would call the bootstrap function for sample size calculation. We will use the function [`linear.ss.boot`](../reference/linear.ss.boot.html) to find the sample size needed to achieve a target power of 0.5, truncating at 180 days (6 months).
 
 ```{r}
 ss_boot_vet <- linear.ss.boot(
@@ -194,7 +194,7 @@ The semiparametric additive model for RMST, $$\mu_{ij} = \mu_{0j} + \beta_{Z_i}$
 
 ## Analytical Methods
 
-### Sample Size Calculation - [`additive.ss.analytical`](https://www.google.com/search?q=../reference/additive.ss.analytical.html)
+### Sample Size Calculation - [`additive.ss.analytical`](../reference/additive.ss.analytical.html)
 
 **Scenario**: We use the `colon` dataset to design a trial stratified by the extent of local disease (`extent`), a factor with 4 levels. We want to find the sample size per stratum to achieve 80% power. Lets inspect the prepared `colon` dataset.
 
@@ -236,7 +236,7 @@ ss_results_colon$results_plot
 
 ```
 
-### Power Calculation - [`additive.power.analytical`](https://www.google.com/search?q=../reference/additive.power.analytical.html)
+### Power Calculation - [`additive.power.analytical`](../reference/additive.power.analytical.html)
 
 This function calculates the power for a given set of sample sizes in a stratified additive model. We will use the `colon` dataset again for this example.
 
@@ -275,7 +275,7 @@ The multiplicative model is of the form $$\mu_{ij} = \mu_{0j} \exp(\beta_{Z_i})$
 
 ## Analytical Methods
 
-### Power Calculation - [`MS.power.analytical`](https://www.google.com/search?q=../reference/MS.power.analytical.html)
+### Power Calculation - [`MS.power.analytical`](../reference/MS.power.analytical.html)
 
 This function calculates the power for various sample sizes using the analytical method for the multiplicative stratified model.
 
@@ -295,7 +295,7 @@ kbl(power_ms_analytical$results_data, caption = "Power for Multiplicative Strati
    kable_styling(bootstrap_options = "striped", full_width = FALSE)
 ```
 
-### Sample Size Calculation - [`MS.ss.analytical`](https://www.google.com/search?q=../reference/MS.ss.analytical.html)
+### Sample Size Calculation - [`MS.ss.analytical`](../reference/MS.ss.analytical.html)
 
 The following example demonstrates the sample size calculation using the same model.
 
@@ -319,7 +319,7 @@ ms_ss_results_colon$results_plot +
 
 The bootstrap approach provides a more robust, simulation-based analysis for the multiplicative model.
 
-### Power Calculation - [`MS.power.boot`](https://www.google.com/search?q=../reference/MS.power.boot.html)
+### Power Calculation - [`MS.power.boot`](../reference/MS.power.boot.html)
 
 The following code demonstrates how to call the `MS.power.boot` function.
 
@@ -343,7 +343,7 @@ kbl(power_ms_boot$results_summary, caption = "Power for Multiplicative Stratifie
 power_ms_boot$results_plot 
 ```
 
-### Sample Size Calculation - [`MS.ss.boot`](https://www.google.com/search?q=../reference/MS.ss.boot.html)
+### Sample Size Calculation - [`MS.ss.boot`](../reference/MS.ss.boot.html)
 
 Similarly, the sample size can be calculated using bootstrap simulation.
 
@@ -380,7 +380,7 @@ These functions use a bootstrap simulation approach combined with a GAM. The tim
 
 ## Bootstrap Methods
 
-### Power Calculation - [`GAM.power.boot`](https://www.google.com/search?q=../reference/GAM.power.boot.html)
+### Power Calculation - [`GAM.power.boot`](../reference/GAM.power.boot.html)
 
 **Scenario**: We use the `gbsg` (German Breast Cancer Study Group) dataset, suspecting that the progesterone receptor count (`pgr`) has a non-linear effect on recurrence-free survival. Here is a look at the prepared `gbsg` data.
 
@@ -410,7 +410,7 @@ power_gam <- GAM.power.boot(
 print(power_gam$results_plot)
 ```
 
-### Sample Size Calculation - [`GAM.ss.boot`](https://www.google.com/search?q=../reference/GAM.ss.boot.html)
+### Sample Size Calculation - [`GAM.ss.boot`](../reference/GAM.ss.boot.html)
 
 **Scenario**: We want to find the sample size needed to achieve 80% power for detecting an effect of `pgr` on recurrence-free survival.
 
@@ -454,7 +454,7 @@ head(mgus_prepared)
 
 ## Analytical Methods
 
-### Power Calculation - [`DC.power.analytical`](https://www.google.com/search?q=../reference/DC.power.analytical.html)
+### Power Calculation - [`DC.power.analytical`](../reference/DC.power.analytical.html)
 
 This function calculates power for a study with dependent censoring (competing risks) for a given set of sample sizes.
 
@@ -478,7 +478,7 @@ kbl(dc_power_results$results_summary, caption = "Power Analysis for MGUS Progres
 dc_power_results$results_plot
 ```
 
-### Sample Size Calculation - [`DC.ss.analytical`](https://www.google.com/search?q=../reference/DC.ss.analytical.html)
+### Sample Size Calculation - [`DC.ss.analytical`](../reference/DC.ss.analytical.html)
 
 Now, find the sample size needed for 80% power, truncating at 10 years (120 months).
 
