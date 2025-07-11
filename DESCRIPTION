@@ -30,7 +30,12 @@ Imports:
     future,
     future.apply,
     knitr,
-    shiny
+    shiny,
+    scales,
+    shinyjs,
+    bslib,
+    DT,
+    plotly
 Suggests:
     rmarkdown,
     tidyr,
