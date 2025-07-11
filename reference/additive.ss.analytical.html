@@ -157,11 +157,25 @@ efficiently find the required sample size.</p>
 <span class="r-in"><span>    n_step <span class="op">=</span> <span class="fl">50</span>,</span></span>
 <span class="r-in"><span>    max_n_per_arm <span class="op">=</span> <span class="fl">1000</span></span></span>
 <span class="r-in"><span>  <span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in additive.ss.analytical(pilot_data = pilot_df_strat, time_var = "time",     status_var = "status", arm_var = "arm", strata_var = "region",     target_power = 0.5, L = 18, n_start = 200, n_step = 50, max_n_per_arm = 1000):</span> unused argument (L = 18)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> --- Estimating parameters from pilot data for analytic search... ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> --- Searching for Sample Size (Method: Additive Analytic) ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 200/stratum, Calculated Power = 0.399</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 250/stratum, Calculated Power = 0.478</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 300/stratum, Calculated Power = 0.55</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> --- Calculation Summary ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Table: Required Sample Size</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> | Target_Power| Required_N_per_Stratum|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |------------:|----------------------:|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |          0.5|                    300|</span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">ss_results</span><span class="op">$</span><span class="va">results_data</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'ss_results' not found</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Target_Power Required_N_per_Stratum</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1          0.5                    300</span>
 <span class="r-in"><span>  <span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">ss_results</span><span class="op">$</span><span class="va">results_plot</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'ss_results' not found</span>
+<span class="r-plt img"><img src="additive.ss.analytical-1.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

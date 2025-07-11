@@ -137,9 +137,14 @@ matrix of the <code>lm</code> fit, which serves as a proxy for the formal sandwi
 <span class="r-in"><span> sample_sizes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">50</span>, <span class="fl">75</span>, <span class="fl">100</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span> L <span class="op">=</span> <span class="fl">10</span>, alpha <span class="op">=</span> <span class="fl">0.05</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in MS.power.analytical(pilot_data = pilot_df_strat, time_var = "time",     status_var = "status", arm_var = "arm", strata_var = "region",     sample_sizes = c(50, 75, 100), L = 10, alpha = 0.05):</span> unused argument (L = 10)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> --- Estimating parameters from pilot data (log-linear approximation)... ---</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Approximation Model: log(Y_rmst) ~ arm + region</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> --- Calculating power for specified sample sizes... ---</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">power_results</span><span class="op">$</span><span class="va">results_data</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'power_results' not found</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N_per_Stratum     Power</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1            50 0.4415527</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2            75 0.6027274</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3           100 0.7270471</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

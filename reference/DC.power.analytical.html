@@ -152,11 +152,17 @@ variability from estimating the IPCW weights themselves.</p>
 <span class="r-in"><span>  L <span class="op">=</span> <span class="fl">20</span>,</span></span>
 <span class="r-in"><span>  alpha <span class="op">=</span> <span class="fl">0.05</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in DC.power.analytical(pilot_data = pilot_df, time_var = "time",     status_var = "status", arm_var = "arm", dep_cens_status_var = "dep_cens_status",     sample_sizes = c(200, 300, 400), linear_terms = "age", L = 20,     alpha = 0.05):</span> unused argument (L = 20)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> --- Estimating parameters from pilot data... ---</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Model: Y_rmst ~ arm + age</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> --- Calculating asymptotic variance... ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> --- Calculating power for specified sample sizes... ---</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">dc_power_results</span><span class="op">$</span><span class="va">results_data</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'dc_power_results' not found</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N_per_Arm     Power</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1       200 0.7353163</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2       300 0.8870182</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3       400 0.9555608</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">dc_power_results</span><span class="op">$</span><span class="va">results_plot</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'dc_power_results' not found</span>
+<span class="r-plt img"><img src="DC.power.analytical-1.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

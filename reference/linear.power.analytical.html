@@ -139,11 +139,17 @@ given sample size, which in turn is used in the power formula.</p>
 <span class="r-in"><span>  sample_sizes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">200</span>, <span class="fl">300</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  L <span class="op">=</span> <span class="fl">10</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in linear.power.analytical(pilot_data = pilot_df, time_var = "time",     status_var = "status", arm_var = "arm", linear_terms = "age",     sample_sizes = c(100, 200, 300), L = 10):</span> unused argument (L = 10)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> --- Estimating parameters from pilot data for analytic calculation... ---</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Model: Y_rmst ~ factor(arm) + age</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> --- Calculating asymptotic variance... ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> --- Calculating power for specified sample sizes... ---</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">power_results</span><span class="op">$</span><span class="va">results_data</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'power_results' not found</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N_per_Arm      Power</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1       100 0.03750270</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2       200 0.04399785</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3       300 0.04957338</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">power_results</span><span class="op">$</span><span class="va">results_plot</span><span class="op">)</span></span></span>
-<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'power_results' not found</span>
+<span class="r-plt img"><img src="linear.power.analytical-1.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
