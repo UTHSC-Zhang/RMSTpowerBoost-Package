@@ -30,7 +30,8 @@ Imports:
     future,
     future.apply,
     knitr,
-    shiny
+    shiny,
+    scales
 Suggests:
     rmarkdown,
     tidyr,
