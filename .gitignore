@@ -2,10 +2,8 @@
 .Rhistory
 .RData
 .Ruserdata
-inst/doc
 tests/testthat/Rplots.pdf
 /doc/
 /Meta/
 docs
-*.Rbuildignore
 *.Rprofile

@@ -12,6 +12,6 @@ the package.
 }
 \examples{
 \dontrun{
-  run_app()
+  RMSTSS::run_app()
 }
 }

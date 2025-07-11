@@ -9,10 +9,9 @@
 #'
 #' @examples
 #' \dontrun{
-#'   run_app()
+#'   RMSTSS::run_app()
 #' }
 run_app <- function() {
-   # Find the app's directory within the installed package
    app_dir <- system.file("shiny_app", package = "RMSTSS")
 
    # Check if the directory exists

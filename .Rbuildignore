@@ -1,0 +1,21 @@
+# Renv files
+^renv$
+^renv\.lock$
+
+# RStudio project files
+^.*\.Rproj$
+^\.Rproj\.user$
+
+# GitHub Actions workflow directory
+^\.github$
+
+# pkgdown configuration file
+^_pkgdown\.yml$
+
+# Other top-level files
+^LICENSE\.md$
+^README\.Rmd$
+
+
+# The renv subdirectory
+renv/
