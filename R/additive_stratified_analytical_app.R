@@ -1,4 +1,4 @@
-
+#' @importFrom stats aggregate
 .estimate_additive_stratified_params <- function(pilot_data, time_var, status_var, arm_var, strata_var, linear_terms, L) {
   
   # --- 1. Prepare Data and Calculate IPCW Weights ---

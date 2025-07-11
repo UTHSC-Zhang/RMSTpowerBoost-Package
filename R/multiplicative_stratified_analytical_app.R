@@ -1,4 +1,4 @@
-
+#' @importFrom stats aggregate
 .estimate_multiplicative_stratified_params <- function(pilot_data, time_var, status_var, arm_var, strata_var, linear_terms, L) {
   
   # --- 1. Estimate Parameters from Pilot Data (log-linear approximation) ---
