@@ -11,10 +11,10 @@
   arm_var,
   strata_var,
   linear_terms,
-  L,
+  tau,
   alpha,
   n_sim,
-  parallel.cores = 10
+  parallel.cores
 )
 }
 \value{
