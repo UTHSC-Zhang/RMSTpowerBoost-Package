@@ -29,7 +29,7 @@ The analysis of time-to-event data is moving beyond the proportional hazards ass
 You can install the development version of `RMSTSS` from GitHub with:
 
 ```r
-# install.packages("remotes")
+install.packages("remotes")
 remotes::install_github("https://github.com/UTHSC-Zhang/RMSTSS-package.git")
 ```
 
