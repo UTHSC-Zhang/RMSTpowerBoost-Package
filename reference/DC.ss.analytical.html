@@ -164,26 +164,11 @@ parameters in an analytic formula to efficiently search for the required sample 
 <span class="r-in"><span>  n_start <span class="op">=</span> <span class="fl">100</span>,</span></span>
 <span class="r-in"><span>  n_step <span class="op">=</span> <span class="fl">50</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> --- Estimating parameters from pilot data for analytic calculation... ---</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Model: Y_rmst ~ arm + age</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> --- Searching for Sample Size (Method: Analytic) ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 100/arm, Calculated Power = 0.998</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> --- Calculation Summary ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Table: Required Sample Size</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> | Target_Power| Required_N_per_Arm|</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> |------------:|------------------:|</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> |          0.8|                100|</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error in DC.ss.analytical(pilot_data = pilot_df_ss, time_var = "time",     status_var = "status", arm_var = "arm", dep_cens_status_var = "dep_cens_status",     target_power = 0.8, linear_terms = "age", L = 15, alpha = 0.05,     n_start = 100, n_step = 50):</span> unused argument (L = 15)</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">dc_ss_results</span><span class="op">$</span><span class="va">results_data</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Target_Power Required_N_per_Arm</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1          0.8                100</span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'dc_ss_results' not found</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">dc_ss_results</span><span class="op">$</span><span class="va">results_plot</span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> `geom_line()`: Each group consists of only one observation.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Do you need to adjust the <span style="color: #00BB00;">group</span> aesthetic?</span>
-<span class="r-plt img"><img src="DC.ss.analytical-1.png" alt="" width="700" height="433"></span>
+<span class="r-err co"><span class="r-pr">#&gt;</span> <span class="error">Error:</span> object 'dc_ss_results' not found</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
