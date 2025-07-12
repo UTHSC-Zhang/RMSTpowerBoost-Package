@@ -6,7 +6,23 @@
 #'
 #' @export
 #' @importFrom shiny runApp
-#'
+#' @importFrom bslib bs_themer
+#' @importFrom DT datatable renderDataTable
+#' @importFrom ggplot2 ggplot aes geom_line geom_point labs theme_light ylim
+#' @importFrom kableExtra kbl kable_styling
+#' @importFrom magrittr %>%
+#' @importFrom plotly ggplotly renderPlotly
+#' @importFrom rmarkdown render
+#' @importFrom shiny reactive req showNotification renderUI tagList fluidRow
+#' @importFrom shiny column selectInput selectizeInput radioButtons textInput
+#' @importFrom shiny sliderInput wellPanel h4 numericInput observe observeEvent
+#' @importFrom shiny updateSelectInput reactiveVal validate need withProgress
+#' @importFrom shiny setProgress renderText downloadButton downloadHandler
+#' @importFrom shiny removeNotification hr p bindCache bindEvent
+#' @importFrom shinyjs toggle toggleState reset
+#' @importFrom stats as.formula complete.cases pchisq sd na.omit
+#' @importFrom survival survfit Surv survdiff
+#' @importFrom survminer ggsurvplot
 #' @examples
 #' \dontrun{
 #'   RMSTSS::run_app()
