@@ -46,14 +46,14 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="rmstss-power-and-sample-size-for-rmst-based-trials">RMSTSS: Power and Sample Size for RMST-Based Trials<a class="anchor" aria-label="anchor" href="#rmstss-power-and-sample-size-for-rmst-based-trials"></a>
+<div class="page-header"><h1 id="rmstss-power-and-sample-size-calculation-for-rmst-based-trials">RMSTSS: Power and Sample Size Calculation for RMST-Based Trials<a class="anchor" aria-label="anchor" href="#rmstss-power-and-sample-size-calculation-for-rmst-based-trials"></a>
 </h1></div>
 <p><a href="https://www.google.com/search?q=https://CRAN.R-project.org/package%3DRMSTSS" class="external-link"></a> <a href="https://www.google.com/search?q=https://github.com/arnabaich/RMSTSS/actions/workflows/R-CMD-check.yaml" class="external-link"></a> <code>RMSTSS</code> provides a comprehensive suite of tools for calculating statistical power and sample size for clinical trials that use the Restricted Mean Survival Time (RMST) as the primary endpoint.</p>
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
-<p>The analysis of time-to-event data is moving beyond the proportional hazards assumption, and the RMST has emerged as a robust and clinically intuitive alternative to the hazard ratio. However, tools for designing studies based on modern, direct-modeling approaches for the RMST have been lacking.</p>
-<p><code>RMSTSS</code> fills this critical gap by implementing a variety of advanced statistical methods for study design, allowing researchers to accurately plan trials under complex scenarios. More detailed usage of this package is described in the vignette, which can be accessed using the following link <a href="https://uthsc-zhang.github.io/RMSTSS-Package/articles/RMSTSS.html" class="external-link"><strong>Click Here</strong></a>.</p>
+<p>The analysis of time-to-event data is moving beyond the proportional hazards assumption, and the RMST has emerged as a clinically and causally interpretable alternative to the hazard ratio. However, tools for designing studies based on modern, direct modeling approaches for the RMST have been lacking.</p>
+<p><code>RMSTSS</code> fills this critical gap by implementing a variety of advanced statistical methods for study design, allowing researchers to accurately plan trials under complex scenarios, obviating the need to define and estimate the hazard rates or ratios. More detailed usage of this package is described in the vignette, which can be accessed using the following link <a href="https://uthsc-zhang.github.io/RMSTSS-Package/articles/RMSTSS.html" class="external-link"><strong>Click Here</strong></a>.</p>
 <div class="section level3">
 <h3 id="key-features">Key Features<a class="anchor" aria-label="anchor" href="#key-features"></a>
 </h3>
@@ -62,11 +62,13 @@
 <strong>Multiple Model Types</strong>: Handles various data structures and assumptions.
 <ul>
 <li>
-<strong>Linear IPCW Models</strong>: Standard direct regression modeling.</li>
+<strong>Link Models</strong>: Standard direct regression modeling.</li>
 <li>
-<strong>Additive &amp; Multiplicative Stratified Models</strong>: Efficiently handles stratification by variables with many levels (e.g., clinical centers).</li>
+<strong>Stratified Models</strong>: Efficiently handling stratification by variables with many levels (e.g., clinical centers).</li>
 <li>
-<strong>Semiparametric GAM Models</strong>: Allows for flexible, non-linear covariate effects.</li>
+<strong>Additive and Multiplicative Models</strong>: Allowing for different specifications of treatment effects on survival time.</li>
+<li>
+<strong>Semiparametric GAM Models</strong>: Allowing for flexible, non-linear covariate effects.</li>
 <li>
 <strong>Dependent Censoring Models</strong>: Appropriate for settings with competing risks.</li>
 </ul>
