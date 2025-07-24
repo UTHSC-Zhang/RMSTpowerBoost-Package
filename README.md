@@ -1,6 +1,6 @@
 
 
-# RMSTSS: Power and Sample Size Calculation for RMST-Based Trials
+# RMSTSS: Power and Sample Size Calculations for RMST-Based Trials
 
 [](https://www.google.com/search?q=https://CRAN.R-project.org/package%3DRMSTSS)
 [](https://www.google.com/search?q=https://github.com/arnabaich/RMSTSS/actions/workflows/R-CMD-check.yaml)
