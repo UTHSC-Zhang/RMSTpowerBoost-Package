@@ -1,6 +1,6 @@
 
 
-# RMSTSS: Power and Sample Size for RMST-Based Trials
+# RMSTSS: Power and Sample Size Calculation for RMST-Based Trials
 
 [](https://www.google.com/search?q=https://CRAN.R-project.org/package%3DRMSTSS)
 [](https://www.google.com/search?q=https://github.com/arnabaich/RMSTSS/actions/workflows/R-CMD-check.yaml)
@@ -8,16 +8,17 @@
 
 ## Overview
 
-The analysis of time-to-event data is moving beyond the proportional hazards assumption, and the RMST has emerged as a robust and clinically intuitive alternative to the hazard ratio. However, tools for designing studies based on modern, direct-modeling approaches for the RMST have been lacking.
+The analysis of time-to-event data is moving beyond the proportional hazards assumption, and the RMST has emerged as a clinically and causally interpretable alternative to the hazard ratio. However, tools for designing studies based on modern, direct modeling approaches for the RMST have been lacking.
 
-`RMSTSS` fills this critical gap by implementing a variety of advanced statistical methods for study design, allowing researchers to accurately plan trials under complex scenarios. More detailed usage of this package is described in the vignette, which can be accessed using the following link [**Click Here**](https://uthsc-zhang.github.io/RMSTSS-Package/articles/RMSTSS.html).
+`RMSTSS` fills this critical gap by implementing a variety of advanced statistical methods for study design, allowing researchers to accurately plan trials under complex scenarios, obviating the need to define and estimate the hazard rates or ratios. More detailed usage of this package is described in the vignette, which can be accessed using the following link [**Click Here**](https://uthsc-zhang.github.io/RMSTSS-Package/articles/RMSTSS.html).
 
 ### Key Features
 
   * **Multiple Model Types**: Handles various data structures and assumptions.
-      * **Linear IPCW Models**: Standard direct regression modeling.
-      * **Additive & Multiplicative Stratified Models**: Efficiently handles stratification by variables with many levels (e.g., clinical centers).
-      * **Semiparametric GAM Models**: Allows for flexible, non-linear covariate effects.
+      * **Link Models**: Standard direct regression modeling.
+      * **Stratified Models**: Efficiently handling stratification by variables with many levels (e.g., clinical centers).
+      * **Additive and Multiplicative Models**: Allowing for different specifications of treatment effects on survival time.
+      * **Semiparametric GAM Models**: Allowing for flexible, non-linear covariate effects.
       * **Dependent Censoring Models**: Appropriate for settings with competing risks.
   * **Dual Calculation Methods**: For many models, the package offers both:
       * A fast **analytical** approach based on asymptotic variance formulas.
