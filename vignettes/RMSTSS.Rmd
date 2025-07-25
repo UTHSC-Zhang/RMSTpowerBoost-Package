@@ -39,9 +39,9 @@ library(RMSTSS)
 
 # Introduction
 
-The analysis of time-to-event data often relies on the Cox proportional hazards model, which uses the hazard ratio (HR) as its primary result. However, the HR can be difficult to interpret, especially when its core assumption of proportional hazards is not met.
+The design and analysis of clinical trials with time-to-event endpoints often rely on the hazard-based model (e.g., the Cox model) and use the hazard ratio (HR) as the primary estimand of the treatment effect. However, the HR can be challenging to interpret from both clinical and causal perspectives. Moreover, the key assumption underlying most hazards models - the proportional hazards assumption - is often tenuous or violated in real-world settings.
 
-As an alternative, the **Restricted Mean Survival Time (RMST)** is gaining favor for its clarity and robust properties [@royston2013; @uno2014]. The RMST measures the average event-free time up to a pre-specified follow-up point, **L**. This provides a direct and meaningful measure of treatment benefit (e.g., "an average of 3 extra months of survival over 5 years"), which is highly valuable for clinicians and patients.
+As an alternative, the **Restricted Mean Survival Time (RMST)** is gaining favor for its clarity and robust properties [@royston2013; @uno2014]. The RMST measures the average event-free time up to a pre-specified follow-up point, $L$. This provides a direct and meaningful measure of treatment benefit (e.g., "an average of 3 extra months of survival over 5 years"), which is highly valuable for clinicians and patients.
 
 Modern statistical methods now focus on modeling the RMST directly as a function of covariates, rather than estimating it indirectly from a survival curve. This direct approach, based on foundational work using Inverse Probability of Censoring Weighting (IPCW) [@tian2014], has been extended to handle the complex data structures seen in modern trials, including stratification [@wang2019; @zhang2024] and competing risks [@wang2018].
 
