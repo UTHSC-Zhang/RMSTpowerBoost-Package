@@ -70,23 +70,22 @@ clinical and causal perspectives. Moreover, the key assumption
 underlying most hazards models - the proportional hazards assumption -
 is often tenuous or violated in real-world settings.</p>
 <p>As an alternative, the <strong>Restricted Mean Survival Time
-(RMST)</strong> is gaining favor for its clarity and robust properties
-<span class="citation">(<a href="#ref-royston2013">Royston and Parmar
-2013</a>; <a href="#ref-uno2014">Uno et al. 2014</a>)</span>. The RMST
-measures the average event-free time up to a pre-specified follow-up
-point,
+(RMST)</strong> is gaining favor for its straightforward interpretation
+and robust properties <span class="citation">(<a href="#ref-royston2013">Royston and Parmar 2013</a>; <a href="#ref-uno2014">Uno et al. 2014</a>)</span>. The RMST measures the
+average event-free time up to a pre-specified follow-up point,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>.
 This provides a direct and meaningful measure of treatment benefit
 (e.g., “an average of 3 extra months of survival over 5 years”), which
 is highly valuable for clinicians and patients.</p>
 <p>Modern statistical methods now focus on modeling the RMST directly as
-a function of covariates, rather than estimating it indirectly from a
-survival curve. This direct approach, based on foundational work using
-Inverse Probability of Censoring Weighting (IPCW) <span class="citation">(<a href="#ref-tian2014">Tian, Zhao, and Wei
-2014</a>)</span>, has been extended to handle the complex data
-structures seen in modern trials, including stratification <span class="citation">(<a href="#ref-wang2019">Wang et al. 2019</a>; <a href="#ref-zhang2024">Zhang and Schaubel 2024</a>)</span> and competing
-risks <span class="citation">(<a href="#ref-wang2018">Wang and Schaubel
-2018</a>)</span>.</p>
+a function of baseline covariates, rather than estimating it indirectly
+from a survival curve or a hazard function. This direct approach, based
+on foundational work using Inverse Probability of Censoring Weighting
+(IPCW) <span class="citation">(<a href="#ref-tian2014">Tian, Zhao, and
+Wei 2014</a>)</span>, has been extended to handle the complex data
+structures observed in modern trials, including facility profiling in
+multi-center studies or other stratification factors <span class="citation">(<a href="#ref-wang2019">Wang et al. 2019</a>; <a href="#ref-zhang2024">Zhang and Schaubel 2024</a>)</span> and
+covariate-dependent censoring <span class="citation">(<a href="#ref-wang2018">Wang and Schaubel 2018</a>)</span>.</p>
 <p>However, most software tools for these advanced methods focus on
 analyzing existing data, not designing new studies. This has left trial
 statisticians to write custom code for the crucial task of calculating
