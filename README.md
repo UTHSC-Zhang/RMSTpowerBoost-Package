@@ -19,7 +19,7 @@ The analysis of time-to-event data is moving beyond the proportional hazards ass
       * **Stratified Models**: Efficiently handling stratification by variables with many levels (e.g., clinical centers).
       * **Additive and Multiplicative Models**: Allowing for different specifications of treatment effects on survival time.
       * **Semiparametric GAM Models**: Allowing for flexible, non-linear covariate effects.
-      * **Dependent Censoring Models**: Appropriate for settings with competing risks.
+      * **Dependent Censoring Models**: Appropriate for settings with covariate-dependent censoring.
   * **Dual Calculation Methods**: For many models, the package offers both:
       * A fast **analytical** approach based on asymptotic variance formulas.
       * A robust **bootstrap** (simulation-based) approach for enhanced accuracy and fewer distributional assumptions.
