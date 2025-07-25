@@ -71,10 +71,4 @@ For users who prefer a graphical user interface, an interactive Shiny applicatio
 
 You can access the application directly in your web browser by following this link: [**Click Here**](https://arnab96.shinyapps.io/uthsc-app/)
 
-## Citation
 
-If you use `RMSTSS` in your research, please cite it as follows:
-
-```
-Aich, A. (2025). RMSTSS: Sample Size and Power Calculations for RMST-based Clinical Trials. R package version 0.1.0. https://github.com/arnabaich/RMSTSS
-```
