@@ -62,20 +62,23 @@
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p>The analysis of time-to-event data often relies on the Cox
-proportional hazards model, which uses the hazard ratio (HR) as its
-primary result. However, the HR can be difficult to interpret,
-especially when its core assumption of proportional hazards is not
-met.</p>
+<p>The design and analysis of clinical trials with time-to-event
+endpoints often rely on the hazard-based model (e.g., the Cox model) and
+use the hazard ratio (HR) as the primary estimand of the treatment
+effect. However, the HR can be challenging to interpret from both
+clinical and causal perspectives. Moreover, the key assumption
+underlying most hazards models - the proportional hazards assumption -
+is often tenuous or violated in real-world settings.</p>
 <p>As an alternative, the <strong>Restricted Mean Survival Time
 (RMST)</strong> is gaining favor for its clarity and robust properties
 <span class="citation">(<a href="#ref-royston2013">Royston and Parmar
 2013</a>; <a href="#ref-uno2014">Uno et al. 2014</a>)</span>. The RMST
 measures the average event-free time up to a pre-specified follow-up
-point, <strong>L</strong>. This provides a direct and meaningful measure
-of treatment benefit (e.g., “an average of 3 extra months of survival
-over 5 years”), which is highly valuable for clinicians and
-patients.</p>
+point,
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>.
+This provides a direct and meaningful measure of treatment benefit
+(e.g., “an average of 3 extra months of survival over 5 years”), which
+is highly valuable for clinicians and patients.</p>
 <p>Modern statistical methods now focus on modeling the RMST directly as
 a function of covariates, rather than estimating it indirectly from a
 survival curve. This direct approach, based on foundational work using
