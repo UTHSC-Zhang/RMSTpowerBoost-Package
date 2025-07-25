@@ -49,9 +49,9 @@ However, most software tools for these advanced methods focus on analyzing exist
 
 The `RMSTSS` package is designed to fill this gap. It provides a comprehensive and user-friendly suite of tools for **power and sample size calculations** based on the latest direct RMST methodologies. The package implements several key approaches from the statistical literature:
 
-* **Direct Linear Models**: The foundational IPCW-based regression model for RMST [@tian2014].
-* **Stratified Models**: Efficient methods for studies with many strata (e.g., clinical centers), including both **additive** [@zhang2024] and **multiplicative** ([@wang2019]) models.
-* **Dependent Censoring Models**: For handling competing risks, based on methods from [@wang2018].
+* **Generalized Linear Models**: The foundational regression model for RMST with IPCW-based estimation [@tian2014].
+* **Stratified Models**: Efficient methods for studies with a large number of strata (e.g., clinical centers), including both **additive** [@zhang2024] and **multiplicative** [@wang2019] models.
+* **Dependent Censoring Models**: Methods for handling covariate-dependent censoring [@wang2018].
 * **Flexible Non-Linear Models**: Bootstrap-based functions using Generalized Additive Models (GAMs) to capture non-linear covariate effects.
 * **Analytic vs. Bootstrap Methods**: For most models, the package offers a choice between a fast `analytical` calculation and a robust, simulation-based `boot` method.
 
