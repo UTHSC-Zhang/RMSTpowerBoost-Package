@@ -15,7 +15,7 @@ The analysis of time-to-event data is moving beyond the proportional hazards ass
 ### Key Features
 
   * **Multiple Model Types**: Handles various data structures and assumptions.
-      * **Link Models**: Standard direct regression modeling.
+      * **Generalized Linear Models**: Standard direct regression modeling with a general link function.
       * **Stratified Models**: Efficiently handling stratification by variables with many levels (e.g., clinical centers).
       * **Additive and Multiplicative Models**: Allowing for different specifications of treatment effects on survival time.
       * **Semiparametric GAM Models**: Allowing for flexible, non-linear covariate effects.
