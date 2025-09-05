@@ -2,6 +2,7 @@
 <url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/404.html</loc></url>
 <url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/LICENSE-text.html</loc></url>
 <url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/LICENSE.html</loc></url>
+<url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/articles/DataGen.html</loc></url>
 <url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/articles/RMSTSS.html</loc></url>
 <url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/articles/index.html</loc></url>
 <url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/authors.html</loc></url>
@@ -26,6 +27,7 @@
 <url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/additive.ss.analytical.app.html</loc></url>
 <url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/additive.ss.analytical.html</loc></url>
 <url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/additive.ss.boot.app.html</loc></url>
+<url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/aft_loglogistic_100.html</loc></url>
 <url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/dot-estimate_additive_stratified_params.html</loc></url>
 <url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/dot-estimate_dependent_censoring_params.html</loc></url>
 <url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/dot-estimate_linear_ipcw_params.html</loc></url>
@@ -34,6 +36,8 @@
 <url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/dot-get_internal_simulation_runner.html</loc></url>
 <url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/dot-get_linear_ipcw_simulation_runner.html</loc></url>
 <url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/dot-run_survival_diagnostics.html</loc></url>
+<url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/gen_covariates.html</loc></url>
+<url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/generate_recipe_sets.html</loc></url>
 <url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/index.html</loc></url>
 <url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/linear.power.analytical.app.html</loc></url>
 <url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/linear.power.analytical.html</loc></url>
@@ -43,6 +47,16 @@
 <url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/linear.ss.analytical.html</loc></url>
 <url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/linear.ss.boot.app.html</loc></url>
 <url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/linear.ss.boot.html</loc></url>
+<url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/load_recipe_sets.html</loc></url>
+<url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/ph_weibull_frailty_300.html</loc></url>
+<url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/recipe_grid.html</loc></url>
+<url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/recipe_quick_aft.html</loc></url>
+<url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/rmst_pwexp_strat_300.html</loc></url>
+<url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/rmst_small_50.html</loc></url>
+<url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/rmst_weibull_200.html</loc></url>
+<url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/rmst_weibull_200_v2.html</loc></url>
 <url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/run_app.html</loc></url>
+<url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/simulate_from_recipe.html</loc></url>
+<url><loc>https://biomedical-data-science-internship.github.io/UTHSC-package/reference/validate_recipe.html</loc></url>
 </urlset>
 

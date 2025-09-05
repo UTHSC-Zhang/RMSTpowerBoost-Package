@@ -9,7 +9,7 @@ analytic formula based on the methods of Tian et al. (2014)."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">RMSTSS</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">0.1.4</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -19,6 +19,10 @@ analytic formula based on the methods of Tian et al. (2014)."></head><body>
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/RMSTSS.html">Get started</a></li>
 <li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item dropdown">
+  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
+  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/DataGen.html">Data Generation: Mechanisms and Examples</a></li>
+  </ul></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
  <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
       </ul></div>
@@ -146,86 +150,66 @@ target power is achieved.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> --- Estimating parameters from pilot data for analytic search... ---</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Model: Y_rmst ~ factor(arm)</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> --- Searching for Sample Size (Method: Analytic) ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 50/arm, Calculated Power = 0.034</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 75/arm, Calculated Power = 0.037</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 100/arm, Calculated Power = 0.039</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 125/arm, Calculated Power = 0.041</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 150/arm, Calculated Power = 0.043</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 175/arm, Calculated Power = 0.044</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 200/arm, Calculated Power = 0.046</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 225/arm, Calculated Power = 0.048</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 250/arm, Calculated Power = 0.049</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 275/arm, Calculated Power = 0.051</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 300/arm, Calculated Power = 0.052</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 325/arm, Calculated Power = 0.054</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 350/arm, Calculated Power = 0.055</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 375/arm, Calculated Power = 0.057</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 400/arm, Calculated Power = 0.058</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 425/arm, Calculated Power = 0.059</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 450/arm, Calculated Power = 0.061</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 475/arm, Calculated Power = 0.062</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 500/arm, Calculated Power = 0.064</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 525/arm, Calculated Power = 0.065</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 550/arm, Calculated Power = 0.066</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 575/arm, Calculated Power = 0.068</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 600/arm, Calculated Power = 0.069</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 625/arm, Calculated Power = 0.07</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 650/arm, Calculated Power = 0.071</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 675/arm, Calculated Power = 0.073</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 700/arm, Calculated Power = 0.074</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 725/arm, Calculated Power = 0.075</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 750/arm, Calculated Power = 0.077</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 775/arm, Calculated Power = 0.078</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 800/arm, Calculated Power = 0.079</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 825/arm, Calculated Power = 0.08</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 850/arm, Calculated Power = 0.082</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 875/arm, Calculated Power = 0.083</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 900/arm, Calculated Power = 0.084</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 925/arm, Calculated Power = 0.085</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 950/arm, Calculated Power = 0.087</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 975/arm, Calculated Power = 0.088</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1000/arm, Calculated Power = 0.089</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1025/arm, Calculated Power = 0.09</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1050/arm, Calculated Power = 0.092</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1075/arm, Calculated Power = 0.093</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1100/arm, Calculated Power = 0.094</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1125/arm, Calculated Power = 0.095</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1150/arm, Calculated Power = 0.096</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1175/arm, Calculated Power = 0.098</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1200/arm, Calculated Power = 0.099</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1225/arm, Calculated Power = 0.1</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1250/arm, Calculated Power = 0.101</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1275/arm, Calculated Power = 0.103</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1300/arm, Calculated Power = 0.104</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1325/arm, Calculated Power = 0.105</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1350/arm, Calculated Power = 0.106</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1375/arm, Calculated Power = 0.107</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1400/arm, Calculated Power = 0.109</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1425/arm, Calculated Power = 0.11</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1450/arm, Calculated Power = 0.111</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1475/arm, Calculated Power = 0.112</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1500/arm, Calculated Power = 0.113</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1525/arm, Calculated Power = 0.115</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1550/arm, Calculated Power = 0.116</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1575/arm, Calculated Power = 0.117</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1600/arm, Calculated Power = 0.118</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1625/arm, Calculated Power = 0.119</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1650/arm, Calculated Power = 0.121</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1675/arm, Calculated Power = 0.122</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1700/arm, Calculated Power = 0.123</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1725/arm, Calculated Power = 0.124</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1750/arm, Calculated Power = 0.125</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1775/arm, Calculated Power = 0.127</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1800/arm, Calculated Power = 0.128</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1825/arm, Calculated Power = 0.129</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1850/arm, Calculated Power = 0.13</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1875/arm, Calculated Power = 0.131</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1900/arm, Calculated Power = 0.133</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1925/arm, Calculated Power = 0.134</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1950/arm, Calculated Power = 0.135</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1975/arm, Calculated Power = 0.136</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 2000/arm, Calculated Power = 0.137</span>
-<span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Target power 0.8 not achieved by max N of 2000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 50/arm, Calculated Power = 0.074</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 75/arm, Calculated Power = 0.091</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 100/arm, Calculated Power = 0.108</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 125/arm, Calculated Power = 0.125</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 150/arm, Calculated Power = 0.141</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 175/arm, Calculated Power = 0.158</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 200/arm, Calculated Power = 0.174</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 225/arm, Calculated Power = 0.191</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 250/arm, Calculated Power = 0.207</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 275/arm, Calculated Power = 0.223</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 300/arm, Calculated Power = 0.239</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 325/arm, Calculated Power = 0.256</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 350/arm, Calculated Power = 0.272</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 375/arm, Calculated Power = 0.288</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 400/arm, Calculated Power = 0.303</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 425/arm, Calculated Power = 0.319</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 450/arm, Calculated Power = 0.335</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 475/arm, Calculated Power = 0.35</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 500/arm, Calculated Power = 0.365</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 525/arm, Calculated Power = 0.381</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 550/arm, Calculated Power = 0.396</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 575/arm, Calculated Power = 0.41</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 600/arm, Calculated Power = 0.425</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 625/arm, Calculated Power = 0.439</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 650/arm, Calculated Power = 0.453</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 675/arm, Calculated Power = 0.467</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 700/arm, Calculated Power = 0.481</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 725/arm, Calculated Power = 0.494</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 750/arm, Calculated Power = 0.508</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 775/arm, Calculated Power = 0.521</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 800/arm, Calculated Power = 0.534</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 825/arm, Calculated Power = 0.546</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 850/arm, Calculated Power = 0.559</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 875/arm, Calculated Power = 0.571</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 900/arm, Calculated Power = 0.582</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 925/arm, Calculated Power = 0.594</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 950/arm, Calculated Power = 0.606</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 975/arm, Calculated Power = 0.617</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1000/arm, Calculated Power = 0.628</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1025/arm, Calculated Power = 0.638</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1050/arm, Calculated Power = 0.649</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1075/arm, Calculated Power = 0.659</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1100/arm, Calculated Power = 0.669</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1125/arm, Calculated Power = 0.679</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1150/arm, Calculated Power = 0.688</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1175/arm, Calculated Power = 0.698</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1200/arm, Calculated Power = 0.707</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1225/arm, Calculated Power = 0.716</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1250/arm, Calculated Power = 0.724</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1275/arm, Calculated Power = 0.733</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1300/arm, Calculated Power = 0.741</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1325/arm, Calculated Power = 0.749</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1350/arm, Calculated Power = 0.757</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1375/arm, Calculated Power = 0.764</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1400/arm, Calculated Power = 0.772</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1425/arm, Calculated Power = 0.779</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1450/arm, Calculated Power = 0.786</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1475/arm, Calculated Power = 0.793</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1500/arm, Calculated Power = 0.799</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1525/arm, Calculated Power = 0.806</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> --- Calculation Summary ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -234,10 +218,10 @@ target power is achieved.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> | Target_Power| Required_N_per_Arm|</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> |------------:|------------------:|</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> |          0.8|               2000|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |          0.8|               1525|</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">ss_results</span><span class="op">$</span><span class="va">results_data</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Target_Power Required_N_per_Arm</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1          0.8               2000</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1          0.8               1525</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">ss_results</span><span class="op">$</span><span class="va">results_plot</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="linear.ss.analytical-1.png" alt="" width="700" height="433"></span>
 </code></pre></div>
