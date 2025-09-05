@@ -1,0 +1,512 @@
+---
+title: "Data Generation: Mechanisms and Examples"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Data Generation: Mechanisms and Examples}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = NA,
+  fig.width = 6, fig.height = 4,
+  warning = FALSE, message = FALSE,
+  # Only evaluate heavy chunks when NOT_CRAN=true
+  eval = identical(Sys.getenv("NOT_CRAN"), "true")
+)
+library(RMSTSS)
+set.seed(1)
+```
+
+# Purpose
+
+This vignette describes how the simulator builds datasets from a **recipe**: covariates → treatment → event time → censoring. It gives exact parameterizations and runnable examples for each mechanism. You can pass a **list** recipe directly, or serialize to **YAML** for reuse.
+
+**Output:** a `data.frame` with columns `time`, `status`, `arm` (if treatment is present), and your covariates. Attributes include `attr(dat, "tau")` (restriction time) and `attr(dat, "achieved_censoring")` (realized censoring).
+
+# Recipe structure
+
+```r
+list(
+  n = 300,
+  covariates = list(defs = list(/* see Covariates */)),
+  treatment  = list(/* see Treatment */),
+  event_time = list(/* see Event-time engines */),
+  censoring  = list(/* see Censoring */),
+  seed = 42
+)
+```
+
+You may write/read this recipe as YAML:
+
+```r
+# write
+tmp <- tempfile(fileext = ".yml")
+write_recipe_yaml(rec, tmp)
+
+# read via path
+dat <- simulate_from_recipe(tmp, seed = 123)
+```
+
+Validate and fill defaults:
+
+```r
+rec <- validate_recipe(rec)
+```
+
+# Covariates
+
+Each definition has `name`, `type` (`"continuous"` or `"categorical"`), a `dist` with `params`, and optional `transform` steps applied after generation (`"center(a)"`, `"scale(b)"`).
+
+**Continuous:** `normal(mean, sd)`, `lognormal(meanlog, sdlog)`, `gamma(shape, scale)`, `weibull(shape, scale)`, `uniform(min, max)`, `beta(shape1, shape2)`, `t(df)`.
+
+**Categorical:** `bernoulli(p)` (0/1 numeric), `categorical(prob, labels)` (factor), `ordinal(prob, labels)` (ordered factor).
+
+Example:
+
+```{r covariates, eval=TRUE}
+covs <- list(
+  list(name="age",   type="continuous",  dist="normal",     params=list(mean=62, sd=10),
+       transform=c("center(60)","scale(10)")),
+  list(name="sex",   type="categorical", dist="bernoulli",  params=list(p=0.45)),
+  list(name="stage", type="categorical", dist="ordinal",
+       params=list(prob=c(0.3,0.5,0.2), labels=c("I","II","III")))
+)
+
+# gen_covariates() is internal; for the vignette we simulate a tiny dataset
+# with a supported model and just show the covariate columns.
+tmp <- list(
+  n = 5,
+  covariates = list(defs = covs),
+  treatment  = NULL,
+  event_time = list(
+    model    = "aft_lognormal",
+    baseline = list(mu = 3, sigma = 0.4),
+    effects  = list(intercept = 0),
+    tau      = 1
+  ),
+  censoring  = list(mode = "explicit", administrative = list(time = 1e6))
+)
+
+d <- simulate_from_recipe(validate_recipe(tmp), seed = 101)
+cov_cols <- setdiff(names(d), c("time", "status", "arm"))
+if (length(cov_cols)) {
+  d[, cov_cols, drop = FALSE]
+} else {
+  head(d)
+}
+
+```
+
+# Treatment
+
+Choose `treatment$assignment`:
+
+- `"randomization"` with `allocation = "a:b"`; `p1 = a/(a+b)`.
+- `"stratified"`: same allocation **within** strata in `stratify_by` (categorical covariates).
+- `"logistic_ps"`: treatment probability is `logit^{-1}(η)` from a user formula.
+
+Randomization:
+
+```{r}
+tr <- list(assignment="randomization", allocation="1:1")
+```
+
+Stratified:
+
+```r
+tr <- list(assignment="stratified", allocation="2:1", stratify_by=c("stage"))
+```
+
+Logistic propensity (use explicit beta to avoid parsing issues in formulas):
+
+```r
+tr <- list(
+  assignment = "logistic_ps",
+  ps_model  = list(
+    formula = "~ 1 + x + I(sex==1)",
+    beta    = c(-0.3, 1.2, -0.6)  # (Intercept), x, I(sex==1)
+  )
+)
+```
+
+# Event-time engines
+
+Let `Z` be treatment (0/1), `X` covariates, and `η` the linear predictor (below). Supported engines:
+
+- **AFT Lognormal** (`model="aft_lognormal"`)  
+  \[\log T = \mu + \eta + \sigma \varepsilon,\ \varepsilon \sim \mathcal{N}(0,1).\]  
+  Baseline `baseline=list(mu, sigma)`; simulate `T = exp(μ + η + σ ε)`.
+
+- **AFT Weibull** (`model="aft_weibull"`)  
+  Baseline survival \(S_0(t) = \exp(-(t/\lambda)^k)\). AFT shift:  
+  \(T = \lambda\, \exp(\eta)\, U^{1/k}\), \(U\sim \text{Uniform}(0,1)\).  
+  Baseline `baseline=list(shape=k, scale=lambda)`.
+
+- **Cox Exponential** (`model="cox_exp"`)  
+  \(h(t|X,Z) = \lambda_0 \exp(\eta)\). Baseline `baseline=list(rate = λ0)`; sample \(T\sim\text{Exp}(\lambda_0 \exp(\eta))\).
+
+- **Cox Piecewise Exponential** (`model="cox_pwexp"`)  
+  Provide `baseline=list(rates=c(r1,r2,...), cuts=c(c1,c2,...))`; in segment \(s\), wait time is exponential with rate \(r_s \exp(\eta)\). Carry over elapsed time to the next segment at each cut.
+
+## Effects and linear predictor
+
+Specify effects on the appropriate scale in `event_time$effects`:
+
+```r
+event_time = list(
+  model = "aft_weibull",
+  baseline = list(shape = 1.3, scale = 12),
+  effects = list(
+    intercept  = 0,                      # defaults to 0
+    treatment  = -0.25,                  # AFT: log-time; Cox: log-hazard
+    covariates = list(age = 0.01, sex = -0.2)   # NOTE: named LIST (not a vector)
+    # or: formula="~ age + sex", beta=c(0.01, -0.2)
+  ),
+  tau = 24
+)
+```
+
+> **Important:** `effects$covariates` must be a **named list** of numerics in this package, e.g., `list(age=0.01, sex=-0.2)`. Using a numeric vector like `c(age=0.01, sex=-0.2)` will trigger `validate_recipe()` to error.
+
+# Censoring
+
+Two modes:
+
+- `mode="target_overall"`: choose `target` and `admin_time`. The solver finds an exponential random-censoring rate \(\lambda_c\) to hit the target, subject to feasibility.
+- `mode="explicit"`: provide any of `administrative`, `random` (e.g., exponential), and an optional `dependent` component driven by covariates.
+
+**Administrative floor:** with only admin at time \(A\), censoring fraction is \(P(T > A)\). If `target` is **below** this floor, random censoring is unnecessary; the simulator returns the floor.
+
+# Worked examples (tailored defaults)
+
+Defaults used below unless noted: `tau = 24`, `admin_time = 36`, allocation `"1:1"`, `seed` set per example.
+
+## Example 1: AFT Lognormal
+
+```{r ex1, eval=TRUE}
+covs1 <- list(
+  list(name="age", type="continuous", dist="normal", params=list(mean=62, sd=10),
+       transform=c("center(60)","scale(10)")),
+  list(name="sex", type="categorical", dist="bernoulli", params=list(p=0.45))
+)
+
+rec1 <- list(
+  n = 300,
+  covariates = list(defs = covs1),
+  treatment  = list(assignment="randomization", allocation="1:1"),
+  event_time = list(model="aft_lognormal",
+                    baseline=list(mu=3.0, sigma=0.6),
+                    effects=list(intercept=0, treatment=-0.25,
+                                 covariates=list(age=0.01, sex=-0.2)),
+                    tau=24),
+  censoring  = list(mode="target_overall", target=0.25, admin_time=36),
+  seed = 11
+)
+
+rec1 <- validate_recipe(rec1)
+dat1 <- simulate_from_recipe(rec1)
+c(tau = attr(dat1, "tau"), achieved_censoring = attr(dat1, "achieved_censoring"))
+head(dat1)
+```
+
+## Example 2: AFT Weibull
+
+```{r ex2, eval=TRUE}
+rec2 <- rec1
+rec2$event_time <- list(model="aft_weibull",
+                        baseline=list(shape=1.3, scale=12),
+                        effects=list(intercept=0, treatment=-0.20,
+                                     covariates=list(age=0.008)),
+                        tau=24)
+dat2 <- simulate_from_recipe(validate_recipe(rec2), seed=12)
+summary(dat2$time)
+```
+
+## Example 3: Cox Exponential (PH)
+
+```{r ex3, eval=TRUE}
+rec3 <- list(
+  n = 400,
+  covariates = list(defs = covs1),
+  treatment  = list(assignment="randomization", allocation="1:1"),
+  event_time = list(model="cox_pwexp",
+                    baseline=list(rates=c(0.05), cuts=numeric(0)),  # single segment = exponential
+                    effects=list(intercept=0, treatment=-0.3,
+                                 covariates=list(age=0.01)),
+                    tau=24),
+  censoring  = list(mode="target_overall", target=0.20, admin_time=30),
+  seed = 13
+)
+dat3 <- simulate_from_recipe(validate_recipe(rec3))
+mean(dat3$status==0)
+```
+
+## Example 4: Cox Piecewise Exponential
+
+```{r ex4, eval=TRUE}
+rec4 <- list(
+  n = 500,
+  covariates = list(defs = list(list(name="age", type="continuous", dist="normal", params=list(mean=60, sd=8)))),
+  treatment  = list(assignment="randomization", allocation="1:1"),
+  event_time = list(model="cox_pwexp",
+                    baseline=list(rates=c(0.10, 0.06, 0.03), cuts=c(6, 18)),
+                    effects=list(intercept=0, treatment=-0.4,
+                                 covariates=list(age=0.01)),
+                    tau=24),
+  censoring  = list(mode="target_overall", target=0.25, admin_time=30)
+)
+dat4 <- simulate_from_recipe(validate_recipe(rec4), seed=123)
+c(n=nrow(dat4), events=sum(dat4$status==1), cens_rate=mean(dat4$status==0))
+```
+
+## Example 5: Stratified randomization
+
+```{r ex5, eval=TRUE}
+rec5 <- rec4
+rec5$covariates$defs <- c(rec5$covariates$defs,
+                          list(list(name="stage", type="categorical", dist="categorical",
+                                    params=list(prob=c(0.3,0.5,0.2), labels=c("I","II","III")))))
+rec5$treatment <- list(assignment="stratified", allocation="1:1", stratify_by=c("stage"))
+d5 <- simulate_from_recipe(validate_recipe(rec5), seed=9)
+prop.table(table(d5$stage, d5$arm), 1)
+```
+
+## Example 6: Logistic propensity (explicit beta)
+
+```{r ex6, eval=TRUE}
+rec6 <- list(
+  n = 800,
+  covariates = list(defs = list(
+    list(name="x", type="continuous", dist="normal", params=list(mean=0, sd=1)),
+    list(name="sex", type="categorical", dist="bernoulli", params=list(p=0.5))
+  )),
+  treatment  = list(assignment="logistic_ps",
+                    ps_model=list(formula="~ 1 + x + sex",
+                                  beta=c(-0.3, 1.2, -0.6))),
+  event_time = list(model="cox_pwexp", baseline=list(rates=c(0.05), cuts=numeric(0)),
+                    effects=list(intercept=0, treatment=0.0,
+                                 covariates=list(x=0.0, sex=0.0)), tau=12),
+  censoring  = list(mode="target_overall", target=0.15, admin_time=50)
+)
+d6 <- simulate_from_recipe(validate_recipe(rec6), seed=7)
+cor(d6$x, d6$arm)
+```
+
+# Diagnostics
+
+- **Positivity:** `all(time > 0)` should hold. If not, lighten hazard rates or check parameters.
+- **Censoring target:** compare `attr(dat, "achieved_censoring")` vs `target`. If far off, estimate the **administrative floor** (admin-only censoring) and adjust `admin_time`/target.
+- **Balance:** randomization ≈ allocation; stratified balance within each stratum.
+- **Factors:** supply `labels` to stabilize factor levels across replicates.
+
+Admin-only floor demo:
+
+```{r floor, eval=TRUE}
+rec_floor <- rec3
+rec_floor$censoring <- list(mode="explicit", administrative=list(time=30))
+dat_floor <- simulate_from_recipe(validate_recipe(rec_floor), seed=99)
+mean(dat_floor$status==0)  # floor
+```
+
+# Reproducibility
+
+Set seeds in the recipe (`seed`) or per call (`seed=`). For grids, use deterministic schemes like `seed_base + scenario_id*1000 + rep`.
+
+# Quick reference (schema)
+
+```r
+list(
+  n = <int>,
+  covariates = list(defs = list( list(name, type, dist, params = list(...), transform = c(...)), ... )),
+  treatment = list(
+    assignment = "randomization" | "stratified" | "logistic_ps",
+    allocation = "a:b", stratify_by = c("..."),
+    ps_model = list(formula = "~ ...", beta = c(...))  # optional
+  ),
+  event_time = list(
+    model = "aft_lognormal" | "aft_weibull" | "cox_exp" | "cox_pwexp",
+    baseline = list(...),
+    effects  = list(intercept = 0, treatment = 0,
+                    covariates = list(name = coef, ...)
+                    # or: formula="~ ...", beta=c(...)
+                    ),
+    tau = 24
+  ),
+  censoring = list(
+    mode = "target_overall" | "explicit",
+    target = 0.25, admin_time = 36,
+    administrative = list(time = ...),
+    random = list(dist="exponential", params=list(rate=...)),
+    dependent = list(formula="~ ...", base=..., beta=c(...))
+  ),
+  seed = 42
+)
+```
+
+
+# Saving & reusing datasets (compatible with RMSTSS)
+
+You’ll typically want one of three patterns when you want to reuse or ship simulated data.
+
+## 1) Single dataset you’ll reuse later (RDS preserves attributes)
+
+`simulate_from_recipe()` returns a data frame with attributes:
+- `attr(dat, "tau")`
+- `attr(dat, "achieved_censoring")`
+
+When you save as **RDS**, those attributes are preserved and restored on load.
+
+```r
+# Generate once
+rec <- validate_recipe(list(
+  n = 300,
+  covariates = list(defs = list(
+    list(name="age", type="continuous", dist="normal", params=list(mean=62, sd=10)),
+    list(name="sex", type="categorical", dist="bernoulli", params=list(p=0.45))
+  )),
+  treatment = list(assignment="randomization", allocation="1:1"),
+  event_time = list(model="aft_weibull",
+                    baseline=list(shape=1.3, scale=12),
+                    effects=list(intercept=0, treatment=-0.25,
+                                 covariates=list(age=0.01, sex=-0.2)),
+                    tau=24),
+  censoring = list(mode="target_overall", target=0.25, admin_time=36),
+  seed = 2025
+))
+
+dat <- simulate_from_recipe(rec)
+
+# Save and reload with attributes intact
+saveRDS(dat, "mydata.rds")     # eval=FALSE during vignette build
+dat2 <- readRDS("mydata.rds")   # eval=FALSE during vignette build
+
+attr(dat2, "tau")
+attr(dat2, "achieved_censoring")
+```
+
+> If you **must** save as CSV/TXT, attributes are **lost**; either set them back manually (utility below) or use the manifest workflow.
+
+## 2) Many scenarios/replicates + cross-format exports (manifest helpers)
+
+For simulation studies, let the package write a **manifest** so attributes and seeds are tracked automatically. This also reattaches attributes when you reload CSV/TXT/RData.
+
+```r
+base <- rec  # from above (or any validated recipe)
+
+# Sweep scenarios and write multiple formats + manifest.rds
+man <- generate_recipe_sets(
+  base_recipe = base,
+  vary = list(n = c(200, 400),
+              "event_time.effects.treatment" = c(-0.15, -0.25)),
+  out_dir  = "sim-sets",
+  formats  = c("rds","csv","txt","rdata"),
+  n_reps   = 2,
+  seed_base = 2025
+) # eval=FALSE
+
+# Load back as a named list
+sets <- load_recipe_sets("sim-sets/manifest.rds")  # eval=FALSE
+
+# Access a dataset:
+k   <- names(sets)[1]
+res <- sets[[k]]              # res is a list with $data and $meta
+d   <- res$data               # data.frame with attributes restored
+str(res$meta)                 # tau, achieved_censoring, n, file, scenario params, etc.
+
+attr(d, "tau")                # available for downstream functions
+```
+
+Why this is useful:
+- Attributes (`tau`, `achieved_censoring`) are restored for **all** formats.
+- The manifest records scenario parameters and seeds for exact reproducibility.
+- Factor levels for labeled categoricals are stabilized to your declared labels.
+
+## 3) Shipping datasets *inside* your package (CRAN-style)
+
+Put a script in `data-raw/` that builds objects, then save to `data/*.rda` using `usethis::use_data()`. This is the canonical, CRAN-friendly way; attributes are preserved inside `.rda`.
+
+```r
+# data-raw/make_datasets.R
+if (requireNamespace("devtools", quietly = TRUE)) devtools::load_all(".")
+
+rec_small <- rec
+rec_small$n <- 100
+dat_small  <- simulate_from_recipe(rec_small, seed = 7)
+
+# Save to package data/ and document with Rd (see dataset roxygen)
+usethis::use_data(dat_small, overwrite = TRUE, compress = "xz")
+
+# Optional CSV/TXT mirrors for non-R users
+utils::write.csv(dat_small, "inst/extdata/dat_small.csv", row.names = FALSE)
+utils::write.table(dat_small, "inst/extdata/dat_small.txt", sep = "\t", quote = FALSE, row.names = FALSE)
+```
+
+**Minimal dataset documentation** (place in `R/data-docs.R`):
+
+```r
+#' Simulated trial: small example (n = 100)
+#'
+#' @format A data frame with 100 rows and columns:
+#' \describe{
+#'   \item{time}{numeric, observed time}
+#'   \item{status}{integer, 1 = event, 0 = censored}
+#'   \item{arm}{integer, 0/1 treatment (if present)}
+#'   \item{age}{numeric}
+#'   \item{sex}{integer, 0/1}
+#' }
+#' @usage data(dat_small)
+#' @keywords datasets
+#' @name dat_small
+#' @docType data
+NULL
+```
+
+Then:
+
+```r
+devtools::document()
+devtools::check(vignettes = FALSE)
+```
+
+### Utility: re-attaching attributes when you only have CSV/TXT
+
+If you saved to plain text *without* a manifest, restore key attributes yourself:
+
+```r
+set_dataset_attrs <- function(df, tau, achieved_censoring = NULL) {
+  if (is.null(achieved_censoring)) {
+    stopifnot(all(c("time","status") %in% names(df)))
+    achieved_censoring <- mean(df$status == 0, na.rm = TRUE)
+  }
+  attr(df, "tau") <- tau
+  attr(df, "achieved_censoring") <- achieved_censoring
+  df
+}
+
+dat_csv <- utils::read.csv("path/to/data.csv")         # eval=FALSE
+dat_csv <- set_dataset_attrs(dat_csv, tau = 24)         # eval=FALSE
+```
+
+### Reproducing the *exact same* dataset later
+
+Two options:
+
+- **Store the recipe + seed:**  
+  Save the list recipe (or use `write_recipe_yaml(rec, "recipe.yml")`) and call
+  ```r
+  dat_again <- simulate_from_recipe("recipe.yml", seed = 2025)
+  ```
+  Using the same seed gives the same dataset.
+
+- **Use the manifest:**  
+  `generate_recipe_sets()` records scenario IDs and seeds. Recreate any dataset by matching `scenario_id` and `rep` (the loader already does this).
+
+### Compatibility checklist
+
+- Columns: `time` (numeric > 0), `status` (integer in {0,1}), and, if present, `arm` (integer in {0,1}); plus any covariates.
+- Attributes: `attr(dat, "tau")` used by RMST workflows; `attr(dat, "achieved_censoring")` is informational.
+- Factors: supply `labels` in the recipe so factor levels stay consistent across replicates.
+- Units: keep event-time units consistent with `tau` and `censoring$admin_time`.

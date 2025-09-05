@@ -13,9 +13,11 @@ bibliography: references.bib
 biblio-style: apalike
 link-citations: yes
 vignette: >
-  %\VignetteIndexEntry{RMSTSS: Sample Size and Power Calculations for RMST-based Clinical Trials}
   %\VignetteEncoding{UTF-8}
+  %\VignetteIndexEntry{RMSTSS: Sample Size and Power Calculations for RMST-based Clinical Trials}
   %\VignetteEngine{knitr::rmarkdown}
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r setup, include=FALSE}

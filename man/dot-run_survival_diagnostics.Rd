@@ -9,7 +9,8 @@
   time_var,
   status_var,
   arm_var,
-  strata_var = NULL
+  strata_var = NULL,
+  alpha = 0.05
 )
 }
 \arguments{
@@ -22,6 +23,8 @@
 \item{arm_var}{A string specifying the name of the treatment arm variable in the pilot data.}
 
 \item{strata_var}{An optional string specifying the name of the stratification variable in the pilot data.}
+
+\item{alpha}{The significance level for calculating the confidence interval (default is 0.05).}
 }
 \description{
 This function performs survival diagnostics on pilot data, including a log-rank test and Kaplan-Meier plot.

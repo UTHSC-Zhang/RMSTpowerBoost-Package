@@ -19,3 +19,6 @@
 
 # The renv subdirectory
 renv/
+
+# Data Generation Script
+^data-raw$

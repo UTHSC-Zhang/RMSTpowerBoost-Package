@@ -1,7 +1,7 @@
 Package: RMSTSS
 Type: Package
 Title: Sample Size Calculation Using RMST for Survival Data
-Version: 0.1.4
+Version: 1.0.0
 Authors@R: 
     person(given = "Arnab", family = "Aich", role = c("aut", "cre"), 
            email = "arnab.aich99@gmail.com", 
@@ -19,7 +19,7 @@ Description: A toolkit for designing studies with a restricted mean survival
 License: MIT + file LICENSE
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.3.2
+RoxygenNote: 7.3.3
 Imports: 
     survival,
     mgcv,
@@ -38,12 +38,19 @@ Imports:
     plotly,
     kableExtra,
     survminer,
-    rmarkdown
+    rmarkdown,
 Suggests:
     tidyr,
+    yaml,
+    jsonlite,
     bibtex,
-    testthat (>= 3.0.0)
+    roxygen2,
+    testthat (>= 3.0.0),
+    devtools
 Config/testthat/edition: 3
 VignetteBuilder: knitr,
                  rmarkdown
 URL: https://biomedical-data-science-internship.github.io/UTHSC-zhang/
+Depends: 
+    R (>= 3.5)
+LazyData: true

@@ -1,5 +1,4 @@
-﻿# Power Calculations -------------------------------------------------------
-
+# Power Calculations -------------------------------------------------------
 #' @title Calculate Power for a Semiparametric Additive RMST Model via Simulation
 #' @description Performs a power analysis for given sample sizes using a flexible,
 #'   semiparametric additive model for the RMST based on pseudo-observations.
