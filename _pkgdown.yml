@@ -1,4 +1,35 @@
-url: https://biomedical-data-science-internship.github.io/UTHSC-package/
+url: https://uthsc-zhang.github.io/RMSTSS-Package
+
 template:
   bootstrap: 5
 
+home:
+  strip_header: true
+
+navbar:
+  structure:
+    left:  [home, package, datagen, app]
+    right: [reference, news, issues, discusssions]
+  components:
+    package:
+      text: "R Package"
+      href: articles/RMSTSS-Main.html
+    datagen:
+      text: "Data Generation"
+      href: articles/RMSTSS-DataGen.html
+    app:
+      text: "Application"
+      href: articles/RMSTSS-App.html
+    issues:
+      text: "Issues"
+      href: https://github.com/UTHSC-Zhang/RMSTSS-Package/issues
+discussions:
+      text: "Discussions"
+      href: https://github.com/UTHSC-Zhang/RMSTSS-Package/discussions
+
+articles:
+  - title: Guides
+    contents:
+      - RMSTSS-App
+      - RMSTSS-Main
+      - RMSTSS-DataGen

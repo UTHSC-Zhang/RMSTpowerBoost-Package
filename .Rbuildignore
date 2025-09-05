@@ -22,3 +22,12 @@ renv/
 
 # Data Generation Script
 ^data-raw$
+
+# top level directories
+tools/
+checks/
+docs/
+
+
+# vignettes/RMSTSS.Rmd
+

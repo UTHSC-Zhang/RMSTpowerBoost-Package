@@ -1,30 +1,37 @@
 
 # R/recipe_sim.R
-# List-only simulation engine (no YAML). Supports AFT/PH parametric models,
-# piecewise-exponential, optional frailty, richer covariate distributions,
-# explicit intercept handling, and robust censoring calibration.
+# Core list-only simulation engine. No YAML. No L/tau anywhere (analysis horizon is external).
 
 #' Validate a simulation recipe (list-only schema)
 #'
-#' Ensures the list schema is consistent and fills reasonable defaults.
-#' @param recipe A named list (see the vignette "Data Generation Scheme").
+#' Checks/normalizes the simulation recipe and fills reasonable defaults.
+#' This function does **not** use or require any analysis horizon (L/tau).
+#'
+#' @param recipe A named list defining n, covariates, treatment (optional),
+#'   event_time (model, baseline, effects, optional frailty), and censoring.
 #' @return A validated recipe list.
 #' @examples
-#' r <- recipe_quick_aft(100, 12, "aft_lognormal",
-#'   baseline = list(mu=2.2, sigma=0.5),
+#' r <- recipe_quick_aft(
+#'   n = 100,
+#'   model = "aft_lognormal",
+#'   baseline = list(mu = 2.2, sigma = 0.5),
 #'   treat_effect = -0.2,
-#'   covariates = list(list(name="x", type="continuous", dist="normal", params=list(mean=0, sd=1))),
-#'   target_censoring = 0.25, allocation = "1:1")
+#'   covariates = list(list(name="x", type="continuous", dist="normal",
+#'                          params=list(mean=0, sd=1))),
+#'   target_censoring = 0.25, allocation = "1:1"
+#' )
 #' r2 <- validate_recipe(r)
 #' @export
 validate_recipe <- function(recipe) {
-  if (is.null(recipe) || !is.list(recipe)) stop("`recipe` must be a list (YAML is no longer supported).")
+  if (is.null(recipe) || !is.list(recipe))
+    stop("`recipe` must be a list (YAML is not supported).")
+
   # n
   if (is.null(recipe$n) || !is.numeric(recipe$n) || length(recipe$n) != 1L || recipe$n <= 0)
     stop("`recipe$n` must be a positive number.")
   recipe$n <- as.integer(recipe$n)
 
-  # covariates
+  # covariates holder
   if (is.null(recipe$covariates) || is.null(recipe$covariates$defs) || !is.list(recipe$covariates$defs))
     recipe$covariates <- list(defs = list())
 
@@ -37,9 +44,8 @@ validate_recipe <- function(recipe) {
     if (tr$assignment %in% c("randomization","stratified")) {
       tr$allocation <- tr$allocation %||% "1:1"
       recipe$treatment$allocation <- tr$allocation
-      if (tr$assignment == "stratified") {
-        if (is.null(tr$stratify_by)) stop("treatment$stratify_by required for stratified assignment.")
-      }
+      if (tr$assignment == "stratified" && is.null(tr$stratify_by))
+        stop("treatment$stratify_by required for stratified assignment.")
     } else { # logistic_ps
       if (is.null(tr$ps_model$formula)) stop("treatment$ps_model$formula is required for logistic_ps.")
     }
@@ -48,10 +54,18 @@ validate_recipe <- function(recipe) {
   # event_time
   et <- recipe$event_time
   if (is.null(et) || is.null(et$model)) stop("event_time$model must be provided.")
+
+  # normalize model aliases (PH naming only on user side; internal engines can differ)
+  nm <- .normalize_model_name(et$model, et$baseline %||% list())
+  et$model    <- nm$model
+  et$baseline <- nm$baseline
+
   allowed <- c("aft_lognormal","aft_weibull","aft_loglogistic",
                "ph_exponential","ph_weibull","ph_gompertz","cox_pwexp")
   if (!et$model %in% allowed) stop("Unsupported event_time$model: ", et$model)
   if (is.null(et$baseline) || !is.list(et$baseline)) stop("event_time$baseline must be a list.")
+
+  # effects
   et$effects <- et$effects %||% list()
   et$effects$intercept <- et$effects$intercept %||% 0
   et$effects$treatment <- et$effects$treatment %||% 0
@@ -59,8 +73,6 @@ validate_recipe <- function(recipe) {
     stop("effects$formula provided but effects$beta missing.")
   if (!is.null(et$effects$beta) && is.null(et$effects$formula))
     stop("effects$beta provided but effects$formula missing.")
-  et$tau <- et$tau %||% Inf
-  recipe$event_time <- et
 
   # frailty (optional)
   if (!is.null(et$frailty)) {
@@ -80,20 +92,36 @@ validate_recipe <- function(recipe) {
   if (cz$mode == "target_overall") {
     cz$target <- cz$target %||% 0.25
     cz$admin_time <- cz$admin_time %||% Inf
-  } else {
-    # explicit: any of administrative, random, dependent may be present
-    # e.g., random=list(dist="exponential", params=list(rate=0.03))
   }
-  recipe$censoring <- cz
-
-  recipe$seed <- recipe$seed %||% NULL
+  recipe$event_time <- et
+  recipe$censoring  <- cz
+  recipe$seed       <- recipe$seed %||% NULL
   recipe
+}
+
+# Internal: normalize user-facing PH names to internal engines
+.normalize_model_name <- function(model, baseline) {
+  m <- tolower(as.character(model))
+  m <- gsub("[^a-z0-9]+", "_", m)
+  # map PH piecewise-exp names to the internal engine
+  if (m %in% c("ph_pwexp","proportional_hazards_pwexp",
+               "ph_piecewise_exponential","proportional_hazards")) {
+    return(list(model = "cox_pwexp", baseline = baseline))
+  }
+  if (m %in% c("ph_exp","proportional_hazards_exp")) {
+    if (!is.null(baseline$rate)) {
+      baseline <- list(rates = c(baseline$rate), cuts = numeric(0))
+    }
+    return(list(model = "cox_pwexp", baseline = baseline))
+  }
+  list(model = m, baseline = baseline)
 }
 
 # null-coalescing helper
 `%||%` <- function(x, y) if (is.null(x)) y else x
 
 # ---------- Covariates ----------
+
 # Apply simple "center(a)" and "scale(b)" transforms
 .apply_transforms <- function(x, tf) {
   if (is.null(tf)) return(x)
@@ -140,17 +168,12 @@ validate_recipe <- function(recipe) {
 #' @return data.frame of covariates
 #' @examples
 #' \dontrun{
-#' # Example covariate defs:
 #' defs <- list(
-#'   list(name = "x", type = "continuous", dist = "normal",
-#'        params = list(mean = 0, sd = 1)),
-#'   list(
-#'     name = "z", type = "categorical", dist = "categorical",
-#'     params = list(prob = c(0.3, 0.7), labels = c("A", "B"))
-#'   )
+#'   list(name="x", type="continuous", dist="normal", params=list(mean=0, sd=1)),
+#'   list(name="z", type="categorical", dist="categorical",
+#'        params=list(prob=c(0.3,0.7), labels=c("A","B")))
 #' )
 #' X <- gen_covariates(10, list(defs = defs))
-
 #' }
 gen_covariates <- function(n, covariates) {
   defs <- covariates$defs %||% list()
@@ -167,6 +190,7 @@ gen_covariates <- function(n, covariates) {
 }
 
 # ---------- Treatment assignment ----------
+
 .parse_allocation <- function(s) {
   parts <- strsplit(s, ":", fixed = TRUE)[[1]]
   if (length(parts) != 2) stop("allocation must be of the form 'a:b'")
@@ -183,7 +207,6 @@ gen_covariates <- function(n, covariates) {
   if (tr$assignment == "stratified") {
     p <- .parse_allocation(tr$allocation %||% "1:1")
     z <- X[, tr$stratify_by, drop = FALSE]
-    # ensure factors for strata
     for (nm in names(z)) if (!is.factor(z[[nm]])) z[[nm]] <- factor(z[[nm]])
     strata <- interaction(z, drop = TRUE)
     arm <- integer(n)
@@ -208,6 +231,7 @@ gen_covariates <- function(n, covariates) {
 }
 
 # ---------- Linear predictor and frailty ----------
+
 .build_lp <- function(effects, X, arm) {
   b0 <- effects$intercept %||% 0
   bt <- effects$treatment %||% 0
@@ -245,66 +269,86 @@ gen_covariates <- function(n, covariates) {
 }
 
 # ---------- Event-time simulators ----------
+
+# Piecewise-constant hazard sampler via inversion (stable, no NAs)
 .sim_pwexp <- function(rates, cuts, lp) {
-  # rates per segment; multiply by exp(lp)
-  n <- length(lp)
-  t <- numeric(n); alive <- rep(TRUE, n)
-  last <- 0
-  seg_rates <- c(rates, tail(rates,1))
-  seg_cuts  <- c(cuts, Inf)
-  for (s in seq_along(seg_rates)) {
-    idx <- which(alive)
-    if (!length(idx)) break
-    r <- seg_rates[s] * exp(lp[idx])
-    dt <- stats::rexp(length(idx), rate = r)
-    t[idx] <- t[idx] + dt
-    alive_idx <- idx[ t[idx] < seg_cuts[s] ]
-    # those exceeding the cut move to next segment; time carries over
-    alive <- rep(FALSE, n); alive[alive_idx] <- TRUE
-    # clamp times at the cut for those who cross, then continue loop
-    cross_idx <- setdiff(idx, alive_idx)
-    if (length(cross_idx)) t[cross_idx] <- seg_cuts[s]
-  }
-  t
+   # rates: length m; cuts: length m-1 (sorted); lp: linear predictor vector
+   # If single segment, allow cuts = numeric(0)
+   m <- length(rates)
+   if (m == 0L) stop(".sim_pwexp: 'rates' must have length >= 1")
+   if (length(cuts) != max(0L, m - 1L)) stop(".sim_pwexp: length(cuts) must be m-1")
+   cuts <- as.numeric(cuts)
+   if (length(cuts)) cuts <- sort(cuts)
+   seg_starts <- c(0, cuts)
+   seg_ends   <- c(cuts, Inf)
+
+   n  <- length(lp)
+   t  <- numeric(n)
+   ah <- numeric(n)  # target cumulative hazard after scaling by exp(-lp)
+
+   # For each subject, target cumulative hazard on baseline scale
+   u <- stats::runif(n)
+   ah <- -log(u) / exp(lp)
+
+   # Precompute segment lengths for baseline cumulative hazard
+   # We'll walk through segments accumulating H_0 up to cuts, then finish inside the segment.
+   for (i in seq_len(n)) {
+      remaining <- ah[i]
+      # Loop segments
+      for (s in seq_len(m)) {
+         seg_len <- if (is.finite(seg_ends[s])) (seg_ends[s] - seg_starts[s]) else Inf
+         # Cumulative hazard contribution if we traverse entire segment at baseline rate
+         h_full <- rates[s] * seg_len
+         if (remaining <= h_full || !is.finite(h_full)) {
+            # Event occurs within this segment
+            # time within segment = remaining / rate_s
+            dt <- remaining / rates[s]
+            t[i] <- seg_starts[s] + dt
+            break
+         } else {
+            # Consume full segment hazard and move to next
+            remaining <- remaining - h_full
+         }
+      }
+   }
+   t
 }
 
+# In .sim_time(), accept both "ph_pwexp" and "cox_pwexp" (internal alias)
 .sim_time <- function(model, baseline, eta, n) {
-  if (model == "aft_lognormal") {
-    mu <- baseline$mu; sigma <- baseline$sigma
-    return( exp(mu + eta + stats::rnorm(n, 0, sigma)) )
-  }
-  if (model == "aft_weibull") {
-    k <- baseline$shape; lam <- baseline$scale
-    u <- stats::runif(n)
-    return( lam * exp(eta) * (-log(1 - u))^(1/k) )
-  }
-  if (model == "aft_loglogistic") {
-    k <- baseline$shape; lam <- baseline$scale
-    u <- stats::runif(n)
-    return( lam * exp(eta) * (u/(1-u))^(1/k) )
-  }
-  if (model == "ph_exponential") {
-    lam0 <- baseline$rate
-    return( stats::rexp(n, rate = lam0 * exp(eta)) )
-  }
-  if (model == "ph_weibull") {
-    k <- baseline$shape; lam <- baseline$scale
-    u <- stats::runif(n)
-    return( lam * (-log(u) / exp(eta))^(1/k) )
-  }
-  if (model == "ph_gompertz") {
-    a <- baseline$rate; b <- baseline$gamma
-    u <- stats::runif(n)
-    return( (1/b) * log(1 - (b/a) * log(u) / exp(eta)) )
-  }
-  if (model == "cox_pwexp") {
-    rates <- baseline$rates; cuts <- baseline$cuts %||% numeric(0)
-    return( .sim_pwexp(rates, cuts, lp = eta) )
-  }
-  stop("Unsupported model: ", model)
+   if (model == "aft_lognormal") {
+      mu <- baseline$mu; sigma <- baseline$sigma
+      return( exp(mu + eta + stats::rnorm(n, 0, sigma)) )
+   }
+   if (model == "aft_weibull") {
+      k <- baseline$shape; lam <- baseline$scale
+      u <- stats::runif(n)
+      return( lam * exp(eta) * (-log(1 - u))^(1/k) )
+   }
+   if (model == "aft_loglogistic") {
+      k <- baseline$shape; lam <- baseline$scale
+      u <- stats::runif(n)
+      return( lam * exp(eta) * (u/(1-u))^(1/k) )
+   }
+   if (model == "ph_exponential") {
+      lam0 <- baseline$rate
+      return( stats::rexp(n, rate = lam0 * exp(eta)) )
+   }
+   if (model == "ph_weibull") {
+      k <- baseline$shape; lam <- baseline$scale
+      u <- stats::runif(n)
+      return( lam * (-log(u) / exp(eta))^(1/k) )
+   }
+   if (model %in% c("ph_pwexp", "cox_pwexp")) {
+      rates <- baseline$rates
+      cuts  <- baseline$cuts %||% numeric(0)
+      return( .sim_pwexp(rates, cuts, lp = eta) )
+   }
+   stop("Unsupported model: ", model)
 }
 
 # ---------- Censoring ----------
+
 .achieved_cens_exp <- function(T_event, rate, admin_time = Inf) {
   n <- length(T_event)
   admin <- if (is.null(admin_time) || !is.finite(admin_time)) Inf else admin_time
@@ -334,17 +378,18 @@ gen_covariates <- function(n, covariates) {
   }
   val_hi <- f(hi)
   if (!is.finite(val_hi) || val_hi < 0) return(hi)
-  uniroot(function(r) f(r), c(lo, hi), tol = tol)$root
+  stats::uniroot(function(r) f(r), c(lo, hi), tol = tol)$root
 }
 
 #' Simulate a dataset from a validated recipe (list-only)
+#'
 #' @param recipe A validated recipe list (use \code{validate_recipe()}).
 #' @param seed Optional integer seed to override recipe$seed.
-#' @return A data.frame with columns time, status, arm (if treatment present), plus covariates.
-#'         Attributes: "tau", "achieved_censoring".
+#' @return A data.frame with columns \code{time}, \code{status}, \code{arm} (if treatment present),
+#'         plus covariates. Attribute \code{"achieved_censoring"} is attached.
 #' @examples
 #' covs <- list(list(name="x", type="continuous", dist="normal", params=list(mean=0, sd=1)))
-#' rec <- recipe_quick_aft(120, 12, "aft_lognormal",
+#' rec <- recipe_quick_aft(120, "aft_lognormal",
 #'         baseline=list(mu=2.2, sigma=0.5), treat_effect=-0.2,
 #'         covariates=covs, target_censoring=0.25)
 #' dat <- simulate_from_recipe(rec, seed = 11)
@@ -370,7 +415,6 @@ simulate_from_recipe <- function(recipe, seed = NULL) {
 
   # Linear predictor + frailty
   eta <- .build_lp(recipe$event_time$effects, X, arm)
-  # If frailty references a group var, ensure it's in X (e.g., cluster)
   eta <- .apply_frailty(eta, model = recipe$event_time$model,
                         frailty = recipe$event_time$frailty %||% NULL,
                         groups = X)
@@ -399,7 +443,6 @@ simulate_from_recipe <- function(recipe, seed = NULL) {
       }
     }
     if (!is.null(cz$dependent)) {
-      # simple linear predictor on covariates: hazard = base * exp(formula(X))
       f <- cz$dependent$formula %||% NULL
       if (!is.null(f)) {
         mm <- stats::model.matrix(stats::as.formula(f), data = X)
@@ -417,14 +460,51 @@ simulate_from_recipe <- function(recipe, seed = NULL) {
 
   out <- data.frame(time = as.numeric(time), status = as.integer(status))
   if (!is.null(arm)) out$arm <- as.integer(arm)
-  # bind covariates last for readability
   if (ncol(X)) {
-    # drop helper 'arm' from X if duplicated
     if ("arm" %in% names(X)) X$arm <- NULL
     out <- cbind(out, X)
   }
-
-  attr(out, "tau") <- recipe$event_time$tau %||% Inf
   attr(out, "achieved_censoring") <- mean(out$status == 0)
   out
 }
+
+#' Quick AFT recipe builder (list-only, no L/tau)
+#'
+#' @param n Sample size.
+#' @param model One of \code{"aft_lognormal"} or \code{"aft_weibull"}.
+#' @param baseline Baseline parameter list (see model).
+#' @param treat_effect Numeric treatment coefficient (on log-time scale).
+#' @param covariates Covariate definitions (list of defs).
+#' @param target_censoring Target overall censoring fraction (0-1).
+#' @param allocation Allocation ratio string (e.g., "1:1").
+#' @param seed Optional seed.
+#' @return A recipe list suitable for \code{\link{simulate_from_recipe}}.
+#' @examples
+#' covs <- list(list(name="x", type="continuous", dist="normal", params=list(mean=0, sd=1)))
+#' r <- recipe_quick_aft(120, "aft_lognormal",
+#'        baseline=list(mu=2.3, sigma=0.5), treat_effect=-0.2,
+#'        covariates=covs, target_censoring=0.25, allocation="1:1")
+#' dat <- simulate_from_recipe(r, seed = 1)
+#' @export
+recipe_quick_aft <- function(n, model = c("aft_lognormal","aft_weibull"),
+                             baseline, treat_effect, covariates,
+                             target_censoring = 0.25, allocation = "1:1",
+                             seed = NULL) {
+  model <- match.arg(model)
+  list(
+    n = as.integer(n),
+    covariates = list(defs = covariates),
+    treatment = list(assignment = "randomization", allocation = allocation),
+    event_time = list(
+      model = model,
+      baseline = baseline,
+      effects = list(intercept = 0, treatment = treat_effect, covariates = NULL)
+    ),
+    censoring = list(mode = "target_overall", target = target_censoring, admin_time = Inf),
+    seed = seed
+  )
+}
+
+#' @importFrom stats model.matrix rnorm runif rexp rweibull rlnorm rgamma rbeta rt rbinom plogis uniroot
+#' @importFrom utils head tail
+NULL

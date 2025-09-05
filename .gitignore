@@ -2,8 +2,8 @@
 .Rhistory
 .RData
 .Ruserdata
-tests/testthat/Rplots.pdf
 /doc/
 /Meta/
 docs
 *.Rprofile
+

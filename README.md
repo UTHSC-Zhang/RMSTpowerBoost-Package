@@ -1,29 +1,26 @@
 
-
 # RMSTSS: Power and Sample Size Calculations for RMST-Based Trials
 
-[](https://www.google.com/search?q=https://CRAN.R-project.org/package%3DRMSTSS)
-[](https://www.google.com/search?q=https://github.com/arnabaich/RMSTSS/actions/workflows/R-CMD-check.yaml)
-`RMSTSS` provides a comprehensive suite of tools for calculating statistical power and sample size for clinical trials that use the Restricted Mean Survival Time (RMST) as the primary endpoint.
+**Navigate:** [**Application Guide**](application.html) | [**R Package Details**](package.html) | [**Data Generation**](data_generation.html) | [**References**](references.html)
+
+---
 
 ## Overview
 
-The analysis of time-to-event data is moving beyond the proportional hazards assumption, and the RMST has emerged as a clinically and causally interpretable alternative to the hazard ratio. However, tools for designing studies based on modern, direct modeling approaches for the RMST have been lacking.
+The analysis of time-to-event data is moving beyond the proportional hazards assumption, and the Restricted Mean Survival Time (RMST) has emerged as a clinically and causally interpretable alternative to the hazard ratio. However, tools for designing studies based on modern, direct modeling approaches for the RMST have been lacking.
 
-`RMSTSS` fills this critical gap by implementing a variety of advanced statistical methods for study design, allowing researchers to accurately plan trials under complex scenarios, obviating the need to define and estimate the hazard rates or ratios. More detailed usage of this package is described in the vignette, which can be accessed using the following link [**Click Here**](https://uthsc-zhang.github.io/RMSTSS-Package/articles/RMSTSS.html).
+`RMSTSS` fills this critical gap by implementing a variety of advanced statistical methods for study design, allowing researchers to accurately plan trials under complex scenarios. This software suite consists of two primary components: an interactive web application for ease of use, and a comprehensive R package for flexibility and reproducibility.
 
 ### Key Features
 
-  * **Multiple Model Types**: Handles various data structures and assumptions.
-      * **Generalized Linear Models**: Standard direct regression modeling with a general link function.
-      * **Stratified Models**: Efficiently handling stratification by variables with many levels (e.g., clinical centers).
-      * **Additive and Multiplicative Models**: Allowing for different specifications of treatment effects on survival time.
-      * **Semiparametric GAM Models**: Allowing for flexible, non-linear covariate effects.
-      * **Dependent Censoring Models**: Appropriate for settings with covariate-dependent censoring.
-  * **Dual Calculation Methods**: For many models, the package offers both:
-      * A fast **analytical** approach based on asymptotic variance formulas.
-      * A robust **bootstrap** (simulation-based) approach for enhanced accuracy and fewer distributional assumptions.
-  * **Interactive Application**: Includes a user-friendly Shiny application for point-and-click analysis.
+* **Multiple Model Types**: Handles various data structures and assumptions:
+    * **Non-Stratified Models (Linear & GAM)**: For single-center studies with linear or non-linear covariate effects.
+    * **Dependent Censoring Models**: Appropriate for settings with competing risks.
+    * **Stratified Models (Additive & Multiplicative)**: For multi-center trials with different treatment effect assumptions.
+* **Dual Calculation Methods**: For many models, the package offers both:
+    * A fast **analytical** approach based on asymptotic variance formulas.
+    * A robust **bootstrap** (simulation-based) approach for enhanced accuracy.
+* **Interactive Application**: Includes a user-friendly Shiny application for point-and-click analysis, making these advanced methods accessible to a broad audience.
 
 ## Installation
 
@@ -31,44 +28,14 @@ You can install the development version of `RMSTSS` from GitHub with:
 
 ```r
 # install.packages("remotes")
-remotes::install_github("https://github.com/UTHSC-Zhang/RMSTSS-package.git")
-```
-
-## Quick Example
-
-Here is a basic example of calculating statistical power for a range of sample sizes using a linear RMST model. The calculation is based on pilot data from the `veteran` dataset, adjusting for the Karnofsky performance score (`karno`).
-
-```r
-library(RMSTSS)
-library(survival)
-
-# Prepare the veteran dataset for analysis
-vet <- veteran
-vet$arm <- ifelse(vet$trt == 1, 0, 1)
-
-# Calculate power for several sample sizes per arm
-power_results <- linear.power.analytical(
-  pilot_data = vet,
-  time_var = "time",
-  status_var = "status",
-  arm_var = "arm",
-  linear_terms = "karno",
-  sample_sizes = c(100, 150, 200, 250),
-  tau = 270 # Truncation time of 9 months
-)
-
-# View the results data frame
-print(power_results$results_data)
-
-# View the power curve plot
-print(power_results$results_plot)
-
+remotes::install_github("UTHSC-Zhang/RMSTSS-package")
 ```
 
 ## Interactive Shiny Application
 
-For users who prefer a graphical user interface, an interactive Shiny application is available. The app provides a point-and-click interface to all the package's functionalities, allowing you to upload data, map variables, select models, and run analyses without writing any code.
+For users who prefer a graphical user interface, an interactive Shiny application is available. The app provides a point-and-click interface to all the package's functionalities.
 
-You can access the application directly in your web browser by following this link: [**Click Here**](https://arnab96.shinyapps.io/uthsc-app/)
+You can access the application directly in your web browser by following this link: [**Launch Web App**](https://arnab96.shinyapps.io/uthsc-app/)
+
 
 

@@ -1,0 +1,150 @@
+---
+title: "User Guide for the RMSTSS Shiny Application"
+name: RMSTSS-App
+output:
+  rmarkdown::html_vignette:
+    toc: true
+    fig_caption: true
+    code_folding: hide
+    df_print: paged
+    highlight: tango
+    self_contained: true
+vignette: >
+  %\VignetteIndexEntry{RMSTSS: Generate Data & Inspect Metadata (no L)}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE)
+```
+
+# Introduction
+
+Introduction to the RMSTSS Power and Sample Size User Guide. The RMSTSS Power and Sample Size Calculator is an interactive Shiny program that provides a simple, point-and-click interface for the robust statistical models within the RMSTSS R package. The program allows researchers, clinicians, and statisticians to perform advanced power and sample size calculations for clinical trials using Restricted Mean Survival Time (RMST) without having to know any programming.
+
+This handbook will guide you through each of the elements of the application, outlining the different inputs, parameters, and results so that you can design efficient and effective clinical trials.
+
+This guide will walk you through each section of the application, explaining the various inputs, parameters, and outputs to help you design robust and efficient clinical trials.
+
+# The User Workflow: A Quick Overview
+
+Using the application follows a logical, step-by-step process from left to right, top to bottom. The general workflow is:
+
+1.  **Setup & Model:** Upload your pilot data and select the appropriate statistical model for your study design.
+2.  **Column Mapping:** Tell the application which columns in your data correspond to key variables like time, event status, and treatment arm.
+3.  **Analysis Parameters:** Define the core parameters of your analysis, such as the truncation time (`L`), significance level (`alpha`), and whether you are calculating for **Power** or **Sample Size**.
+4.  **Run Analysis:** Click the main button to perform the calculations.
+5.  **Interpret Outputs:** Explore the results through interactive plots, summary tables, and detailed logs.
+6.  **Download Report:** Generate a publication-ready PDF report of your analysis.
+
+-----
+
+# The Sidebar: Input Panels Explained
+
+The sidebar on the left contains all the controls for setting up and running your analysis. It is organized into several panels.
+
+## 1\. Setup & Model
+
+This is the starting point of your analysis.
+
+*[Suggest placing a screenshot of the "Setup & Model" panel here]*
+
+  * **Upload Pilot Data (.csv):** Click the "Browse..." button to upload a CSV file containing your pilot or historical study data. This data is essential, as the application will use it to estimate the treatment effect and data variability needed for the calculations.
+  * **Select RMST Model:** Choose the statistical model that best fits your trial's design and assumptions. The available models are:
+      * **`Linear IPCW Model`**: The standard model for single-center studies, assuming covariates have a linear effect on the RMST.
+      * **`Additive Stratified Model`**: For multi-center trials where the treatment is expected to add a *constant* amount of survival time across all strata (e.g., clinical sites).
+      * **`Multiplicative Stratified Model`**: For multi-center trials where the treatment is expected to have a *proportional* (multiplicative) effect on survival time across strata.
+      * **`Semiparametric (GAM) Model`**: For studies where a covariate (like age or a biomarker) is expected to have a complex, non-linear relationship with the RMST.
+      * **`Dependent Censoring Model`**: For studies with competing risks, where censoring may be related to covariates (e.g., a patient receiving a transplant is no longer at risk for pre-transplant mortality).
+
+## 2\. Column Mapping
+
+After uploading data and selecting a model, this panel appears. You must map the columns from your CSV file to the variables the model needs to run.
+
+*[Suggest placing a screenshot of the "Column Mapping" panel here]*
+
+  * **Time-to-Event:** Select the column that contains the time data (e.g., `time`, `futime`).
+  * **Status (1=event):** Select the column indicating event status. By convention, this column should contain `1` for an event and `0` for a censored observation.
+  * **Treatment Arm (1=treat):** Select the column for the treatment group. By convention, this should be `1` for the treatment arm and `0` for the control/placebo arm.
+
+### Model-Specific Mapping
+
+Depending on the model you chose in the first panel, additional mapping options will appear:
+
+  * **Stratification Variable:** This appears for `Additive Stratified`, `Multiplicative Stratified`, and `Semiparametric (GAM)` models. Select the column that identifies the strata (e.g., `center_id`, `region`).
+  * **Dependent Censoring Status:** This appears for the `Dependent Censoring Model`. Select the column that indicates whether a patient was censored due to the competing risk event.
+  * **Linear Covariates:** Select one or more columns to include as adjustment covariates in the model, assuming they have a linear effect.
+  * **Non-Linear (Smooth) Covariates:** This appears for the `Semiparametric (GAM) Model`. Select one or more covariates that you wish to model using a flexible, non-linear smooth function.
+
+## 3\. Analysis Parameters
+
+This panel contains the core settings for the calculation itself.
+
+*[Suggest placing a screenshot of the "Analysis Parameters" panel here]*
+
+  * **Target Quantity:**
+      * **`Power`**: Choose this if you want to calculate the statistical power for a given set of sample sizes.
+      * **`Sample Size`**: Choose this if you want to find the required sample size to achieve a specific target power.
+  * **Calculation Method:** (Only appears for `Linear IPCW` and `Multiplicative Stratified` models)
+      * **`Analytical`**: A very fast method based on a direct mathematical formula. Ideal for quick exploration.
+      * **`Bootstrap`**: A more robust, simulation-based method. It is more computationally intensive but makes fewer assumptions about the data.
+  * **RMST L (τ):** The truncation time for the RMST calculation. This should be a clinically meaningful time point within the follow-up period of your study (e.g., `365` for 1-year RMST).
+  * **Analysis Inputs:** (This section changes based on your "Target Quantity" choice)
+      * If calculating for **Power**, you will see **Sample Sizes**. Enter a comma-separated list of sample sizes to test (e.g., `100, 150, 200`). For non-stratified models, this is per arm. For stratified models, it is per stratum.
+      * If calculating for **Sample Size**, you will see **Target Power**. Use the slider to set the desired power you want to achieve (e.g., 0.80 for 80% power).
+  * **Significance Level (α):** The Type I error rate, typically set to 0.05.
+
+## 4\. Bootstrap Options
+
+This panel only appears if you have selected a model that uses the **Bootstrap** calculation method (either by choice or because it's the only method available, like for the GAM model).
+
+*[Suggest placing a screenshot of the "Bootstrap Options" panel here]*
+
+  * **Simulations:** The number of bootstrap simulations to run (`n_sim`). Higher numbers lead to more stable results but take longer. A value of `1000` is often recommended for final analyses.
+  * **Parallel Cores:** The number of CPU cores to use for the simulation. Using more than `1` can significantly speed up the calculation on multi-core computers.
+  * **Sample Size Search Parameters:** (Only appear when calculating for "Sample Size")
+      * **Start N:** The initial sample size to begin the search from.
+      * **End N:** The maximum sample size the search will go up to before stopping.
+      * **Step:** The amount to increase the sample size by at each iteration of the search.
+
+## Action Buttons
+
+  * **Run Analysis:** The main button to start the calculation. It will be disabled until you have uploaded data and mapped the required columns.
+  * **Reset All:** Clears all inputs and resets the application to its initial state.
+
+-----
+
+# The Main Panel: Interpreting Your Results
+
+After you click "Run Analysis," the results will be displayed in the main panel, which is organized into several tabs.
+
+### Data Preview Tab
+
+This tab shows a preview of your uploaded CSV data, allowing you to quickly verify that it was read correctly.
+
+### Plot Output Tab
+
+This tab contains two key visualizations:
+
+  * **Kaplan-Meier Survival Plot:** A survival plot generated from your pilot data, showing the survival probability over time for each treatment arm. This helps you visualize the underlying data that informs the calculation.
+  * **Power vs. Sample Size Curve:** This is the main graphical output.
+      * When calculating for **Power**, it plots the estimated power for each of the sample sizes you provided.
+      * When calculating for **Sample Size**, it shows the search path, plotting the calculated power at each step of the iterative search. It also includes a horizontal dashed line for your target power and a vertical dotted line for the required sample size.
+
+### Summary Tab
+
+This tab provides the key numerical results of your analysis.
+
+  * **Analysis Results:** The main results table.
+      * If calculating for **Power**, it shows each sample size and its corresponding calculated power.
+      * If calculating for **Sample Size**, it shows the target power and the final required sample size.
+  * **Effect Size Summary:** A table summarizing the treatment effect (e.g., RMST Difference or RMST Ratio) as estimated from your pilot data. This is the effect size that the power calculation is based on.
+  * **Log-Rank Test Summary:** Provides the results of a log-rank test performed on your pilot data, offering a basic comparison of the survival curves.
+  * **Download PDF Report:** Once an analysis is complete, a button appears here allowing you to download a formatted PDF report summarizing your inputs, methods, and results.
+
+### Console Log Tab
+
+This tab displays detailed messages and outputs generated during the calculation process. It is useful for understanding the steps the application is taking and for debugging in case of an error.
+
+

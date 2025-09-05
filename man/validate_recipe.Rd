@@ -7,19 +7,25 @@
 validate_recipe(recipe)
 }
 \arguments{
-\item{recipe}{A named list (see the vignette "Data Generation Scheme").}
+\item{recipe}{A named list defining n, covariates, treatment (optional),
+event_time (model, baseline, effects, optional frailty), and censoring.}
 }
 \value{
 A validated recipe list.
 }
 \description{
-Ensures the list schema is consistent and fills reasonable defaults.
+Checks/normalizes the simulation recipe and fills reasonable defaults.
+This function does \strong{not} use or require any analysis horizon (L/tau).
 }
 \examples{
-r <- recipe_quick_aft(100, 12, "aft_lognormal",
-  baseline = list(mu=2.2, sigma=0.5),
+r <- recipe_quick_aft(
+  n = 100,
+  model = "aft_lognormal",
+  baseline = list(mu = 2.2, sigma = 0.5),
   treat_effect = -0.2,
-  covariates = list(list(name="x", type="continuous", dist="normal", params=list(mean=0, sd=1))),
-  target_censoring = 0.25, allocation = "1:1")
+  covariates = list(list(name="x", type="continuous", dist="normal",
+                         params=list(mean=0, sd=1))),
+  target_censoring = 0.25, allocation = "1:1"
+)
 r2 <- validate_recipe(r)
 }

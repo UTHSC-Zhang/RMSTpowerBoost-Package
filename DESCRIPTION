@@ -46,11 +46,13 @@ Suggests:
     bibtex,
     roxygen2,
     testthat (>= 3.0.0),
-    devtools
+    devtools,
+    here
 Config/testthat/edition: 3
 VignetteBuilder: knitr,
                  rmarkdown
-URL: https://biomedical-data-science-internship.github.io/UTHSC-zhang/
 Depends: 
     R (>= 3.5)
 LazyData: true
+URL: https://uthsc-zhang.github.io/RMSTSS-Package, https://github.com/UTHSC-Zhang/RMSTSS-Package
+BugReports: https://github.com/UTHSC-Zhang/RMSTSS-Package/issues

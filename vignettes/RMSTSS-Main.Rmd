@@ -1,6 +1,6 @@
 ---
 title: "RMSTSS: Sample Size and Power Calculations for RMST-based Clinical Trials"
-author: "Arnab Aich"
+name: RMSTSS-Main
 output:
   rmarkdown::html_vignette:
     toc: true
@@ -41,7 +41,7 @@ library(RMSTSS)
 
 # Introduction
 
-The design and analysis of clinical trials with time-to-event endpoints often rely on the hazard-based model (e.g., the Cox model) and use the hazard ratio (HR) as the primary estimand of the treatment effect. However, the HR can be challenging to interpret from both clinical and causal perspectives. Moreover, the key assumption underlying most hazards models - the proportional hazards assumption - is often tenuous or violated in real-world settings.
+The design and analysis of clinical trials with time-to-event endpoints often rely on the hazard-based model (e.g., the PH model) and use the hazard ratio (HR) as the primary estimand of the treatment effect. However, the HR can be challenging to interpret from both clinical and causal perspectives. Moreover, the key assumption underlying most hazards models - the proportional hazards assumption - is often tenuous or violated in real-world settings.
 
 As an alternative, the **Restricted Mean Survival Time (RMST)** is gaining favor for its straightforward interpretation and robust properties [@royston2013; @uno2014]. The RMST measures the average event-free time up to a pre-specified follow-up point, $L$. This provides a direct and meaningful measure of treatment benefit (e.g., "an average of 3 extra months of survival over 5 years"), which is highly valuable for clinicians and patients.
 
@@ -565,7 +565,7 @@ In some studies, particularly observational or registry studies, censoring may n
 
 ## Theory and Model
 
-The methods from [@wang2018] address this by extending the IPCW framework. Instead of a single model for the overall censoring distribution, **cause-specific Cox models** are fitted for each of the $K$ sources of censoring (e.g., one model for administrative censoring, another for the competing event).
+The methods from [@wang2018] address this by extending the IPCW framework. Instead of a single model for the overall censoring distribution, **cause-specific PH models** are fitted for each of the $K$ sources of censoring (e.g., one model for administrative censoring, another for the competing event).
 
 The final weight for a subject is then a product of the weights derived from all censoring causes, calculated as:
 $$W_i = \exp\left(\sum_{k=1}^{K} \hat{\Lambda}_{k}(Y_i)\right)$$

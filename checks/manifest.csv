@@ -1,0 +1,5 @@
+"key","n","L","event_rate","achieved_censoring","file_csv","file_rda"
+"aft_lognormal_L12_n150",150,12,0.746666666666667,0.253333333333333,"checks/aft_lognormal_L12_n150.csv","data/aft_lognormal_L12_n150.rda"
+"aft_weibull_L24_n200",200,24,0.76,0.24,"checks/aft_weibull_L24_n200.csv","data/aft_weibull_L24_n200.rda"
+"ph_weibull_L24_n300",300,24,0.746666666666667,0.253333333333333,"checks/ph_weibull_L24_n300.csv","data/ph_weibull_L24_n300.rda"
+"ph_pwexp_L18_n250",250,18,0.686915887850467,0.313084112149533,"checks/ph_pwexp_L18_n250.csv","data/ph_pwexp_L18_n250.rda"

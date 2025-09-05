@@ -17,3 +17,9 @@ A list of recipe lists.
 \description{
 Expand a recipe over a grid of values (list-only)
 }
+\examples{
+r <- recipe_quick_aft(60, "aft_lognormal", baseline=list(mu=2.7, sigma=0.6),
+       treat_effect=-0.2, covariates=list(list(name="x", type="continuous", dist="normal",
+       params=list(mean=0, sd=1))))
+recipe_grid(r, list(n=c(60,80), "event_time.effects.treatment"=c(-0.2,-0.4)))
+}

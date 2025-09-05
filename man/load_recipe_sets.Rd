@@ -4,27 +4,10 @@
 \alias{load_recipe_sets}
 \title{Load datasets from a recipe-sets manifest}
 \usage{
-load_recipe_sets(
-  manifest,
-  prefer_formats = c("rds", "rdata", "csv", "txt"),
-  name_col = NULL,
-  key_template = "sc{scenario_id}_r{rep}",
-  stringsAsFactors = FALSE,
-  skip_missing = TRUE
-)
+load_recipe_sets(manifest_path)
 }
 \arguments{
-\item{manifest}{Path to \code{manifest.rds} or a manifest \code{data.frame}.}
-
-\item{prefer_formats}{Format preference order. Default \code{c("rds","rdata","csv","txt")}.}
-
-\item{name_col}{Optional manifest column to use as list names; otherwise \code{key_template} is used.}
-
-\item{key_template}{Template for names when \code{name_col} is \code{NULL}. Tokens: \code{"{scenario_id}"}, \code{"{rep}"}.}
-
-\item{stringsAsFactors}{Passed to CSV/TXT readers.}
-
-\item{skip_missing}{If TRUE, skip rows with missing files; else error.}
+\item{manifest_path}{Path to \code{manifest.rds}.}
 }
 \value{
 A named list where each element is \code{list(data=..., meta=...)}.
@@ -32,6 +15,13 @@ A named list where each element is \code{list(data=..., meta=...)}.
 \description{
 Reads a \code{manifest.rds} created by \code{generate_recipe_sets()}, loads one
 dataset per row (preferring \code{rds} → \code{rdata} → \code{csv} → \code{txt}),
-restores attributes \code{"tau"} and \code{"achieved_censoring"}, and returns a
-named list of \code{list(data = <data.frame>, meta = <list>)}.
+restores attribute \code{"achieved_censoring"}, and returns a named list
+of \code{list(data = <data.frame>, meta = <list>)}.
+}
+\examples{
+\dontrun{
+sets <- load_recipe_sets("checks/manifest.rds")
+names(sets)
+str(sets[[1]]$meta)
+}
 }

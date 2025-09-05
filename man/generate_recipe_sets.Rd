@@ -39,5 +39,14 @@ Invisibly returns the manifest \code{data.frame} and writes \code{manifest.rds}.
 Builds a grid of scenarios from a base recipe and a named list of variations,
 simulates one or more replicates per scenario, and writes the datasets to files
 in a target folder as \code{.txt} (tab), \code{.csv}, \code{.rds}, and/or \code{.RData}.
-A manifest is written as \code{manifest.rds}. No YAML support.
+A manifest is written as \code{manifest.rds}. No YAML and \strong{no L/tau}.
+}
+\examples{
+covs <- list(list(name="x", type="continuous", dist="normal", params=list(mean=0, sd=1)))
+rec <- recipe_quick_aft(60, "aft_lognormal",
+         baseline=list(mu=2.7, sigma=0.6), treat_effect=-0.2,
+         covariates=covs, target_censoring=0.2)
+dir.create("checks", showWarnings = FALSE)
+man <- generate_recipe_sets(rec, vary=list(n=c(60,80)), out_dir="checks",
+         formats=c("csv","rds"), n_reps=1, seed_base=123)
 }

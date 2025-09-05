@@ -12,15 +12,15 @@ simulate_from_recipe(recipe, seed = NULL)
 \item{seed}{Optional integer seed to override recipe$seed.}
 }
 \value{
-A data.frame with columns time, status, arm (if treatment present), plus covariates.
-Attributes: "tau", "achieved_censoring".
+A data.frame with columns \code{time}, \code{status}, \code{arm} (if treatment present),
+plus covariates. Attribute \code{"achieved_censoring"} is attached.
 }
 \description{
 Simulate a dataset from a validated recipe (list-only)
 }
 \examples{
 covs <- list(list(name="x", type="continuous", dist="normal", params=list(mean=0, sd=1)))
-rec <- recipe_quick_aft(120, 12, "aft_lognormal",
+rec <- recipe_quick_aft(120, "aft_lognormal",
         baseline=list(mu=2.2, sigma=0.5), treat_effect=-0.2,
         covariates=covs, target_censoring=0.25)
 dat <- simulate_from_recipe(rec, seed = 11)

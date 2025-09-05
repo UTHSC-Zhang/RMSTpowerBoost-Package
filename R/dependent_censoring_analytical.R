@@ -1,5 +1,3 @@
-﻿
-
 # Power Calculation -------------------------------------------------------
 
 #' @title Analyze Power for RMST Model with Dependent Censoring (Analytic)
