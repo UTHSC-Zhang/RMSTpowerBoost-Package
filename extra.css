@@ -1,0 +1,35 @@
+/* --- Global site polish -------------------------------------------------- */
+:root {
+  --brand: #1e88e5;
+  --brand-dark: #1565c0;
+}
+
+/* Hide the first paragraph on the home page (used for old "Navigate:" block) */
+body.home #content > p:first-of-type { display: none; }
+
+a { text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+.navbar, .navbar a.navbar-brand { font-weight: 600; }
+.navbar a:hover { color: var(--brand-dark) !important; }
+
+/* Code blocks */
+pre, code { font-size: .95rem; }
+pre code { background: #f8f9fa; display: block; padding: .8rem 1rem; }
+
+/* Tables (incl. knitr::kable) */
+table { width: 100%; }
+table th { background: #f5f7fb; }
+table th, table td { padding: .6rem .75rem; border: 1px solid #e9ecef; }
+table tr:nth-child(even) { background: #fcfdff; }
+
+/* Callouts */
+.note, .tip, .warn {
+  border-left: 4px solid var(--brand);
+  background: #f7fbff;
+  padding: .75rem .9rem; margin: 1rem 0; border-radius: .25rem;
+}
+.warn { border-color: #e53935; background:#fff7f7; }
+
+/* Headings spacing */
+h1, h2, h3 { scroll-margin-top: 6rem; }
