@@ -2,9 +2,10 @@ pandoc: 3.1.11
 pkgdown: 2.1.3
 pkgdown_sha: ~
 articles:
-  DataGen: DataGen.html
-  RMSTSS: RMSTSS.html
-last_built: 2025-09-05T08:37Z
+  RMSTSS-App: RMSTSS-App.html
+  RMSTSS-DataGen: RMSTSS-DataGen.html
+  RMSTSS-Main: RMSTSS-Main.html
+last_built: 2025-09-06T12:02Z
 urls:
-  reference: https://biomedical-data-science-internship.github.io/UTHSC-package/reference
-  article: https://biomedical-data-science-internship.github.io/UTHSC-package/articles
+  reference: https://uthsc-zhang.github.io/RMSTSS-Package/reference
+  article: https://uthsc-zhang.github.io/RMSTSS-Package/articles

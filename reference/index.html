@@ -15,14 +15,11 @@
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/RMSTSS.html">Get started</a></li>
-<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/DataGen.html">Data Generation: Mechanisms and Examples</a></li>
-  </ul></li>
-      </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
- <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/RMSTSS-Main.html">R Package</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/RMSTSS-DataGen.html">Data Generation</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/RMSTSS-App.html">Application</a></li>
+      </ul><ul class="navbar-nav"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/UTHSC-Zhang/RMSTSS-Package/issues">Issues</a></li>
       </ul></div>
 
 
@@ -107,10 +104,22 @@
         <dd>Find Sample Size for a Stratified Additive RMST Model (Analytic)</dd>
       </dl><dl><dt>
 
-          <code><a href="aft_loglogistic_100.html">aft_loglogistic_100</a></code>
+          <code><a href="aft_lognormal_L12_n150.html">aft_lognormal_L12_n150</a></code>
 
         </dt>
-        <dd>Simulated trial: AFT-loglogistic (n = 100)</dd>
+        <dd>Simulated dataset: AFT log-normal, L = 12, n = 150</dd>
+      </dl><dl><dt>
+
+          <code><a href="aft_weibull_L24_n200.html">aft_weibull_L24_n200</a></code>
+
+        </dt>
+        <dd>Simulated dataset: AFT Weibull, L = 24, n = 200</dd>
+      </dl><dl><dt>
+
+          <code><a href="describe_generation.html">describe_generation()</a></code>
+
+        </dt>
+        <dd>Summarize a generated dataset and its simulation mechanism</dd>
       </dl><dl><dt>
 
           <code><a href="generate_recipe_sets.html">generate_recipe_sets()</a></code>
@@ -149,10 +158,22 @@
         <dd>Load datasets from a recipe-sets manifest</dd>
       </dl><dl><dt>
 
-          <code><a href="ph_weibull_frailty_300.html">ph_weibull_frailty_300</a></code>
+          <code><a href="ph_pwexp_L18_n250.html">ph_pwexp_L18_n250</a></code>
 
         </dt>
-        <dd>Simulated trial: PH-Weibull with gamma frailty (n = 300)</dd>
+        <dd>Simulated dataset: PH piecewise-exponential, L = 18, n = 250</dd>
+      </dl><dl><dt>
+
+          <code><a href="ph_weibull_L24_n300.html">ph_weibull_L24_n300</a></code>
+
+        </dt>
+        <dd>Simulated dataset: PH Weibull, L = 24, n = 300</dd>
+      </dl><dl><dt>
+
+          <code><a href="rebuild_manifest.html">rebuild_manifest()</a></code>
+
+        </dt>
+        <dd>Rebuild manifest for an existing output directory (no re-simulation)</dd>
       </dl><dl><dt>
 
           <code><a href="recipe_grid.html">recipe_grid()</a></code>
@@ -164,31 +185,19 @@
           <code><a href="recipe_quick_aft.html">recipe_quick_aft()</a></code>
 
         </dt>
-        <dd>Quick AFT recipe builder (list-only)</dd>
+        <dd>Quick AFT recipe builder (list-only, no L/tau)</dd>
       </dl><dl><dt>
 
           <code><a href="rmst_pwexp_strat_300.html">rmst_pwexp_strat_300</a></code>
 
         </dt>
-        <dd>Simulated trial: Piecewise Exponential with Stratified Randomization (n = 300)</dd>
+        <dd>Example dataset: stratified PH piecewise-exponential (n = 300)</dd>
       </dl><dl><dt>
 
           <code><a href="rmst_small_50.html">rmst_small_50</a></code>
 
         </dt>
-        <dd>Simulated trial: Small example (n = 50)</dd>
-      </dl><dl><dt>
-
-          <code><a href="rmst_weibull_200.html">rmst_weibull_200</a></code>
-
-        </dt>
-        <dd>Simulated trial: AFT-Weibull (n = 200)</dd>
-      </dl><dl><dt>
-
-          <code><a href="rmst_weibull_200_v2.html">rmst_weibull_200_v2</a></code>
-
-        </dt>
-        <dd>Simulated trial: AFT-Weibull (n = 200) — v2 label</dd>
+        <dd>Example dataset: small study (n = 50)</dd>
       </dl><dl><dt>
 
           <code><a href="run_app.html">run_app()</a></code>

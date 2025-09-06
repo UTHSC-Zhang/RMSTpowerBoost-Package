@@ -15,14 +15,11 @@
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/RMSTSS.html">Get started</a></li>
-<li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
-<li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles"><li><a class="dropdown-item" href="../articles/DataGen.html">Data Generation: Mechanisms and Examples</a></li>
-  </ul></li>
-      </ul><ul class="navbar-nav"><li class="nav-item"><form class="form-inline" role="search">
- <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="../search.json"></form></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/RMSTSS-Main.html">R Package</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/RMSTSS-DataGen.html">Data Generation</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/RMSTSS-App.html">Application</a></li>
+      </ul><ul class="navbar-nav"><li class="active nav-item"><a class="nav-link" href="../reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/UTHSC-Zhang/RMSTSS-Package/issues">Issues</a></li>
       </ul></div>
 
 
@@ -32,7 +29,7 @@
   <main id="main" class="col-md-9"><div class="page-header">
 
       <h1>Expand a recipe over a grid of values (list-only)</h1>
-
+      <small class="dont-index">Source: <a href="https://github.com/UTHSC-Zhang/RMSTSS-Package/blob/main/R/generate_sets.R" class="external-link"><code>R/generate_sets.R</code></a></small>
       <div class="d-none name"><code>recipe_grid.Rd</code></div>
     </div>
 
@@ -62,6 +59,310 @@
     <p>A list of recipe lists.</p>
     </div>
 
+    <div class="section level2">
+    <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">r</span> <span class="op">&lt;-</span> <span class="fu"><a href="recipe_quick_aft.html">recipe_quick_aft</a></span><span class="op">(</span><span class="fl">60</span>, <span class="st">"aft_lognormal"</span>, baseline<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mu<span class="op">=</span><span class="fl">2.7</span>, sigma<span class="op">=</span><span class="fl">0.6</span><span class="op">)</span>,</span></span>
+<span class="r-in"><span>       treat_effect<span class="op">=</span><span class="op">-</span><span class="fl">0.2</span>, covariates<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"x"</span>, type<span class="op">=</span><span class="st">"continuous"</span>, dist<span class="op">=</span><span class="st">"normal"</span>,</span></span>
+<span class="r-in"><span>       params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mean<span class="op">=</span><span class="fl">0</span>, sd<span class="op">=</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu">recipe_grid</span><span class="op">(</span><span class="va">r</span>, <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>n<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">60</span>,<span class="fl">80</span><span class="op">)</span>, <span class="st">"event_time.effects.treatment"</span><span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="op">-</span><span class="fl">0.2</span>,<span class="op">-</span><span class="fl">0.4</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$n</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 60</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$covariates</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$covariates$defs</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$covariates$defs[[1]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$covariates$defs[[1]]$name</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "x"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$covariates$defs[[1]]$type</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "continuous"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$covariates$defs[[1]]$dist</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "normal"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$covariates$defs[[1]]$params</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$covariates$defs[[1]]$params$mean</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$covariates$defs[[1]]$params$sd</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$treatment</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$treatment$assignment</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "randomization"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$treatment$allocation</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "1:1"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$event_time</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$event_time$model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "aft_lognormal"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$event_time$baseline</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$event_time$baseline$mu</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 2.7</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$event_time$baseline$sigma</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$event_time$effects</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$event_time$effects$intercept</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$event_time$effects$treatment</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -0.2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$event_time$effects$covariates</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$censoring</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$censoring$mode</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "target_overall"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$censoring$target</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$censoring$admin_time</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] Inf</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[1]]$seed</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$n</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 80</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$covariates</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$covariates$defs</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$covariates$defs[[1]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$covariates$defs[[1]]$name</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "x"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$covariates$defs[[1]]$type</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "continuous"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$covariates$defs[[1]]$dist</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "normal"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$covariates$defs[[1]]$params</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$covariates$defs[[1]]$params$mean</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$covariates$defs[[1]]$params$sd</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$treatment</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$treatment$assignment</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "randomization"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$treatment$allocation</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "1:1"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$event_time</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$event_time$model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "aft_lognormal"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$event_time$baseline</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$event_time$baseline$mu</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 2.7</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$event_time$baseline$sigma</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$event_time$effects</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$event_time$effects$intercept</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$event_time$effects$treatment</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -0.2</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$event_time$effects$covariates</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$censoring</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$censoring$mode</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "target_overall"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$censoring$target</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$censoring$admin_time</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] Inf</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[2]]$seed</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$n</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 60</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$covariates</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$covariates$defs</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$covariates$defs[[1]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$covariates$defs[[1]]$name</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "x"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$covariates$defs[[1]]$type</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "continuous"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$covariates$defs[[1]]$dist</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "normal"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$covariates$defs[[1]]$params</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$covariates$defs[[1]]$params$mean</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$covariates$defs[[1]]$params$sd</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$treatment</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$treatment$assignment</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "randomization"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$treatment$allocation</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "1:1"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$event_time</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$event_time$model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "aft_lognormal"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$event_time$baseline</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$event_time$baseline$mu</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 2.7</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$event_time$baseline$sigma</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$event_time$effects</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$event_time$effects$intercept</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$event_time$effects$treatment</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -0.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$event_time$effects$covariates</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$censoring</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$censoring$mode</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "target_overall"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$censoring$target</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$censoring$admin_time</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] Inf</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[3]]$seed</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$n</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 80</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$covariates</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$covariates$defs</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$covariates$defs[[1]]</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$covariates$defs[[1]]$name</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "x"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$covariates$defs[[1]]$type</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "continuous"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$covariates$defs[[1]]$dist</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "normal"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$covariates$defs[[1]]$params</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$covariates$defs[[1]]$params$mean</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$covariates$defs[[1]]$params$sd</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 1</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$treatment</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$treatment$assignment</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "randomization"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$treatment$allocation</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "1:1"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$event_time</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$event_time$model</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "aft_lognormal"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$event_time$baseline</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$event_time$baseline$mu</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 2.7</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$event_time$baseline$sigma</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.6</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$event_time$effects</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$event_time$effects$intercept</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$event_time$effects$treatment</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] -0.4</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$event_time$effects$covariates</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$censoring</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$censoring$mode</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] "target_overall"</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$censoring$target</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] 0.25</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$censoring$admin_time</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [1] Inf</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> [[4]]$seed</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> NULL</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+</code></pre></div>
+    </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside></div>
 

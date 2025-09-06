@@ -31,19 +31,13 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="articles/RMSTSS.html">Get started</a></li>
-<li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
-<li class="nav-item dropdown">
-  <button class="nav-link dropdown-toggle" type="button" id="dropdown-articles" data-bs-toggle="dropdown" aria-expanded="false" aria-haspopup="true">Articles</button>
-  <ul class="dropdown-menu" aria-labelledby="dropdown-articles">
-<li><a class="dropdown-item" href="articles/DataGen.html">Data Generation: Mechanisms and Examples</a></li>
-  </ul>
-</li>
+<li class="nav-item"><a class="nav-link" href="articles/RMSTSS-Main.html">R Package</a></li>
+<li class="nav-item"><a class="nav-link" href="articles/RMSTSS-DataGen.html">Data Generation</a></li>
+<li class="nav-item"><a class="nav-link" href="articles/RMSTSS-App.html">Application</a></li>
       </ul>
 <ul class="navbar-nav">
-<li class="nav-item"><form class="form-inline" role="search">
- <input class="form-control" type="search" name="search-input" id="search-input" autocomplete="off" aria-label="Search site" placeholder="Search for" data-search-index="search.json">
-</form></li>
+<li class="nav-item"><a class="nav-link" href="reference/index.html">Reference</a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/UTHSC-Zhang/RMSTSS-Package/issues">Issues</a></li>
       </ul>
 </div>
 
@@ -52,42 +46,38 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="rmstss-power-and-sample-size-calculations-for-rmst-based-trials">RMSTSS: Power and Sample Size Calculations for RMST-Based Trials<a class="anchor" aria-label="anchor" href="#rmstss-power-and-sample-size-calculations-for-rmst-based-trials"></a>
-</h1></div>
-<p><a href="https://www.google.com/search?q=https://CRAN.R-project.org/package%3DRMSTSS" class="external-link"></a> <a href="https://www.google.com/search?q=https://github.com/arnabaich/RMSTSS/actions/workflows/R-CMD-check.yaml" class="external-link"></a> <code>RMSTSS</code> provides a comprehensive suite of tools for calculating statistical power and sample size for clinical trials that use the Restricted Mean Survival Time (RMST) as the primary endpoint.</p>
+
+<p><strong>Navigate:</strong> <a href="application.html"><strong>Application Guide</strong></a> | <a href="package.html"><strong>R Package Details</strong></a> | <a href="data_generation.html"><strong>Data Generation</strong></a> | <a href="references.html"><strong>References</strong></a></p>
+<hr>
 <div class="section level2">
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
-<p>The analysis of time-to-event data is moving beyond the proportional hazards assumption, and the RMST has emerged as a clinically and causally interpretable alternative to the hazard ratio. However, tools for designing studies based on modern, direct modeling approaches for the RMST have been lacking.</p>
-<p><code>RMSTSS</code> fills this critical gap by implementing a variety of advanced statistical methods for study design, allowing researchers to accurately plan trials under complex scenarios, obviating the need to define and estimate the hazard rates or ratios. More detailed usage of this package is described in the vignette, which can be accessed using the following link <a href="https://uthsc-zhang.github.io/RMSTSS-Package/articles/RMSTSS.html" class="external-link"><strong>Click Here</strong></a>.</p>
+<p>The analysis of time-to-event data is moving beyond the proportional hazards assumption, and the Restricted Mean Survival Time (RMST) has emerged as a clinically and causally interpretable alternative to the hazard ratio. However, tools for designing studies based on modern, direct modeling approaches for the RMST have been lacking.</p>
+<p><code>RMSTSS</code> fills this critical gap by implementing a variety of advanced statistical methods for study design, allowing researchers to accurately plan trials under complex scenarios. This software suite consists of two primary components: an interactive web application for ease of use, and a comprehensive R package for flexibility and reproducibility.</p>
 <div class="section level3">
 <h3 id="key-features">Key Features<a class="anchor" aria-label="anchor" href="#key-features"></a>
 </h3>
 <ul>
 <li>
-<strong>Multiple Model Types</strong>: Handles various data structures and assumptions.
+<strong>Multiple Model Types</strong>: Handles various data structures and assumptions:
 <ul>
 <li>
-<strong>Generalized Linear Models</strong>: Standard direct regression modeling with a general link function.</li>
+<strong>Non-Stratified Models (Linear &amp; GAM)</strong>: For single-center studies with linear or non-linear covariate effects.</li>
 <li>
-<strong>Stratified Models</strong>: Efficiently handling stratification by variables with many levels (e.g., clinical centers).</li>
+<strong>Dependent Censoring Models</strong>: Appropriate for settings with competing risks.</li>
 <li>
-<strong>Additive and Multiplicative Models</strong>: Allowing for different specifications of treatment effects on survival time.</li>
-<li>
-<strong>Semiparametric GAM Models</strong>: Allowing for flexible, non-linear covariate effects.</li>
-<li>
-<strong>Dependent Censoring Models</strong>: Appropriate for settings with covariate-dependent censoring.</li>
+<strong>Stratified Models (Additive &amp; Multiplicative)</strong>: For multi-center trials with different treatment effect assumptions.</li>
 </ul>
 </li>
 <li>
 <strong>Dual Calculation Methods</strong>: For many models, the package offers both:
 <ul>
 <li>A fast <strong>analytical</strong> approach based on asymptotic variance formulas.</li>
-<li>A robust <strong>bootstrap</strong> (simulation-based) approach for enhanced accuracy and fewer distributional assumptions.</li>
+<li>A robust <strong>bootstrap</strong> (simulation-based) approach for enhanced accuracy.</li>
 </ul>
 </li>
 <li>
-<strong>Interactive Application</strong>: Includes a user-friendly Shiny application for point-and-click analysis.</li>
+<strong>Interactive Application</strong>: Includes a user-friendly Shiny application for point-and-click analysis, making these advanced methods accessible to a broad audience.</li>
 </ul>
 </div>
 </div>
@@ -97,45 +87,24 @@
 <p>You can install the development version of <code>RMSTSS</code> from GitHub with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"https://github.com/UTHSC-Zhang/RMSTSS-package.git"</span><span class="op">)</span></span></code></pre></div>
-</div>
-<div class="section level2">
-<h2 id="quick-example">Quick Example<a class="anchor" aria-label="anchor" href="#quick-example"></a>
-</h2>
-<p>Here is a basic example of calculating statistical power for a range of sample sizes using a linear RMST model. The calculation is based on pilot data from the <code>veteran</code> dataset, adjusting for the Karnofsky performance score (<code>karno</code>).</p>
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://biomedical-data-science-internship.github.io/UTHSC-zhang/" class="external-link">RMSTSS</a></span><span class="op">)</span></span>
-<span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/therneau/survival" class="external-link">survival</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Prepare the veteran dataset for analysis</span></span>
-<span><span class="va">vet</span> <span class="op">&lt;-</span> <span class="va">veteran</span></span>
-<span><span class="va">vet</span><span class="op">$</span><span class="va">arm</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/ifelse.html" class="external-link">ifelse</a></span><span class="op">(</span><span class="va">vet</span><span class="op">$</span><span class="va">trt</span> <span class="op">==</span> <span class="fl">1</span>, <span class="fl">0</span>, <span class="fl">1</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Calculate power for several sample sizes per arm</span></span>
-<span><span class="va">power_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="reference/linear.power.analytical.html">linear.power.analytical</a></span><span class="op">(</span></span>
-<span>  pilot_data <span class="op">=</span> <span class="va">vet</span>,</span>
-<span>  time_var <span class="op">=</span> <span class="st">"time"</span>,</span>
-<span>  status_var <span class="op">=</span> <span class="st">"status"</span>,</span>
-<span>  arm_var <span class="op">=</span> <span class="st">"arm"</span>,</span>
-<span>  linear_terms <span class="op">=</span> <span class="st">"karno"</span>,</span>
-<span>  sample_sizes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">150</span>, <span class="fl">200</span>, <span class="fl">250</span><span class="op">)</span>,</span>
-<span>  tau <span class="op">=</span> <span class="fl">270</span> <span class="co"># Truncation time of 9 months</span></span>
-<span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># View the results data frame</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">power_results</span><span class="op">$</span><span class="va">results_data</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># View the power curve plot</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">power_results</span><span class="op">$</span><span class="va">results_plot</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"UTHSC-Zhang/RMSTSS-package"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="interactive-shiny-application">Interactive Shiny Application<a class="anchor" aria-label="anchor" href="#interactive-shiny-application"></a>
 </h2>
-<p>For users who prefer a graphical user interface, an interactive Shiny application is available. The app provides a point-and-click interface to all the package’s functionalities, allowing you to upload data, map variables, select models, and run analyses without writing any code.</p>
-<p>You can access the application directly in your web browser by following this link: <a href="https://arnab96.shinyapps.io/uthsc-app/" class="external-link"><strong>Click Here</strong></a></p>
+<p>For users who prefer a graphical user interface, an interactive Shiny application is available. The app provides a point-and-click interface to all the package’s functionalities.</p>
+<p>You can access the application directly in your web browser by following this link: <a href="https://arnab96.shinyapps.io/uthsc-app/" class="external-link"><strong>Launch Web App</strong></a></p>
 </div>
 </div>
-  </main><aside class="col-md-3"><div class="license">
+  </main><aside class="col-md-3"><div class="links">
+<h2 data-toc-skip>Links</h2>
+<ul class="list-unstyled">
+<li><a href="https://github.com/UTHSC-Zhang/RMSTSS-Package/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/UTHSC-Zhang/RMSTSS-Package/issues" class="external-link">Report a bug</a></li>
+</ul>
+</div>
+
+<div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
 <li><a href="LICENSE.html">Full license</a></li>
