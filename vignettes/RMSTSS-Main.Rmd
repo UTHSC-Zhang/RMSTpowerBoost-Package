@@ -15,16 +15,17 @@ biblio-style: apalike
 link-citations: yes
 vignette: >
   %\VignetteEncoding{UTF-8}
-  %\VignetteIndexEntry{RMSTSS: Sample Size and Power Calculations for RMST-based Clinical Trials}
   %\VignetteEngine{knitr::rmarkdown}
-editor_options: 
-  chunk_output_type: console
+cache: true
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
    message = FALSE,
       # eval = FALSE,
+   cache = TRUE,
+  cache.lazy = FALSE,   # materialize objects now (safer)
+  autodep = TRUE,  
    warning = FALSE,
    comment = NA,
    fig.align = 'center',

@@ -11,7 +11,6 @@ output:
     highlight: tango
     self_contained: true
 vignette: >
-  %\VignetteIndexEntry{Data Generation: Mechanisms and Examples}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -20,6 +19,9 @@ vignette: >
 is_pkgdown <- identical(Sys.getenv("IN_PKGDOWN"), "true")
 knitr::opts_chunk$set(
   collapse = TRUE,
+   cache = TRUE,
+  cache.lazy = FALSE,   # materialize objects now (safer)
+  autodep = TRUE,  
   comment = NA,
   fig.width = 6, fig.height = 4,
   warning = FALSE, message = FALSE,

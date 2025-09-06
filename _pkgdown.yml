@@ -1,13 +1,12 @@
+
 url: https://uthsc-zhang.github.io/RMSTSS-Package/
 
 template:
   bootstrap: 5
+  params:
+    source_link: false
   assets:
-    - pkgdown/extra.css
-
-home:
-  strip_header: false
-
+    - vignettes/css/extra.css
 navbar:
   left:
     - text: "R Package"
