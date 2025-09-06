@@ -1,0 +1,12 @@
+/* Application / demo page */
+.hero {
+  background: linear-gradient(135deg, var(--brand), var(--brand-dark));
+  color: white; padding: 1.25rem 1.5rem; border-radius: .5rem; margin-bottom: 1rem;
+}
+.hero h1, .hero h2 { color: white !important; margin: 0; }
+.hero p { margin: .5rem 0 0; opacity: .9; }
+
+.callout {
+  background: #eef7ff; border-left: 4px solid var(--brand);
+  padding: .8rem 1rem; border-radius: .25rem;
+}

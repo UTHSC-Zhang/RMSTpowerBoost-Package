@@ -1,35 +1,30 @@
-url: https://uthsc-zhang.github.io/RMSTSS-Package
+url: https://uthsc-zhang.github.io/RMSTSS-Package/
 
 template:
   bootstrap: 5
+  assets:
+    - pkgdown/extra.css
 
 home:
   strip_header: true
 
 navbar:
-  structure:
-    left:  [home, package, datagen, app]
-    right: [reference, news, issues, discusssions]
-  components:
-    package:
-      text: "R Package"
+  left:
+    - text: "R Package"
       href: articles/RMSTSS-Main.html
-    datagen:
-      text: "Data Generation"
+    - text: "Data Generation"
       href: articles/RMSTSS-DataGen.html
-    app:
-      text: "Application"
+    - text: "Application"
       href: articles/RMSTSS-App.html
-    issues:
-      text: "Issues"
+  right:
+    - text: "Issues"
       href: https://github.com/UTHSC-Zhang/RMSTSS-Package/issues
-discussions:
-      text: "Discussions"
+    - text: "Discussions"
       href: https://github.com/UTHSC-Zhang/RMSTSS-Package/discussions
 
 articles:
   - title: Guides
     contents:
-      - RMSTSS-App
       - RMSTSS-Main
       - RMSTSS-DataGen
+      - RMSTSS-App
