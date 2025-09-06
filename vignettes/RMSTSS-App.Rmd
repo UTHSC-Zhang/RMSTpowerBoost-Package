@@ -1,6 +1,7 @@
 ---
 title: "User Guide for the RMSTSS Shiny Application"
 name: RMSTSS-App
+css: css/app.css
 output:
   rmarkdown::html_vignette:
     toc: true

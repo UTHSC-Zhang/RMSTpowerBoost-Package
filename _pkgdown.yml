@@ -6,7 +6,7 @@ template:
     - pkgdown/extra.css
 
 home:
-  strip_header: true
+  strip_header: false
 
 navbar:
   left:

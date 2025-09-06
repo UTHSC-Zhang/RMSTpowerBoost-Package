@@ -1,5 +1,6 @@
 ---
 title: "Data Generation: Mechanisms and Examples"
+css: css/datagen.css
 name: RMSTSS-DataGen
 output:
   rmarkdown::html_vignette:

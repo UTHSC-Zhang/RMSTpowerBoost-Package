@@ -1,6 +1,7 @@
 ---
 title: "RMSTSS: Sample Size and Power Calculations for RMST-based Clinical Trials"
 name: RMSTSS-Main
+css: css/Main.css
 output:
   rmarkdown::html_vignette:
     toc: true
