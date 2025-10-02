@@ -17,7 +17,7 @@ license_content <- paste(readLines("LICENSE"), collapse = "\n")
 ui <- fluidPage(
   theme = bs_theme(version = 5, bootswatch = "flatly"),
   useShinyjs(),
-  titlePanel("RMSTSS: Power and Sample Size Calculator"),
+  titlePanel("RMSTpowerBoost: Power and Sample Size Calculator"),
   
   sidebarLayout(
     sidebarPanel(
@@ -53,12 +53,12 @@ ui <- fluidPage(
                        uiOutput("method_selection_ui")
                 ),
                 column(4,
-                       numericInput("L", "RMST L (τ)", value = 365, min = 1)
+                       numericInput("L", "RMST L (Ï„)", value = 365, min = 1)
                 )
               ),
               
               uiOutput("analysis_inputs_ui"),
-              sliderInput("alpha", "Significance Level (α)", min = 0.01, max = 0.1, value = 0.05, step = 0.01)
+              sliderInput("alpha", "Significance Level (Î±)", min = 0.01, max = 0.1, value = 0.05, step = 0.01)
           )))
       ,
       uiOutput("bootstrap_options_ui"),
@@ -73,7 +73,7 @@ ui <- fluidPage(
       tabsetPanel(
         id = "main_tabs",
         tabPanel("Instructions",
-                 h3("Welcome to RMSTSS!"),
+                 h3("Welcome to RMSTpowerBoost!"),
                  p("This application allows you to perform power and sample size calculations for clinical trials using Restricted Mean Survival Time (RMST)."),
                  tags$ol(
                    tags$li("Upload a CSV file containing your pilot study data."),
@@ -418,7 +418,7 @@ server <- function(input, output, session) {
   
   output$download_report <- downloadHandler(
     filename = function() {
-      paste0("RMSTSS_report_", Sys.Date(), ".pdf")
+      paste0("RMSTpowerBoost_report_", Sys.Date(), ".pdf")
     },
     content = function(file) {
       req(run_output()$results)

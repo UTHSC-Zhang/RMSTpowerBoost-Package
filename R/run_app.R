@@ -25,17 +25,17 @@
 #' @importFrom survminer ggsurvplot
 #' @examples
 #' \dontrun{
-#'   RMSTSS::run_app()
+#'   RMSTpowerBoost::run_app()
 #' }
 run_app <- function() {
-   library(RMSTSS)
+   library(RMSTpowerBoost)
    # Get the path to the Shiny app directory within the installed package
-   app_dir <- system.file("shiny_app", package = "RMSTSS")
+   app_dir <- system.file("shiny_app", package = "RMSTpowerBoost")
    # Check if the directory exists
    if (app_dir == "") {
       stop(
          "Could not find the app directory. ",
-         "Try re-installing the `RMSTSS` package.",
+         "Try re-installing the `RMSTpowerBoost` package.",
          call. = FALSE
       )
    }

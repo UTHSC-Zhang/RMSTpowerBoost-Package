@@ -1,6 +1,6 @@
 ---
-title: "RMSTSS: Sample Size and Power Calculations for RMST-based Clinical Trials"
-name: RMSTSS-Main
+title: "RMSTpowerBoost: Sample Size and Power Calculations for RMST-based Clinical Trials"
+name: RMSTpowerBoost-Main
 css: css/Main.css
 output:
   rmarkdown::html_vignette:
@@ -38,7 +38,7 @@ knitr::opts_chunk$set(
 packages = c("survival", "dplyr", "tidyr", "knitr", "ggplot2", "mgcv", "kableExtra", "bibtex")
 lapply(packages, require, character.only = TRUE)
 
-library(RMSTSS)
+library(RMSTpowerBoost)
 ```
 
 # Introduction
@@ -51,7 +51,7 @@ Modern statistical methods now focus on modeling the RMST directly as a function
 
 However, most software tools for these advanced methods focus on analyzing existing data, not designing new studies. This has left trial statisticians to write custom code for the crucial task of calculating sample size and power.
 
-The `RMSTSS` package is designed to fill this gap. It provides a comprehensive and user-friendly suite of tools for **power and sample size calculations** based on the latest direct RMST methodologies. The package implements several key approaches from the statistical literature:
+The `RMSTpowerBoost` package is designed to fill this gap. It provides a comprehensive and user-friendly suite of tools for **power and sample size calculations** based on the latest direct RMST methodologies. The package implements several key approaches from the statistical literature:
 
 * **Generalized Linear Models**: The foundational regression model for RMST with IPCW-based estimation [@tian2014].
 * **Stratified Models**: Efficient methods for studies with a large number of strata (e.g., clinical centers), including both **additive** [@zhang2024] and **multiplicative** [@wang2019] models.
@@ -63,9 +63,9 @@ This vignette will guide you through the theory and application of each of these
 
 ------------------------------------------------------------------------
 
-# Core Concepts of `RMSTSS` Package {.tabset}
+# Core Concepts of `RMSTpowerBoost` Package {.tabset}
 
-The `RMSTSS` package uses two primary approaches for its calculations: a fast **Analytic Method** and a robust **Bootstrap Method**. All functions for finding sample size then use a common search algorithm. Understanding these three components is key to choosing the right function for your needs.
+The `RMSTpowerBoost` package uses two primary approaches for its calculations: a fast **Analytic Method** and a robust **Bootstrap Method**. All functions for finding sample size then use a common search algorithm. Understanding these three components is key to choosing the right function for your needs.
 
 ## The Analytic Method (`.analytical` functions)
 
@@ -364,7 +364,7 @@ power_results_colon$results_plot +
 
 # Multiplicative Stratified Models {.tabset}
 
-As an alternative to the additive model, the multiplicative model may be preferred if the treatment is expected to have a relative, or proportional, effect on the RMST—for example, increasing or decreasing survival time by a certain percentage.
+As an alternative to the additive model, the multiplicative model may be preferred if the treatment is expected to have a relative, or proportional, effect on the RMSTâ€”for example, increasing or decreasing survival time by a certain percentage.
 
 ## Theory and Model
 
@@ -651,7 +651,7 @@ ss_dc_mgus$results_plot +
 
 # Interactive Shiny Application
 
-For users who prefer a graphical interface, `RMSTSS` provides an interactive Shiny web application that offers a point-and-click interface to all the models and methods described in this vignette.
+For users who prefer a graphical interface, `RMSTpowerBoost` provides an interactive Shiny web application that offers a point-and-click interface to all the models and methods described in this vignette.
 
 ### Accessing the Application
 
@@ -661,10 +661,10 @@ There are two ways to access the application:
 
     -   [Launch Web Application](https://arnab96.shinyapps.io/uthsc-app/)
 
-2.  **Run Locally from the R Package**: If you have installed the `RMSTSS-Package`, you can run the application on your own machine with the following command:
+2.  **Run Locally from the R Package**: If you have installed the `RMSTpowerBoost-Package`, you can run the application on your own machine with the following command:
 
 ```{r, eval=FALSE}
-RMSTSS::run_app()
+RMSTpowerBoost::run_app()
 ```
 
 ### App Features
@@ -677,7 +677,7 @@ RMSTSS::run_app()
 
 # Conclusion
 
-The `RMSTSS` package provides a powerful and flexible suite of tools for designing and analyzing clinical trials using the Restricted Mean Survival Time.
+The `RMSTpowerBoost` package provides a powerful and flexible suite of tools for designing and analyzing clinical trials using the Restricted Mean Survival Time.
 
 ## Advantages and Disadvantages
 

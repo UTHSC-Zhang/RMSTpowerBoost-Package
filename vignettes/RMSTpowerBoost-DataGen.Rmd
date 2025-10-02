@@ -1,7 +1,7 @@
 ---
 title: "Data Generation: Mechanisms and Examples"
 css: css/datagen.css
-name: RMSTSS-DataGen
+name: RMSTpowerBoost-DataGen
 output:
   rmarkdown::html_vignette:
     toc: true
@@ -27,14 +27,14 @@ knitr::opts_chunk$set(
   warning = FALSE, message = FALSE,
   eval = is_pkgdown || identical(Sys.getenv("NOT_CRAN"), "true")
 )
-library(RMSTSS)
+library(RMSTpowerBoost)
 set.seed(1)
 ```
 
 
 # What this covers
 
-We show how to construct a **recipe** (covariates → treatment → event time → censoring), and then simulate datasets with `simulate_from_recipe()`. We also show batch generation (`generate_recipe_sets()`) and how to read compact metadata back (`load_recipe_sets()`), without any platform-specific tricks.
+We show how to construct a **recipe** (covariates â†’ treatment â†’ event time â†’ censoring), and then simulate datasets with `simulate_from_recipe()`. We also show batch generation (`generate_recipe_sets()`) and how to read compact metadata back (`load_recipe_sets()`), without any platform-specific tricks.
 
 The simulator takes a plain **list** as the recipe. No YAML is required.
 
@@ -131,7 +131,7 @@ Let \(Z\) be treatment (0/1), \(X\) be covariates, and \(\eta\) be the **linear 
 | AFT Lognormal | `"aft_lognormal"` | `mu`, `sigma` | \(\log T = \mu + \eta + \sigma \varepsilon\), \(\varepsilon \sim \mathcal{N}(0,1)\). |
 | AFT Weibull | `"aft_weibull"` | `shape`, `scale` | \(S_0(t) = \exp(-(t/\lambda)^k)\); AFT shift via \(\eta\). |
 | AFT Log-Logistic | `"aft_loglogistic"` | `shape`, `scale` | \(T = \lambda \exp(\eta) (U/(1-U))^{1/k}\). |
-| PH Exponential | `"ph_pwexp"` | `rates = c(λ)`, `cuts = numeric(0)` | Piecewise-Exp with a **single** segment is exponential. |
+| PH Exponential | `"ph_pwexp"` | `rates = c(Î»)`, `cuts = numeric(0)` | Piecewise-Exp with a **single** segment is exponential. |
 | PH Weibull | `"ph_weibull"` | `shape`, `scale` | Proportional hazards with Weibull baseline. |
 | PH Gompertz | `"ph_gompertz"` | `rate`, `gamma` | Hazard \(h(t) = a \exp(bt)\). |
 | PH Piecewise Exponential | `"ph_pwexp"` | `rates = c(r1,r2,...)`, `cuts = c(c1,c2,...)` | Rate in segment \(s\) is \(r_s \exp(\eta)\). |
@@ -184,7 +184,7 @@ cz_explicit <- list(
 
 We now build full recipes and call `simulate_from_recipe()`. We report realized censoring via `attr(dat, "achieved_censoring")`.
 
-## Example 1 — AFT Lognormal
+## Example 1 â€” AFT Lognormal
 
 ```{r ex1, eval=TRUE}
 covs1 <- list(
@@ -213,7 +213,7 @@ head(dat1)
 attr(dat1, "achieved_censoring")
 ```
 
-## Example 2 — AFT Weibull
+## Example 2 â€” AFT Weibull
 
 ```{r ex2, eval=TRUE}
 rec2 <- rec1
@@ -226,7 +226,7 @@ summary(dat2$time)
 attr(dat2, "achieved_censoring")
 ```
 
-## Example 3 — PH piecewise exponential (single segment)
+## Example 3 â€” PH piecewise exponential (single segment)
 
 ```{r ex3, eval=TRUE}
 rec3 <- list(
@@ -253,11 +253,11 @@ summ3 <- data.frame(
              round(mean(dat3$time,   na.rm = TRUE), 2),
              round(stats::median(dat3$time, na.rm = TRUE), 2))
 )
-knitr::kable(summ3, caption = "Example 3 — Summary")
+knitr::kable(summ3, caption = "Example 3 â€” Summary")
 
 ```
 
-## Example 4 — PH piecewise exponential (multi-segment)
+## Example 4 â€” PH piecewise exponential (multi-segment)
 
 ```{r ex4, eval=TRUE}
 rec4 <- list(
@@ -288,7 +288,7 @@ summ4 <- data.frame(
              round(mean(dat4$time,   na.rm = TRUE), 2),
              round(stats::median(dat4$time, na.rm = TRUE), 2))
 )
-knitr::kable(summ4, caption = "Example 4 — Summary")
+knitr::kable(summ4, caption = "Example 4 â€” Summary")
 ```
 
 ---
@@ -339,4 +339,4 @@ str(sets[[1]]$meta)
 - Set `seed` in the recipe or pass `seed=` to `simulate_from_recipe()`.
 - For grids, fix a deterministic scheme like `seed_base + scenario_id*1000 + rep` (this is what `generate_recipe_sets()` does).
 
-That’s it—you now have the moving parts to define covariates, choose an event-time engine, specify censoring, simulate data, and (optionally) batch-create scenarios with compact metadata for downstream analysis.
+Thatâ€™s itâ€”you now have the moving parts to define covariates, choose an event-time engine, specify censoring, simulate data, and (optionally) batch-create scenarios with compact metadata for downstream analysis.

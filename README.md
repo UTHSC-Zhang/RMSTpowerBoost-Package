@@ -1,5 +1,5 @@
 
-# RMSTSS: Power and Sample Size Calculations for RMST-Based Trials
+# RMSTpowerBoost: Power and Sample Size Calculations for RMST-Based Trials
 
 **Navigate:** [**Application Guide**](application.html) | [**R Package Details**](package.html) | [**Data Generation**](data_generation.html) | [**References**](references.html)
 
@@ -9,7 +9,7 @@
 
 The analysis of time-to-event data is moving beyond the proportional hazards assumption, and the Restricted Mean Survival Time (RMST) has emerged as a clinically and causally interpretable alternative to the hazard ratio. However, tools for designing studies based on modern, direct modeling approaches for the RMST have been lacking.
 
-`RMSTSS` fills this critical gap by implementing a variety of advanced statistical methods for study design, allowing researchers to accurately plan trials under complex scenarios. This software suite consists of two primary components: an interactive web application for ease of use, and a comprehensive R package for flexibility and reproducibility.
+`RMSTpowerBoost` fills this critical gap by implementing a variety of advanced statistical methods for study design, allowing researchers to accurately plan trials under complex scenarios. This software suite consists of two primary components: an interactive web application for ease of use, and a comprehensive R package for flexibility and reproducibility.
 
 ### Key Features
 
@@ -24,11 +24,11 @@ The analysis of time-to-event data is moving beyond the proportional hazards ass
 
 ## Installation
 
-You can install the development version of `RMSTSS` from GitHub with:
+You can install the development version of `RMSTpowerBoost` from GitHub with:
 
 ```r
 # install.packages("remotes")
-remotes::install_github("UTHSC-Zhang/RMSTSS-package")
+remotes::install_github("UTHSC-Zhang/RMSTpowerBoost-package")
 ```
 
 ## Interactive Shiny Application

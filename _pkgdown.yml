@@ -1,5 +1,5 @@
 
-url: https://uthsc-zhang.github.io/RMSTSS-Package/
+url: https://uthsc-zhang.github.io/RMSTpowerBoost-Package/
 
 template:
   bootstrap: 5
@@ -10,20 +10,20 @@ template:
 navbar:
   left:
     - text: "R Package"
-      href: articles/RMSTSS-Main.html
+      href: articles/RMSTpowerBoost-Main.html
     - text: "Data Generation"
-      href: articles/RMSTSS-DataGen.html
+      href: articles/RMSTpowerBoost-DataGen.html
     - text: "Application"
-      href: articles/RMSTSS-App.html
+      href: articles/RMSTpowerBoost-App.html
   right:
     - text: "Issues"
-      href: https://github.com/UTHSC-Zhang/RMSTSS-Package/issues
+      href: https://github.com/UTHSC-Zhang/RMSTpowerBoost-Package/issues
     - text: "Discussions"
-      href: https://github.com/UTHSC-Zhang/RMSTSS-Package/discussions
+      href: https://github.com/UTHSC-Zhang/RMSTpowerBoost-Package/discussions
 
 articles:
   - title: Guides
     contents:
-      - RMSTSS-Main
-      - RMSTSS-DataGen
-      - RMSTSS-App
+      - RMSTpowerBoost-Main
+      - RMSTpowerBoost-DataGen
+      - RMSTpowerBoost-App

@@ -1,9 +1,9 @@
 
 
-if (!requireNamespace("RMSTSS", quietly = TRUE)) {
+if (!requireNamespace("RMSTpowerBoost", quietly = TRUE)) {
    stop("Please install/load the package that provides validate_recipe()/simulate_from_recipe().")
 }
-library(RMSTSS)
+library(RMSTpowerBoost)
 
 `%||%` <- function(x, y) if (is.null(x)) y else x
 
@@ -19,10 +19,10 @@ covs_base <- list(
         params = list(p = 0.45))
 )
 
-# --- Scenario recipes (key → list(seed, recipe)) --------------------------------
+# --- Scenario recipes (key â†’ list(seed, recipe)) --------------------------------
 scenarios <- list(
 
-   # AFT — lognormal
+   # AFT â€” lognormal
    aft_lognormal_L12_n150 = list(
       seed = 1001L,
       recipe = list(
@@ -39,7 +39,7 @@ scenarios <- list(
       )
    ),
 
-   # AFT — Weibull
+   # AFT â€” Weibull
    aft_weibull_L24_n200 = list(
       seed = 1002L,
       recipe = list(
@@ -56,7 +56,7 @@ scenarios <- list(
       )
    ),
 
-   # PH — Weibull
+   # PH â€” Weibull
    ph_weibull_L24_n300 = list(
       seed = 1003L,
       recipe = list(
@@ -73,7 +73,7 @@ scenarios <- list(
       )
    ),
 
-   # PH — piecewise exponential
+   # PH â€” piecewise exponential
    ph_pwexp_L18_n250 = list(
       seed = 1004L,
       recipe = list(
@@ -127,11 +127,11 @@ for (key in names(scenarios)) {
    rec <- validate_recipe(sc$recipe)
    dat <- simulate_from_recipe(rec, seed = sc$seed)
 
-   # (1) CSV → checks/
+   # (1) CSV â†’ checks/
    csv_path <- file.path("checks", paste0(key, ".csv"))
    utils::write.csv(dat, csv_path, row.names = FALSE)
 
-   # (2) RDA → data/  (use base save; ensure object exists by that name)
+   # (2) RDA â†’ data/  (use base save; ensure object exists by that name)
    rda_path <- file.path("data", paste0(key, ".rda"))
    assign(key, dat, envir = environment())
    save(list = key, file = rda_path, compress = "xz", envir = environment())
@@ -164,8 +164,8 @@ utils::write.csv(
 
 cat(
    "Done.\n",
-   "CSV files → ", normalizePath("checks"), "\n",
-   "RDA files → ", normalizePath("data"), "\n",
-   "Manifest   → ", normalizePath(file.path("checks", "manifest.rds")), "\n",
+   "CSV files â†’ ", normalizePath("checks"), "\n",
+   "RDA files â†’ ", normalizePath("data"), "\n",
+   "Manifest   â†’ ", normalizePath(file.path("checks", "manifest.rds")), "\n",
    sep = ""
 )

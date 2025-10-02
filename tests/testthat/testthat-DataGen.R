@@ -89,7 +89,7 @@ test_that("generate_recipe_sets + load_recipe_sets round trip (no L)", {
 
 test_that("describe_generation returns readable components when exported", {
    # Only run if describe_generation is exported; otherwise skip gracefully
-   if (!("describe_generation" %in% getNamespaceExports("RMSTSS"))) {
+   if (!("describe_generation" %in% getNamespaceExports("RMSTpowerBoost"))) {
       testthat::skip("describe_generation() not exported in this build")
    }
    covs <- list(list(name="x", type="continuous", dist="normal", params=list(mean=0, sd=1)))

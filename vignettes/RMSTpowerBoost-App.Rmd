@@ -1,6 +1,6 @@
 ---
-title: "User Guide for the RMSTSS Shiny Application"
-name: RMSTSS-App
+title: "User Guide for the RMSTpowerBoost Shiny Application"
+name: RMSTpowerBoost-App
 css: css/app.css
 output:
   rmarkdown::html_vignette:
@@ -25,7 +25,7 @@ knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
 
 # Introduction
 
-Introduction to the RMSTSS Power and Sample Size User Guide. The RMSTSS Power and Sample Size Calculator is an interactive Shiny program that provides a simple, point-and-click interface for the robust statistical models within the RMSTSS R package. The program allows researchers, clinicians, and statisticians to perform advanced power and sample size calculations for clinical trials using Restricted Mean Survival Time (RMST) without having to know any programming.
+Introduction to the RMSTpowerBoost Power and Sample Size User Guide. The RMSTpowerBoost Power and Sample Size Calculator is an interactive Shiny program that provides a simple, point-and-click interface for the robust statistical models within the RMSTpowerBoost R package. The program allows researchers, clinicians, and statisticians to perform advanced power and sample size calculations for clinical trials using Restricted Mean Survival Time (RMST) without having to know any programming.
 
 This handbook will guide you through each of the elements of the application, outlining the different inputs, parameters, and results so that you can design efficient and effective clinical trials.
 
@@ -93,11 +93,11 @@ This panel contains the core settings for the calculation itself.
   * **Calculation Method:** (Only appears for `Linear IPCW` and `Multiplicative Stratified` models)
       * **`Analytical`**: A very fast method based on a direct mathematical formula. Ideal for quick exploration.
       * **`Bootstrap`**: A more robust, simulation-based method. It is more computationally intensive but makes fewer assumptions about the data.
-  * **RMST L (τ):** The truncation time for the RMST calculation. This should be a clinically meaningful time point within the follow-up period of your study (e.g., `365` for 1-year RMST).
+  * **RMST L (Ï„):** The truncation time for the RMST calculation. This should be a clinically meaningful time point within the follow-up period of your study (e.g., `365` for 1-year RMST).
   * **Analysis Inputs:** (This section changes based on your "Target Quantity" choice)
       * If calculating for **Power**, you will see **Sample Sizes**. Enter a comma-separated list of sample sizes to test (e.g., `100, 150, 200`). For non-stratified models, this is per arm. For stratified models, it is per stratum.
       * If calculating for **Sample Size**, you will see **Target Power**. Use the slider to set the desired power you want to achieve (e.g., 0.80 for 80% power).
-  * **Significance Level (α):** The Type I error rate, typically set to 0.05.
+  * **Significance Level (Î±):** The Type I error rate, typically set to 0.05.
 
 ## 4\. Bootstrap Options
 
