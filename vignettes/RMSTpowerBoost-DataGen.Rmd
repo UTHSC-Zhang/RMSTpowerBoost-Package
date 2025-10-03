@@ -13,6 +13,8 @@ output:
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteIndexEntry{Data Generation: Mechanisms and Examples}
+  %\VignetteDepends{RMSTpowerBoost}
 ---
 
 ```{r setup, include=FALSE}

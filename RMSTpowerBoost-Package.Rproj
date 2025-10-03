@@ -21,6 +21,5 @@ PackageUseDevtools: Yes
 PackageInstallArgs: --no-multiarch --with-keep.source
 
 QuitChildProcessesOnExit: Yes
-DisableExecuteRprofile: Yes
 
 SpellingDictionary: en_US

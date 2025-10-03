@@ -31,3 +31,13 @@ docs/
 
 # vignettes/RMSTSS.Rmd
 
+^vignettes/.*_cache/
+^.*_cache/
+^.*[.]Rproj$
+^\.Rproj\.user$
+^\.github$
+^\.vscode$
+^renv$
+^renv\.lock$
+^checks$
+^tools$

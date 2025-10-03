@@ -16,6 +16,8 @@ link-citations: yes
 vignette: >
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{RMSTpowerBoost: An R-Package for Sample Size and Power Calculations for RMST-based Clinical Trials}  
+  %\VignetteDepends{RMSTpowerBoost, survival, dplyr, tidyr, knitr, ggplot2, mgcv, kableExtra, bibtex}
 cache: true
 ---
 
@@ -24,7 +26,7 @@ knitr::opts_chunk$set(
    message = FALSE,
       # eval = FALSE,
    cache = TRUE,
-  cache.lazy = FALSE,   # materialize objects now (safer)
+  cache.lazy = FALSE,   
   autodep = TRUE,  
    warning = FALSE,
    comment = NA,

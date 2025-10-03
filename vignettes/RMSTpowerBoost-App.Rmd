@@ -13,6 +13,9 @@ output:
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteIndexEntry{User Guide for the RMSTpowerBoost Shiny Application}
+  %\VignetteName{RMSTpowerBoost-App}
+  %\VignetteDepends{RMSTpowerBoost}
 cache: true
 ---
 
