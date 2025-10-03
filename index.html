@@ -5,7 +5,7 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Sample Size Calculation Using RMST for Survival Data • RMSTSS</title>
+<title>Sample Size Calculation Using RMST for Survival Data • RMSTpowerBoost</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
@@ -20,7 +20,7 @@
 
     <nav class="navbar navbar-expand-lg fixed-top bg-light" data-bs-theme="light" aria-label="Site navigation"><div class="container">
 
-    <a class="navbar-brand me-2" href="index.html">RMSTSS</a>
+    <a class="navbar-brand me-2" href="index.html">RMSTpowerBoost</a>
 
     <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.0</small>
 
@@ -31,13 +31,13 @@
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
       <ul class="navbar-nav me-auto">
-<li class="nav-item"><a class="nav-link" href="articles/RMSTSS-Main.html">R Package</a></li>
-<li class="nav-item"><a class="nav-link" href="articles/RMSTSS-DataGen.html">Data Generation</a></li>
-<li class="nav-item"><a class="nav-link" href="articles/RMSTSS-App.html">Application</a></li>
+<li class="nav-item"><a class="nav-link" href="articles/RMSTpowerBoost-Main.html">R Package</a></li>
+<li class="nav-item"><a class="nav-link" href="articles/RMSTpowerBoost-DataGen.html">Data Generation</a></li>
+<li class="nav-item"><a class="nav-link" href="articles/RMSTpowerBoost-App.html">Application</a></li>
       </ul>
 <ul class="navbar-nav">
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/UTHSC-Zhang/RMSTSS-Package/issues">Issues</a></li>
-<li class="nav-item"><a class="external-link nav-link" href="https://github.com/UTHSC-Zhang/RMSTSS-Package/discussions">Discussions</a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/UTHSC-Zhang/RMSTpowerBoost-Package/issues">Issues</a></li>
+<li class="nav-item"><a class="external-link nav-link" href="https://github.com/UTHSC-Zhang/RMSTpowerBoost-Package/discussions">Discussions</a></li>
       </ul>
 </div>
 
@@ -46,7 +46,7 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="rmstss-power-and-sample-size-calculations-for-rmst-based-trials">RMSTSS: Power and Sample Size Calculations for RMST-Based Trials<a class="anchor" aria-label="anchor" href="#rmstss-power-and-sample-size-calculations-for-rmst-based-trials"></a>
+<div class="page-header"><h1 id="rmstpowerboost-power-and-sample-size-calculations-for-rmst-based-trials">RMSTpowerBoost: Power and Sample Size Calculations for RMST-Based Trials<a class="anchor" aria-label="anchor" href="#rmstpowerboost-power-and-sample-size-calculations-for-rmst-based-trials"></a>
 </h1></div>
 <p><strong>Navigate:</strong> <a href="application.html"><strong>Application Guide</strong></a> | <a href="package.html"><strong>R Package Details</strong></a> | <a href="data_generation.html"><strong>Data Generation</strong></a> | <a href="references.html"><strong>References</strong></a></p>
 <hr>
@@ -54,7 +54,7 @@
 <h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
 <p>The analysis of time-to-event data is moving beyond the proportional hazards assumption, and the Restricted Mean Survival Time (RMST) has emerged as a clinically and causally interpretable alternative to the hazard ratio. However, tools for designing studies based on modern, direct modeling approaches for the RMST have been lacking.</p>
-<p><code>RMSTSS</code> fills this critical gap by implementing a variety of advanced statistical methods for study design, allowing researchers to accurately plan trials under complex scenarios. This software suite consists of two primary components: an interactive web application for ease of use, and a comprehensive R package for flexibility and reproducibility.</p>
+<p><code>RMSTpowerBoost</code> fills this critical gap by implementing a variety of advanced statistical methods for study design, allowing researchers to accurately plan trials under complex scenarios. This software suite consists of two primary components: an interactive web application for ease of use, and a comprehensive R package for flexibility and reproducibility.</p>
 <div class="section level3">
 <h3 id="key-features">Key Features<a class="anchor" aria-label="anchor" href="#key-features"></a>
 </h3>
@@ -85,10 +85,10 @@
 <div class="section level2">
 <h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>You can install the development version of <code>RMSTSS</code> from GitHub with:</p>
+<p>You can install the development version of <code>RMSTpowerBoost</code> from GitHub with:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># install.packages("remotes")</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"UTHSC-Zhang/RMSTSS-package"</span><span class="op">)</span></span></code></pre></div>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu">install_github</span><span class="op">(</span><span class="st">"UTHSC-Zhang/RMSTpowerBoost-package"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="interactive-shiny-application">Interactive Shiny Application<a class="anchor" aria-label="anchor" href="#interactive-shiny-application"></a>
@@ -100,8 +100,8 @@
   </main><aside class="col-md-3"><div class="links">
 <h2 data-toc-skip>Links</h2>
 <ul class="list-unstyled">
-<li><a href="https://github.com/UTHSC-Zhang/RMSTSS-Package/" class="external-link">Browse source code</a></li>
-<li><a href="https://github.com/UTHSC-Zhang/RMSTSS-Package/issues" class="external-link">Report a bug</a></li>
+<li><a href="https://github.com/UTHSC-Zhang/RMSTpowerBoost-Package/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/UTHSC-Zhang/RMSTpowerBoost-Package/issues" class="external-link">Report a bug</a></li>
 </ul>
 </div>
 
@@ -117,7 +117,7 @@
 <div class="citation">
 <h2 data-toc-skip>Citation</h2>
 <ul class="list-unstyled">
-<li><a href="authors.html#citation">Citing RMSTSS</a></li>
+<li><a href="authors.html#citation">Citing RMSTpowerBoost</a></li>
 </ul>
 </div>
 
@@ -125,7 +125,7 @@
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
 <li>Arnab Aich <br><small class="roles"> Author, maintainer </small> <a href="https://orcid.org/0009-0005-7801-6701" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
-<li>Yuan Zhang <br><small class="roles"> Author </small>   </li>
+<li>Yuan Zhang <br><small class="roles"> Author </small> <a href="https://orcid.org/0000-0001-7626-9514" target="orcid.widget" aria-label="ORCID" class="external-link"><span class="fab fa-orcid orcid" aria-hidden="true"></span></a>  </li>
 </ul>
 </div>
 
