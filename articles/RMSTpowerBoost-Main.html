@@ -125,12 +125,32 @@ each of these function groups.</p>
 <h2 class="tabset" id="core-concepts-of-rmstpowerboost-package">Core Concepts of <code>RMSTpowerBoost</code>
 Package<a class="anchor" aria-label="anchor" href="#core-concepts-of-rmstpowerboost-package"></a>
 </h2>
-<p>The <code>RMSTpowerBoost</code> package uses two primary approaches
-for its calculations: a fast <strong>Analytic Method</strong> and a
-robust <strong>Bootstrap Method</strong>. All functions for finding
-sample size then use a common search algorithm. Understanding these
-three components is key to choosing the right function for your
-needs.</p>
+<p>The functions in this package are grounded in a regression‐based
+formulation of the <strong>restricted mean survival time
+(RMST)</strong>. For a given subject
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>i</mi><annotation encoding="application/x-tex">i</annotation></semantics></math>
+with event time
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>i</mi></msub><annotation encoding="application/x-tex">T_i</annotation></semantics></math>,
+covariate vector
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>Z</mi><mi>i</mi></msub><annotation encoding="application/x-tex">Z_i</annotation></semantics></math>
+and treatment indicator
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">t</mi></mrow><mi>i</mi></msub><annotation encoding="application/x-tex">\mathrm{Trt}_i</annotation></semantics></math>,
+the conditional RMST is modeled as</p>
+<p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mo>min</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo>,</mo><mi>L</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>∣</mo><msub><mi>Z</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><msub><mi>β</mi><mn>0</mn></msub><mo>+</mo><msub><mi>β</mi><mtext mathvariant="normal">effect</mtext></msub><mspace width="0.167em"></mspace><msub><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">t</mi></mrow><mi>i</mi></msub><mo>+</mo><msubsup><mi>β</mi><mn>2</mn><mi>⊤</mi></msubsup><msub><mi>Z</mi><mi>i</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\mathbb{E}[\min(T_i, L)\mid Z_i] \;=\; 
+\beta_0 + \beta_{\text{effect}}\,\mathrm{Trt}_i + \beta_2^{\top} Z_i,
+</annotation></semantics></math></p>
+<p>where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>
+is the restriction time, and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mtext mathvariant="normal">effect</mtext></msub><annotation encoding="application/x-tex">\beta_{\text{effect}}</annotation></semantics></math>
+represents the average treatment effect on the RMST scale—essentially,
+the expected gain in event‐free time attributable to treatment. The
+quantity
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mtext mathvariant="normal">effect</mtext></msub><annotation encoding="application/x-tex">\beta_{\text{effect}}</annotation></semantics></math>
+therefore defines the <strong>effect size</strong>. All analytical power
+and sample size functions in <code>RMSTpowerBoost</code> use this
+parameterization as their foundation.</p>
 <div class="section level3">
 <h3 id="the-analytic-method--analytical-functions">The Analytic Method (<code>.analytical</code> functions)<a class="anchor" aria-label="anchor" href="#the-analytic-method--analytical-functions"></a>
 </h3>
@@ -162,7 +182,7 @@ is the cumulative distribution function (CDF) of the standard normal
 distribution.</li>
 <li>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>β</mi><mtext mathvariant="normal">effect</mtext></msub><annotation encoding="application/x-tex">\beta_{\text{effect}}</annotation></semantics></math>
-is the treatment effect estimated from the pilot data.</li>
+is the treatment effect.</li>
 <li>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mi>N</mi></msub><mo>=</mo><mfrac><msub><mi>σ</mi><mn>1</mn></msub><msqrt><mi>N</mi></msqrt></mfrac></mrow><annotation encoding="application/x-tex">\sigma_N = \frac{\sigma_1}{\sqrt{N}}</annotation></semantics></math>
 is the standard error of the effect for the target sample size
@@ -378,7 +398,7 @@ independent of the event of interest.</p>
 </h3>
 <p>Based on the methods of <span class="citation">(<a href="#ref-tian2014">Tian, Zhao, and Wei 2014</a>)</span>, these
 functions model the conditional RMST as a linear function of covariates:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mo>min</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo>,</mo><mi>L</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><msub><mi>Z</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><msub><mi>β</mi><mn>0</mn></msub><mo>+</mo><msub><mi>β</mi><mn>1</mn></msub><msub><mtext mathvariant="normal">Treatment</mtext><mi>i</mi></msub><mo>+</mo><msub><mi>β</mi><mn>2</mn></msub><msub><mtext mathvariant="normal">Covariate</mtext><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\mathbb{E}[\min(T_i, L) | Z_i] = \beta_0 + \beta_1 \text{Treatment}_i + \beta_2 \text{Covariate}_{i}</annotation></semantics></math>
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><mo>min</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo>,</mo><mi>L</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="prefix">|</mo><msub><mi>Z</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><msub><mi>β</mi><mn>0</mn></msub><mo>+</mo><msub><mi>β</mi><mtext mathvariant="normal">effect</mtext></msub><msub><mtext mathvariant="normal">Treatment</mtext><mi>i</mi></msub><mo>+</mo><msub><mi>β</mi><mn>2</mn></msub><msub><mtext mathvariant="normal">Covariate</mtext><mi>i</mi></msub></mrow><annotation encoding="application/x-tex">\mathbb{E}[\min(T_i, L) | Z_i] = \beta_0 + \beta_{\text{effect}} \text{Treatment}_i + \beta_2 \text{Covariate}_{i}</annotation></semantics></math>
 In this model, the expected RMST up to a pre-specified time
 <strong>L</strong> for subject <em>i</em> is modeled as a linear
 combination of their treatment arm and other variables
@@ -1165,7 +1185,7 @@ contribution to the RMST. This makes the outcome suitable for use in a
 standard regression framework.</p></li>
 <li><p><strong>GAM Fitting</strong>: A GAM is then fitted to these
 pseudo-observations. The model has the form:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mtext mathvariant="normal">pseudo</mtext><mi>i</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><msub><mi>β</mi><mn>0</mn></msub><mo>+</mo><msub><mi>β</mi><mn>1</mn></msub><mo>⋅</mo><msub><mtext mathvariant="normal">Treatment</mtext><mi>i</mi></msub><mo>+</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>q</mi></munderover><msub><mi>f</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mtext mathvariant="normal">Covariate</mtext><mrow><mi>i</mi><mi>k</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathbb{E}[\text{pseudo}_i] = \beta_0 + \beta_1 \cdot \text{Treatment}_i + \sum_{k=1}^{q} f_k(\text{Covariate}_{ik})</annotation></semantics></math>
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mtext mathvariant="normal">pseudo</mtext><mi>i</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><msub><mi>β</mi><mn>0</mn></msub><mo>+</mo><msub><mi>β</mi><mtext mathvariant="normal">effect</mtext></msub><mo>⋅</mo><msub><mtext mathvariant="normal">Treatment</mtext><mi>i</mi></msub><mo>+</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>q</mi></munderover><msub><mi>f</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mtext mathvariant="normal">Covariate</mtext><mrow><mi>i</mi><mi>k</mi></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathbb{E}[\text{pseudo}_i] = \beta_0 + \beta_{\text{effect}} \cdot \text{Treatment}_i + \sum_{k=1}^{q} f_k(\text{Covariate}_{ik})</annotation></semantics></math>
 Here,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>f</mi><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">f_k()</annotation></semantics></math>
 are the non-linear <strong>smooth functions</strong> (splines) that the
