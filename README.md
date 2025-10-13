@@ -1,8 +1,6 @@
 
 # RMSTpowerBoost: Power and Sample Size Calculations for RMST-Based Trials
 
-**Navigate:** [**Application Guide**](application.html) | [**R Package Details**](package.html) | [**Data Generation**](data_generation.html) | [**References**](references.html)
-
 ---
 
 ## Overview

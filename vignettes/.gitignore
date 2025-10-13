@@ -2,4 +2,4 @@
 *.R
 *.Rbuildignore
 *.Rprofile
-
+*.RData

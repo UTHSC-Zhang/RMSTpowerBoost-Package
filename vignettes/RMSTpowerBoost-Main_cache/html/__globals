@@ -1,0 +1,32 @@
+veteran_data_prep	
+veteran_power_calc	vet
+veteran_table_plot	power_results_vet
+veteran_ss_calc	vet
+veteran_ss_table	ss_results_vet
+linear_boot_example	vet
+unnamed-chunk-1	power_boot_vet
+unnamed-chunk-2	vet
+unnamed-chunk-3	ss_boot_vet
+colon_data_prep	
+colon_ss_calc	colon_death
+colon_ss_table	ss_results_colon
+additive_power_calc	colon_death
+additive_power_table_plot	power_results_colon
+ms_power_analytical_example	colon_death
+unnamed-chunk-4	power_ms_analytical
+ms_ss_analytical_example	colon_death
+unnamed-chunk-5	ms_ss_results_colon
+ms_power_boot_example	colon_death
+unnamed-chunk-6	power_ms_boot
+ms_ss_boot_example	colon_death
+unnamed-chunk-7	ss_ms_boot
+gbsg_data_prep	
+gbsg_power_calc	gbsg_prepared
+unnamed-chunk-8	gbsg_prepared
+unnamed-chunk-9	ss_gam
+mgus2_data_prep	
+dc_power_calc	mgus_prepared
+unnamed-chunk-10	dc_power_results
+mgus2_ss_calc	mgus_prepared
+mgus2_table	ss_dc_mgus
+unnamed-chunk-11	

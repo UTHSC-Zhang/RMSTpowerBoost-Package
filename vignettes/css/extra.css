@@ -33,3 +33,12 @@ table tr:nth-child(even) { background: #fcfdff; }
 
 /* Headings spacing */
 h1, h2, h3 { scroll-margin-top: 6rem; }
+/* Hide the “Source: vignettes/…Rmd” line on article pages */
+body.article small.dont-index {
+  display: none !important;
+}
+
+/* (Optional) also hide on reference pages */
+body.reference small.dont-index {
+  display: none !important;
+}
