@@ -67,7 +67,15 @@ This vignette will guide you through the theory and application of each of these
 
 # Core Concepts of `RMSTpowerBoost` Package {.tabset}
 
-The `RMSTpowerBoost` package uses two primary approaches for its calculations: a fast **Analytic Method** and a robust **Bootstrap Method**. All functions for finding sample size then use a common search algorithm. Understanding these three components is key to choosing the right function for your needs.
+The functions in this package are grounded in a regression‐based formulation of the **restricted mean survival time (RMST)**. For a given subject \( i \) with event time \(T_i\), covariate vector \( Z_i \) and treatment indicator \(\mathrm{Trt}_i\), the conditional RMST is modeled as
+
+$$
+\mathbb{E}[\min(T_i, L)\mid Z_i] \;=\; 
+\beta_0 + \beta_{\text{effect}}\,\mathrm{Trt}_i + \beta_2^{\top} Z_i,
+$$
+
+where \(L\) is the restriction time, and \( \beta_{\text{effect}} \) represents the average treatment effect on the RMST scale—essentially, the expected gain in event‐free time attributable to treatment. The quantity \( \beta_{\text{effect}} \) therefore defines the **effect size**. All analytical power and sample size functions in `RMSTpowerBoost` use this parameterization as their foundation.
+
 
 ## The Analytic Method (`.analytical` functions)
 
@@ -82,7 +90,7 @@ The analytical functions are extremely fast because they use a direct mathematic
     $$
  where:
       * $\Phi$ is the cumulative distribution function (CDF) of the standard normal distribution.
-      * $\beta_{\text{effect}}$ is the treatment effect estimated from the pilot data.
+      * $\beta_{\text{effect}}$ is the treatment effect.
       * $\sigma_N = \frac{\sigma_1}{\sqrt{N}}$ is the standard error of the effect for the target sample size `N`, which is scaled from the pilot data's variance.
       * $z_{1-\alpha/2}$ is the critical value from the standard normal distribution (e.g., 1.96 for an alpha of 0.05).
 
@@ -144,7 +152,7 @@ These functions implement the foundational direct linear regression model for th
 ## Theory and Model
 
 Based on the methods of [@tian2014], these functions model the conditional RMST as a linear function of covariates:
-$$\mathbb{E}[\min(T_i, L) | Z_i] = \beta_0 + \beta_1 \text{Treatment}_i + \beta_2 \text{Covariate}_{i}$$
+$$\mathbb{E}[\min(T_i, L) | Z_i] = \beta_0 + \beta_{\text{effect}} \text{Treatment}_i + \beta_2 \text{Covariate}_{i}$$
 In this model, the expected RMST up to a pre-specified time **L** for subject *i* is modeled as a linear combination of their treatment arm and other variables $Z_i$.
 
 To handle right-censoring, the method uses **Inverse Probability of Censoring Weighting (IPCW)**. This is achieved through the following steps:
@@ -488,7 +496,7 @@ These functions use a bootstrap simulation approach combined with a GAM. The met
 1.  **Jackknife Pseudo-Observations**: The time-to-event outcome is first converted into **jackknife pseudo-observations** for the RMST. This technique, explored in recent statistical literature for RMST estimation [@perdry2024], creates a continuous, uncensored variable that represents each subject's contribution to the RMST. This makes the outcome suitable for use in a standard regression framework.
 
 2.  **GAM Fitting**: A GAM is then fitted to these pseudo-observations. The model has the form:
-    $$\mathbb{E}[\text{pseudo}_i] = \beta_0 + \beta_1 \cdot \text{Treatment}_i + \sum_{k=1}^{q} f_k(\text{Covariate}_{ik})$$
+    $$\mathbb{E}[\text{pseudo}_i] = \beta_0 + \beta_{\text{effect}} \cdot \text{Treatment}_i + \sum_{k=1}^{q} f_k(\text{Covariate}_{ik})$$
     Here, $f_k()$ are the non-linear **smooth functions** (splines) that the GAM estimates from the data.
 
 ### Power Calculation Formula (`GAM.power.boot`)
