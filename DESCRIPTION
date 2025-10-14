@@ -22,7 +22,7 @@ Description: A toolkit for designing studies with a restricted mean survival
     independent censoring (Tian et al., 2014), efficient multiplicative models 
     for high-dimensional stratification (Wang et al., 2019), and models for 
     handling dependent censoring or competing risks (Wang & Schaubel, 2018).
-License: MIT + file LICENSE
+License: MIT 
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
