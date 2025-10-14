@@ -63,7 +63,7 @@ This is the starting point of your analysis.
       * **`Additive Stratified Model`**: For multi-center trials where the treatment is expected to add a *constant* amount of survival time across all strata (e.g., clinical sites).
       * **`Multiplicative Stratified Model`**: For multi-center trials where the treatment is expected to have a *proportional* (multiplicative) effect on survival time across strata.
       * **`Semiparametric (GAM) Model`**: For studies where a covariate (like age or a biomarker) is expected to have a complex, non-linear relationship with the RMST.
-      * **`Dependent Censoring Model`**: For studies with competing risks, where censoring may be related to covariates (e.g., a patient receiving a transplant is no longer at risk for pre-transplant mortality).
+      * **`Dependent Censoring Model`**: For studies where censoring may be related to covariates (e.g., a patient receiving a transplant is no longer at risk for pre-transplant mortality).
 
 ## 2\. Column Mapping
 
@@ -80,7 +80,6 @@ After uploading data and selecting a model, this panel appears. You must map the
 Depending on the model you chose in the first panel, additional mapping options will appear:
 
   * **Stratification Variable:** This appears for `Additive Stratified`, `Multiplicative Stratified`, and `Semiparametric (GAM)` models. Select the column that identifies the strata (e.g., `center_id`, `region`).
-  * **Dependent Censoring Status:** This appears for the `Dependent Censoring Model`. Select the column that indicates whether a patient was censored due to the competing risk event.
   * **Linear Covariates:** Select one or more columns to include as adjustment covariates in the model, assuming they have a linear effect.
   * **Non-Linear (Smooth) Covariates:** This appears for the `Semiparametric (GAM) Model`. Select one or more covariates that you wish to model using a flexible, non-linear smooth function.
 
@@ -146,12 +145,53 @@ This tab provides the key numerical results of your analysis.
   * **Analysis Results:** The main results table.
       * If calculating for **Power**, it shows each sample size and its corresponding calculated power.
       * If calculating for **Sample Size**, it shows the target power and the final required sample size.
-  * **Effect Size Summary:** A table summarizing the treatment effect (e.g., RMST Difference or RMST Ratio) as estimated from your pilot data. This is the effect size that the power calculation is based on.
+  * **Analysis Summary:** A table summarizing the treatment effect (e.g., RMST Difference or RMST Ratio) as estimated from your pilot data. This is the effect size that the power calculation is based on.
   * **Log-Rank Test Summary:** Provides the results of a log-rank test performed on your pilot data, offering a basic comparison of the survival curves.
-  * **Download PDF Report:** Once an analysis is complete, a button appears here allowing you to download a formatted PDF report summarizing your inputs, methods, and results.
 
 ### Console Log Tab
 
 This tab displays detailed messages and outputs generated during the calculation process. It is useful for understanding the steps the application is taking and for debugging in case of an error.
 
+### Download Report Tab
 
+This tab allows you to generate a PDF report of your analysis, which includes:
+
+  * A summary of the pilot data and model used.
+  * The results of the power/sample size calculation.
+  * The Kaplan-Meier plot and power/sample size curve.
+  * The log-rank test summary.
+
+# Workflow Chart
+```{r tikz_workflow, results='asis', echo=FALSE}
+cat('<script type="text/tikz">')
+cat('
+\\begin{tikzpicture}[node distance=8mm, font=\\small,
+layer/.style={rounded corners, draw=black!30, fill=blue!5, inner sep=5mm, text width=0.85\\linewidth},
+arrow/.style={-latex, thick, draw=black!60}]
+\\node[layer] (data) {{\\bf Data (import or simulation)}\\\\[-2pt]
+\\begin{itemize}\\setlength{\\itemsep}{1pt}
+\\item Choose hazard engine (Weibull, log-normal, or piecewise exponential)
+\\item Specify treatment effect $\\tau$, stratification, and covariates $\\mathbf{Z}$
+\\item Define censoring: independent $w_i=\\Delta_i/\\hat G(Y_i)$ or dependent $w_i^\\ast=\\exp\\{\\sum_k\\hat\\Lambda_k(Y_i)\\}$
+\\end{itemize}};
+\\node[layer, below=of data] (est) {{\\bf Model estimation (IPCW-weighted RMST)}\\\\[-2pt]
+\\begin{itemize}\\setlength{\\itemsep}{1pt}
+\\item Select model: linear, stratified, GAM, or dependent-censoring adjusted
+\\item Choose truncation horizon $L$ and map variables
+\\end{itemize}};
+\\node[layer, below=of est] (inf) {{\\bf Inference and design}\\\\[-2pt]
+\\begin{itemize}\\setlength{\\itemsep}{1pt}
+\\item Target power or sample size
+\\item Select analytical or bootstrap-based method
+\\end{itemize}};
+\\node[layer, below=of inf] (viz) {{\\bf Visualization and reporting}\\\\[-2pt]
+\\begin{itemize}\\setlength{\\itemsep}{1pt}
+\\item Generate power and survival plots, summary tables, and diagnostics
+\\end{itemize}};
+\\draw[arrow] (data.south) -- (est.north);
+\\draw[arrow] (est.south) -- (inf.north);
+\\draw[arrow] (inf.south) -- (viz.north);
+\\end{tikzpicture}
+')
+cat('</script>')
+```

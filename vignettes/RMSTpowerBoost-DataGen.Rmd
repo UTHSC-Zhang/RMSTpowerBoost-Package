@@ -6,7 +6,7 @@ output:
   rmarkdown::html_vignette:
     toc: true
     fig_caption: true
-    code_folding: hide
+    code_folding: show
     df_print: paged
     highlight: tango
     self_contained: true
@@ -17,13 +17,14 @@ vignette: >
   %\VignetteDepends{RMSTpowerBoost}
 ---
 
+
 ```{r setup, include=FALSE}
 is_pkgdown <- identical(Sys.getenv("IN_PKGDOWN"), "true")
 knitr::opts_chunk$set(
   collapse = TRUE,
-   cache = TRUE,
-  cache.lazy = FALSE,   # materialize objects now (safer)
-  autodep = TRUE,  
+  cache = FALSE,                 # avoid stale state across runs
+  cache.lazy = FALSE,            # materialize objects now (safer)
+  autodep = TRUE,
   comment = NA,
   fig.width = 6, fig.height = 4,
   warning = FALSE, message = FALSE,
@@ -33,10 +34,9 @@ library(RMSTpowerBoost)
 set.seed(1)
 ```
 
-
 # What this covers
 
-We show how to construct a **recipe** (covariates â†’ treatment â†’ event time â†’ censoring), and then simulate datasets with `simulate_from_recipe()`. We also show batch generation (`generate_recipe_sets()`) and how to read compact metadata back (`load_recipe_sets()`), without any platform-specific tricks.
+We show how to construct a **recipe** (covariates (X), treatment (A), event time (Y), and censoring (C)), and then simulate datasets with `simulate_from_recipe()`. We also show batch generation via `generate_recipe_sets()` and how to read compact metadata back with `load_recipe_sets()`.
 
 The simulator takes a plain **list** as the recipe. No YAML is required.
 
@@ -57,22 +57,22 @@ list(
 
 # Covariates
 
-Each covariate has a `name`, `type` (`"continuous"` or `"categorical"`), a `dist` with `params`, and optional `transform` steps applied after generation (`"center(a)"`, `"scale(b)"`).
+Each covariate has a `name`, `type` (`"continuous"` or `"categorical"`), a `dist` with `params`, and optional `transform` steps applied after generation (e.g., `"center(a)"`, `"scale(b)"`).
 
 **Available distributions**
 
-| Type | `dist` (string) | Parameters |
-|---|---|---|
-| continuous | `normal` | `mean`, `sd` |
-| continuous | `lognormal` | `meanlog`, `sdlog` |
-| continuous | `gamma` | `shape`, `scale` |
-| continuous | `weibull` | `shape`, `scale` |
-| continuous | `uniform` | `min`, `max` |
-| continuous | `beta` | `shape1`, `shape2` |
-| continuous | `t` | `df` |
-| categorical | `bernoulli` | `p` (probability of 1) |
-| categorical | `categorical` | `prob = c(...)`, `labels = c(...)` (optional) |
-| categorical | `ordinal` | `prob = c(...)`, `labels = c(...)` (optional, ordered) |
+| Type        | `dist` (string) | Parameters                                |
+| ----------- | --------------- | ----------------------------------------- |
+| continuous  | `normal`        | `mean`, `sd`                              |
+| continuous  | `lognormal`     | `meanlog`, `sdlog`                        |
+| continuous  | `gamma`         | `shape`, `scale`                          |
+| continuous  | `weibull`       | `shape`, `scale`                          |
+| continuous  | `uniform`       | `min`, `max`                              |
+| continuous  | `beta`          | `shape1`, `shape2`                        |
+| continuous  | `t`             | `df`                                      |
+| categorical | `bernoulli`     | `p` (probability of 1)                    |
+| categorical | `categorical`   | `prob = c(...)`, `labels = c(...)` (opt.) |
+| categorical | `ordinal`       | `prob = c(...)`, `labels = c(...)` (opt.) |
 
 **Example: define covariates**
 
@@ -81,7 +81,7 @@ covs <- list(
   list(name="age",   type="continuous",  dist="normal",     params=list(mean=62, sd=10),
        transform=c("center(60)","scale(10)")),
   list(name="sex",   type="categorical", dist="bernoulli",  params=list(p=0.45)),
-  list(name="stage", type="categororical", dist="ordinal",
+  list(name="stage", type="categorical", dist="ordinal",
        params=list(prob=c(0.3,0.5,0.2), labels=c("I","II","III"))),
   list(name="x",     type="continuous",  dist="lognormal",  params=list(meanlog=0, sdlog=0.6))
 )
@@ -93,25 +93,28 @@ covs <- list(
 
 Choose one `assignment`:
 
-| Assignment | Key fields | Meaning |
-|---|---|---|
-| `"randomization"` | `allocation = "a:b"` | Bernoulli with probability \(p_1 = a/(a+b)\). |
-| `"stratified"` | `allocation`, `stratify_by = c("...")` | Same allocation **within** each stratum defined by listed **categorical** covariates. |
-| `"logistic_ps"` | `ps_model = list(formula = "~ ...", beta = c(...))` | Treatment probability is \(\mathrm{logit}^{-1}(\eta)\) from user model. Provide explicit `beta` to avoid parsing edge-cases. |
+| Assignment        | Key fields                           | Meaning                                                                               |
+| ----------------- | ------------------------------------ | ------------------------------------------------------------------------------------- |
+| `"randomization"` | `allocation = "a:b"`                 | Bernoulli with probability (p_1 = a/(a+b)).                                           |
+| `"stratified"`    | `allocation`, `stratify_by = c(...)` | Same allocation **within** each stratum defined by listed **categorical** covariates. |
+| `"logistic_ps"`   | `ps_model = list(formula, beta)`     | Treatment probability is (\mathrm{logit}^{-1}(\eta)) from user model.                 |
 
 **Examples**
 
 Randomization:
+
 ```r
 tr_rand <- list(assignment="randomization", allocation="1:1")
 ```
 
 Stratified by `"stage"`:
+
 ```r
 tr_strat <- list(assignment="stratified", allocation="2:1", stratify_by=c("stage"))
 ```
 
 Logistic propensity:
+
 ```r
 tr_ps <- list(
   assignment = "logistic_ps",
@@ -126,17 +129,17 @@ tr_ps <- list(
 
 # Event-time engines
 
-Let \(Z\) be treatment (0/1), \(X\) be covariates, and \(\eta\) be the **linear predictor** (defined in `effects`, below). Supported engines and **baseline** parameterizations:
+Let (Z) be treatment (0/1), (X) be covariates, and (\eta) be the **linear predictor** (defined in `effects`, below). Supported engines and baseline parameterizations:
 
-| Model (user-facing) | `model` value | Baseline parameters | Notes |
-|---|---|---|---|
-| AFT Lognormal | `"aft_lognormal"` | `mu`, `sigma` | \(\log T = \mu + \eta + \sigma \varepsilon\), \(\varepsilon \sim \mathcal{N}(0,1)\). |
-| AFT Weibull | `"aft_weibull"` | `shape`, `scale` | \(S_0(t) = \exp(-(t/\lambda)^k)\); AFT shift via \(\eta\). |
-| AFT Log-Logistic | `"aft_loglogistic"` | `shape`, `scale` | \(T = \lambda \exp(\eta) (U/(1-U))^{1/k}\). |
-| PH Exponential | `"ph_pwexp"` | `rates = c(Î»)`, `cuts = numeric(0)` | Piecewise-Exp with a **single** segment is exponential. |
-| PH Weibull | `"ph_weibull"` | `shape`, `scale` | Proportional hazards with Weibull baseline. |
-| PH Gompertz | `"ph_gompertz"` | `rate`, `gamma` | Hazard \(h(t) = a \exp(bt)\). |
-| PH Piecewise Exponential | `"ph_pwexp"` | `rates = c(r1,r2,...)`, `cuts = c(c1,c2,...)` | Rate in segment \(s\) is \(r_s \exp(\eta)\). |
+| Model (user-facing) | `model` value       | Baseline parameters                       | Notes                                                                            |
+| ------------------- | ------------------- | ----------------------------------------- | -------------------------------------------------------------------------------- |
+| AFT Lognormal       | `"aft_lognormal"`   | `mu`, `sigma`                             | (\log T = \mu + \eta + \sigma \varepsilon), (\varepsilon \sim \mathcal{N}(0,1)). |
+| AFT Weibull         | `"aft_weibull"`     | `shape`, `scale`                          | (S_0(t) = \exp(-(t/\lambda)^k)); AFT shift via (\eta).                           |
+| AFT Log-Logistic    | `"aft_loglogistic"` | `shape`, `scale`                          | (T = \lambda \exp(\eta),(U/(1-U))^{1/k}).                                        |
+| PH Exponential      | `"ph_pwexp"`        | `rates = c(\lambda)`, `cuts = numeric(0)` | Piecewise-Exp with a **single** segment is exponential.                          |
+| PH Weibull          | `"ph_weibull"`      | `shape`, `scale`                          | Proportional hazards with Weibull baseline.                                      |
+| PH Gompertz         | `"ph_gompertz"`     | `rate`, `gamma`                           | Hazard (h(t) = a, \exp(bt)).                                                     |
+| PH Piecewise Exp    | `"ph_pwexp"`        | `rates = c(r1,r2,...)`, `cuts = c(...)`   | Rate in segment (s) is (r_s \exp(\eta)).                                         |
 
 **Effects and linear predictor**
 
@@ -146,38 +149,121 @@ Specify effects on the appropriate scale (AFT: log-time; PH: log-hazard):
 effects = list(
   intercept  = 0,                      # default is 0
   treatment  = -0.25,
-  covariates = list(age = 0.01, sex = -0.2)  # NOTE: named LIST
+  covariates = list(age = 0.01, sex = -0.2)
   # or: formula="~ age + sex", beta=c(0.01, -0.2)
 )
 ```
 
-> `effects$covariates` must be a **named list** of numerics (e.g., `list(age=0.01)`), not a named vector created with `c()`.
+> `effects$covariates` must be a **named list** (e.g., `list(age=0.01)`), not a named vector from `c()`.
 
 ---
 
 # Censoring
 
-Two modes are supported:
+We assume a **single censoring mechanism** that may depend on observed covariates (but not on the unobserved event time after conditioning on those covariates). Two user-facing modes are supported:
 
-| Mode | Fields | Semantics |
-|---|---|---|
-| `"target_overall"` | `target`, `admin_time` | Solver finds an exponential random-censoring rate \(\lambda_c\) so that overall censoring fraction \(\approx\) `target`, subject to any administrative floor at `admin_time`. |
-| `"explicit"` | Any of: `administrative = list(time=...)`; `random = list(dist="exponential", params=list(rate=...))`; `dependent = list(formula="~ ...", base=..., beta=c(...))` | Compose administrative, random, and covariate-dependent censoring directly. |
+| Mode               | Fields                                                                                                                                                            | Semantics                                                                                                                                                                                       |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `"target_overall"` | `target`, `admin_time`                                                                                                                                            | Finds an exponential random-censoring rate so overall censoring fraction ≈ `target`, with an administrative floor at `admin_time` (if provided).                                                |
+| `"explicit"`       | Any of: `administrative = list(time=...)`; `random = list(dist="exponential", params=list(rate=...))`; `dependent = list(formula="~ ...", base=..., beta=c(...))` | Compose administrative, random, and **covariate-dependent** censoring directly. The `dependent` block defines a covariate-dependent **log-rate** model; it does **not** denote competing risks. |
 
-**Examples**
+> **Note.** No cause-specific or competing-risk censoring is generated here; the simulator’s “dependent” option is strictly **covariate-dependent** censoring under a single mechanism.
 
-Target overall censoring:
-```r
-cz_target <- list(mode="target_overall", target=0.25, admin_time=36)
+## Examples
+
+### Target overall censoring
+
+```{r cz_target, eval=TRUE}
+cz_target <- list(
+  mode        = "target_overall",
+  target      = 0.25,   # desired overall censoring fraction
+  admin_time  = 36      # optional administrative cutoff (same units as event time)
+)
 ```
 
-Explicit mix (admin + random):
-```r
+### Explicit mix (administrative + random)
+
+```{r cz_explicit, eval=TRUE}
 cz_explicit <- list(
   mode = "explicit",
-  administrative = list(time = 36),
-  random = list(dist = "exponential", params = list(rate = 0.02))
+  administrative = list(time = 36),                                      # admin cutoff
+  random         = list(dist = "exponential", params = list(rate = 0.02))# random censoring
 )
+```
+
+### Explicit **covariate-dependent** censoring
+
+The dependent block uses a **log-rate** model:
+[
+\log \lambda_{c}(X) = \text{log}(b) + X^\top \beta ,
+]
+where (b>0) is the *baseline rate*. Implementation uses `base` as a **rate**, and `beta` on the **log-rate** scale. When `base` is supplied, the **formula must not include an intercept**.
+
+```{r cz_dep_rate, eval=TRUE}
+cz_dep <- list(
+  mode = "explicit",
+  dependent = list(
+    # sex is coded numeric 0/1 in these recipes; if yours is a factor, use I(as.numeric(sex)-1)
+    formula = "~ 0 + age + sex",   # NO intercept because we use 'base' as the rate
+    base    = 0.03,                # positive baseline rate
+    beta    = c(0.012, 0.35)       # (age, sex) on log-rate scale
+  ),
+  administrative = list(time = 48) # optional admin cutoff
+)
+```
+
+> If you prefer a log-intercept style, omit `base` and include an intercept in the formula and in `beta`, e.g. `formula="~ 1 + age + sex"; beta=c(-3.5, 0.012, 0.35)`.
+
+---
+
+# Using a censoring recipe inside a full simulation
+
+```{r full_sim_single_mechanism, eval=TRUE}
+# Covariates (sex will be numeric 0/1 here)
+covs <- list(
+  list(name="age", type="continuous",  dist="normal",    params=list(mean=62, sd=10)),
+  list(name="sex", type="categorical", dist="bernoulli", params=list(p=0.45))
+)
+
+# Censoring: single covariate-dependent mechanism using a positive base rate
+cz_dep <- list(
+  mode = "explicit",
+  dependent = list(
+    formula = "~ 0 + age + sex",  # NO intercept; sex is numeric 0/1
+    base    = 0.03,               # baseline censoring rate (>0)
+    beta    = c(0.012, 0.35)      # (age, sex) on log-rate scale
+  ),
+  administrative = list(time = 48)
+)
+
+# Quick sanity check (optional)
+mm   <- model.matrix(~ 0 + age + sex, data.frame(age=c(50,70), sex=c(0,1)))
+rate <- cz_dep$dependent$base * exp(mm %*% matrix(cz_dep$dependent$beta, ncol=1))
+stopifnot(all(rate > 0 & is.finite(rate)))
+
+# Recipe
+rec <- list(
+  n = 300,
+  covariates = list(defs = covs),
+  treatment  = list(assignment="randomization", allocation="1:1"),
+  event_time = list(
+    model    = "ph_pwexp",
+    baseline = list(rates = c(0.05), cuts = numeric(0)), # exponential baseline
+    effects  = list(intercept=0, treatment=-0.3, covariates=list(age=0.01, sex=-0.2))
+  ),
+  censoring  = cz_dep,
+  seed = 2025
+)
+
+# Simulate
+dat <- simulate_from_recipe(validate_recipe(rec))
+
+# Output
+knitr::kable(
+  data.frame(achieved_censoring = attr(dat, "achieved_censoring")),
+  caption = "Achieved censoring rate"
+)
+knitr::kable(utils::head(dat, 8), caption = "First 8 rows of simulated data")
 ```
 
 ---
@@ -186,9 +272,10 @@ cz_explicit <- list(
 
 We now build full recipes and call `simulate_from_recipe()`. We report realized censoring via `attr(dat, "achieved_censoring")`.
 
-## Example 1 â€” AFT Lognormal
+## Example 1 — AFT Lognormal
 
-```{r ex1, eval=TRUE}
+```{r ex1_lognormal, eval=TRUE}
+# Covariates
 covs1 <- list(
   list(name="age",   type="continuous",  dist="normal",     params=list(mean=62, sd=10),
        transform=c("center(60)","scale(10)")),
@@ -198,6 +285,7 @@ covs1 <- list(
   list(name="x",     type="continuous",  dist="lognormal",  params=list(meanlog=0, sdlog=0.6))
 )
 
+# Recipe
 rec1 <- list(
   n = 300,
   covariates = list(defs = covs1),
@@ -210,43 +298,76 @@ rec1 <- list(
   seed = 11
 )
 
+# Simulate
 dat1 <- simulate_from_recipe(validate_recipe(rec1))
-head(dat1)
-attr(dat1, "achieved_censoring")
+
+# Display: data (first rows)
+knitr::kable(utils::head(dat1, 8), caption = "Example 1 — AFT Lognormal: first 8 rows")
+
+# Display: key attributes (compact)
+attr_tbl1 <- data.frame(
+  attribute = c("achieved_censoring", "n_rows", "n_cols", "class"),
+  value = c(
+    as.character(attr(dat1, "achieved_censoring")),
+    nrow(dat1),
+    ncol(dat1),
+    paste(class(dat1), collapse = ", ")
+  )
+)
+knitr::kable(attr_tbl1, caption = "Example 1 — Attributes")
 ```
 
-## Example 2 â€” AFT Weibull
+## Example 2 — AFT Weibull
 
-```{r ex2, eval=TRUE}
+```{r ex2_weibull, eval=TRUE}
+# Start from Example 1 and tweak the event-time engine
 rec2 <- rec1
-rec2$event_time <- list(model="aft_weibull",
-                        baseline=list(shape=1.3, scale=12),
-                        effects=list(intercept=0, treatment=-0.20,
-                                     covariates=list(age=0.008, x=0.04)))
+rec2$event_time <- list(
+  model    = "aft_weibull",
+  baseline = list(shape=1.3, scale=12),
+  effects  = list(intercept=0, treatment=-0.20, covariates=list(age=0.008, x=0.04))
+)
+
 dat2 <- simulate_from_recipe(validate_recipe(rec2), seed=12)
-summary(dat2$time)
-attr(dat2, "achieved_censoring")
+
+# Display: data (first rows)
+knitr::kable(utils::head(dat2, 8), caption = "Example 2 — AFT Weibull: first 8 rows")
+
+# Display: key attributes (compact)
+attr_tbl2 <- data.frame(
+  attribute = c("achieved_censoring", "n_rows", "n_cols", "class"),
+  value = c(
+    as.character(attr(dat2, "achieved_censoring")),
+    nrow(dat2),
+    ncol(dat2),
+    paste(class(dat2), collapse = ", ")
+  )
+)
+knitr::kable(attr_tbl2, caption = "Example 2 — Attributes")
 ```
 
-## Example 3 â€” PH piecewise exponential (single segment)
+## Example 3 — PH Exponential (single segment)
 
-```{r ex3, eval=TRUE}
+```{r ex3_ph_exp1, eval=TRUE}
 rec3 <- list(
   n = 400,
   covariates = list(defs = covs1),
   treatment  = list(assignment="randomization", allocation="1:1"),
-  event_time = list(model="ph_pwexp",
-                    baseline=list(rates=c(0.05), cuts=numeric(0)),
-                    effects=list(intercept=0, treatment=-0.3,
-                                 covariates=list(age=0.01, x=0.03))),
+  event_time = list(
+    model    = "ph_pwexp",
+    baseline = list(rates = c(0.05), cuts = numeric(0)),
+    effects  = list(intercept=0, treatment=-0.3, covariates=list(age=0.01, x=0.03))
+  ),
   censoring  = list(mode="target_overall", target=0.20, admin_time=30),
   seed = 13
 )
+
 dat3 <- simulate_from_recipe(validate_recipe(rec3))
-```
 
+# Display: data (first rows)
+knitr::kable(utils::head(dat3, 8), caption = "Example 3 — PH Exponential: first 8 rows")
 
-```{r summ3, eval=TRUE, echo=FALSE}
+# Display: a small summary + attributes
 summ3 <- data.frame(
   Metric = c("n", "Events", "Censoring rate", "Mean time", "Median time"),
   Value  = c(nrow(dat3),
@@ -255,13 +376,23 @@ summ3 <- data.frame(
              round(mean(dat3$time,   na.rm = TRUE), 2),
              round(stats::median(dat3$time, na.rm = TRUE), 2))
 )
-knitr::kable(summ3, caption = "Example 3 â€” Summary")
+knitr::kable(summ3, caption = "Example 3 — Summary")
 
+attr_tbl3 <- data.frame(
+  attribute = c("achieved_censoring", "n_rows", "n_cols", "class"),
+  value = c(
+    as.character(attr(dat3, "achieved_censoring")),
+    nrow(dat3),
+    ncol(dat3),
+    paste(class(dat3), collapse = ", ")
+  )
+)
+knitr::kable(attr_tbl3, caption = "Example 3 — Attributes")
 ```
 
-## Example 4 â€” PH piecewise exponential (multi-segment)
+## Example 4 — PH Piecewise Exponential (multi-segment)
 
-```{r ex4, eval=TRUE}
+```{r ex4_ph_exp_multi, eval=TRUE}
 rec4 <- list(
   n = 500,
   covariates = list(defs = list(
@@ -270,19 +401,22 @@ rec4 <- list(
     list(name="x",   type="continuous",  dist="lognormal", params=list(meanlog=0, sdlog=0.5))
   )),
   treatment  = list(assignment="randomization", allocation="1:1"),
-  event_time = list(model="ph_pwexp",
-                    baseline=list(rates=c(0.10, 0.06, 0.03), cuts=c(6, 18)),
-                    effects=list(intercept=0, treatment=-0.4,
-                                 covariates=list(age=0.01, x=0.03))),
-  censoring  = list(mode="target_overall", target=0.25, admin_time=30)
+  event_time = list(
+    model    = "ph_pwexp",
+    baseline = list(rates=c(0.10, 0.06, 0.03), cuts=c(6, 18)),
+    effects  = list(intercept=0, treatment=-0.4, covariates=list(age=0.01, x=0.03))
+  ),
+  censoring  = list(mode="target_overall", target=0.25, admin_time=30),
+  seed = 123
 )
-dat4 <- simulate_from_recipe(validate_recipe(rec4), seed=123)
 
-```
-```{r summ4, eval=TRUE, echo=FALSE}
+dat4 <- simulate_from_recipe(validate_recipe(rec4))
 
+# Display: data (first rows)
+knitr::kable(utils::head(dat4, 8), caption = "Example 4 — PH Piecewise Exponential (multi-segment): first 8 rows")
+
+# Display: summary + attributes
 summ4 <- data.frame(
-  Metric = c("n", "Events", "Censoring rate", "Mean time", "Median time"),
   Metric = c("n", "Events", "Censoring rate", "Mean time", "Median time"),
   Value  = c(nrow(dat4),
              sum(dat4$status == 1, na.rm = TRUE),
@@ -290,7 +424,76 @@ summ4 <- data.frame(
              round(mean(dat4$time,   na.rm = TRUE), 2),
              round(stats::median(dat4$time, na.rm = TRUE), 2))
 )
-knitr::kable(summ4, caption = "Example 4 â€” Summary")
+knitr::kable(summ4, caption = "Example 4 — Summary")
+
+attr_tbl4 <- data.frame(
+  attribute = c("achieved_censoring", "n_rows", "n_cols", "class"),
+  value = c(
+    as.character(attr(dat4, "achieved_censoring")),
+    nrow(dat4),
+    ncol(dat4),
+    paste(class(dat4), collapse = ", ")
+  )
+)
+knitr::kable(attr_tbl4, caption = "Example 4 — Attributes")
+```
+
+---
+
+# Generate data based on formula (event & censoring)
+
+This example uses `~` formulas for both event-time covariate effects and covariate-dependent censoring. We keep the treatment effect as a separate scalar to avoid design ambiguity.
+
+```{r ex_formula_both_selfcontained, eval=TRUE}
+# Covariates (sex numeric 0/1)
+covs_f <- list(
+  list(name="age", type="continuous",  dist="normal",    params=list(mean=62, sd=10)),
+  list(name="sex", type="categorical", dist="bernoulli", params=list(p=0.45))
+)
+
+trt_f <- list(assignment="randomization", allocation="1:1")
+
+# Event-time engine: AFT lognormal with formula-based covariate effects
+evt_f <- list(
+  model    = "aft_lognormal",
+  baseline = list(mu = 3.1, sigma = 0.55),
+  effects  = list(
+    treatment  = -0.25,                 # effect of treatment (log-time scale)
+    formula    = "~ 0 + age + sex",     # covariate effects via formula (no intercept)
+    beta       = c(0.010, -0.20)        # (age, sex) -- match order in formula
+  )
+)
+
+# Censoring: covariate-dependent via log-rate model (single mechanism)
+cz_f <- list(
+  mode = "explicit",
+  dependent = list(
+    formula = "~ 0 + age + sex",  # NO intercept; sex numeric 0/1
+    base    = 0.03,               # positive rate
+    beta    = c(0.012, 0.35)      # (age, sex) on log-rate scale
+  ),
+  administrative = list(time = 48)  # optional admin cutoff
+)
+
+# Full recipe
+rec_f <- list(
+  n = 350,
+  covariates = list(defs = covs_f),
+  treatment  = trt_f,
+  event_time = evt_f,
+  censoring  = cz_f,
+  seed = 777
+)
+
+# Simulate
+dat_f <- simulate_from_recipe(validate_recipe(rec_f))
+
+# Display
+knitr::kable(
+  data.frame(achieved_censoring = attr(dat_f, "achieved_censoring")),
+  caption = "Achieved censoring rate (formula-based example)"
+)
+knitr::kable(utils::head(dat_f, 8), caption = "First 8 rows — formula-based example")
 ```
 
 ---
@@ -299,8 +502,24 @@ knitr::kable(summ4, caption = "Example 4 â€” Summary")
 
 For simulation studies, write multiple scenarios and formats together. The writer creates a `manifest.rds` with a **list-column** `meta` describing each dataset. The loader reattaches attributes when reading back.
 
-```{r batch, eval=TRUE}
-base <- validate_recipe(rec2)
+```{r batch_selfcontained, eval=TRUE}
+# Build a base recipe here (self-contained)
+base <- validate_recipe(list(
+  n = 200,
+  covariates = list(defs = list(
+    list(name="age", type="continuous",  dist="normal", params=list(mean=62, sd=10)),
+    list(name="sex", type="categorical", dist="bernoulli", params=list(p=0.45)),
+    list(name="x",   type="continuous",  dist="lognormal", params=list(meanlog=0, sdlog=0.6))
+  )),
+  treatment  = list(assignment="randomization", allocation="1:1"),
+  event_time = list(
+    model    = "aft_weibull",
+    baseline = list(shape=1.3, scale=12),
+    effects  = list(intercept=0, treatment=-0.20, covariates=list(age=0.008, x=0.04))
+  ),
+  censoring  = list(mode="target_overall", target=0.25, admin_time=36),
+  seed = 3026
+))
 
 out_dir <- file.path(tempdir(), "rmstss-manifest-demo")
 unlink(out_dir, recursive = TRUE, force = TRUE)
@@ -338,7 +557,6 @@ str(sets[[1]]$meta)
 
 # Reproducibility tips
 
-- Set `seed` in the recipe or pass `seed=` to `simulate_from_recipe()`.
-- For grids, fix a deterministic scheme like `seed_base + scenario_id*1000 + rep` (this is what `generate_recipe_sets()` does).
+Set `seed` in the recipe or pass `seed=` to `simulate_from_recipe()`.
 
-Thatâ€™s itâ€”you now have the moving parts to define covariates, choose an event-time engine, specify censoring, simulate data, and (optionally) batch-create scenarios with compact metadata for downstream analysis.
+> **Assumptions.** The censoring hazard depends on observed covariates via a user-specified single mechanism. There are no competing risks. Datasets contain only `time`, `status`, treatment, and covariates—no dependent-censoring indicators.

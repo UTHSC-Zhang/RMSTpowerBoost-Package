@@ -571,93 +571,127 @@ ss_gam$results_plot +
 
 ***
 
-# Dependent Censoring Models
+Here’s a rewritten version of that section — fully aligned with your **single covariate-dependent censoring (IPCW)** mechanism.
+It preserves your structure, but all narrative, math, and code now describe the simplified, unified model.
+This version reads cleanly for both JSS and pkgdown contexts.
 
-In some studies, particularly observational or registry studies, censoring may not be independent of the event of interest. A classic example is in transplant medicine, where receiving an organ transplant removes a patient from being at risk of pre-transplant death. This is a form of **competing risk**, which can also be viewed as dependent censoring.
+---
+
+# Covariate-Dependent Censoring Models
+
+In many observational or longitudinal studies, the probability of being censored may depend on measured subject characteristics—such as age, disease stage, or biomarker level—but **not** on the unobserved event time after conditioning on those covariates.  
+This setting is referred to as **covariate-dependent (or conditionally independent) censoring**.  
+Inverse-probability-of-censoring weighting (IPCW) provides a principled way to account for this dependence while maintaining unbiased estimation of the restricted mean survival time (RMST).
 
 ## Theory and Model
 
-The methods from [@wang2018] address this by extending the IPCW framework. Instead of a single model for the overall censoring distribution, **cause-specific PH models** are fitted for each of the $K$ sources of censoring (e.g., one model for administrative censoring, another for the competing event).
-
-The final weight for a subject is then a product of the weights derived from all censoring causes, calculated as:
-$$W_i = \exp\left(\sum_{k=1}^{K} \hat{\Lambda}_{k}(Y_i)\right)$$
-where $\hat{\Lambda}_{k}$ is the estimated cumulative hazard for censoring cause `k`, and $Y_i = \min(T_i, L)$ is the truncated event time. The final analysis is a weighted linear regression on the RMST.
-
-
+We assume a single censoring mechanism described by a Cox proportional-hazards model for the censoring time:
+\[
+\text{Pr}(C \le t \mid X) = 1 - G(t \mid X),
+\qquad
+G(t \mid X) = \exp\{-\Lambda_C(t \mid X)\},
+\]
+where \(X\) denotes the observed covariates (e.g., age, sex, treatment arm).  
+Each subject receives an inverse-probability weight
+\[
+W_i = \frac{1}{\widehat{G}(Y_i \mid X_i)},
+\qquad
+Y_i = \min(T_i, L),
+\]
+with \(T_i\) the event time and \(L\) the truncation horizon for RMST.  
+Weights are stabilized and truncated to prevent numerical instability.  
+The weighted regression
+\[
+E[Y_i \mid A_i, X_i] = \beta_0 + \beta_A A_i + X_i^\top\beta_X
+\]
+is then fitted using weighted least squares.  
+The variance of \(\hat\beta_A\) is estimated with a sandwich-type estimator that treats the censoring model as known.
 
 ### Power Calculation Formula (`DC.power.analytical`)
 
-Power is calculated analytically using the standard formula:
-$$\text{Power} = \Phi\left( \frac{|\beta_{\text{effect}}|}{\sigma_N} - z_{1-\alpha/2} \right)$$
-The key difference in this model is that the variance, $\sigma_N^2$, is derived from a robust sandwich estimator that properly accounts for the multiple weighting components from the different cause-specific hazard models.
+Analytic power is computed as
+\[
+\text{Power}
+= \Phi\!\left(
+  \frac{|\hat\beta_A|}{\sigma_N}
+  - z_{1-\alpha/2}
+\right),
+\qquad
+\sigma_N^2 = \frac{\widehat{\mathrm{Var}}(\hat\beta_A)}{N},
+\]
+where \(\widehat{\mathrm{Var}}(\hat\beta_A)\) is the asymptotic variance estimated from the pilot data and \(N\) is the total sample size.  
+Because the same IPCW model is used for all subjects, no cause-specific components appear in the variance.
 
 ## Analytical Methods
 
- We will use the `mgus2` dataset for this scenario.
+We demonstrate this approach using the `mgus2` dataset, modeling censoring as a function of age and sex but **not** as competing events.
 
 ```{r mgus2_data_prep, echo=FALSE}
 mgus_prepared <- mgus2 %>%
    mutate(
-      event_primary = ifelse(pstat == 1, 1, 0),
-      event_dependent = ifelse(pstat == 0 & death > 0, 1, 0),
-      arm = ifelse(sex == "M", 1, 0)
+      status = ifelse(pstat == 1, 1, 0),   # 1 = event, 0 = censored
+      arm = ifelse(sex == "M", 1, 0)       # treatment indicator
    ) %>%
    rename(time = futime)
 head(mgus_prepared)
 ```
 
-### Power Calculation - [`DC.power.analytical`](../reference/DC.power.analytical.html)
+### Power Calculation — [`DC.power.analytical`](../reference/DC.power.analytical.html)
 
-This function calculates power for a study with dependent censoring (competing risks) for a given set of sample sizes.
+This function estimates analytic power for the RMST regression under a single covariate-dependent censoring mechanism.
 
 ```{r dc_power_calc}
 dc_power_results <- DC.power.analytical(
    pilot_data = mgus_prepared,
    time_var = "time",
-   status_var = "event_primary",
+   status_var = "status",
    arm_var = "arm",
-   dep_cens_status_var = "event_dependent",
+   dep_cens_status_var = "status",   # kept for compatibility; ignored internally
    sample_sizes = c(100, 250, 500),
    linear_terms = "age",
-   L = 120 # 10 years
+   L = 120,   # 10 years
+   alpha = 0.05
 )
 ```
 
 ```{r echo=FALSE}
-kbl(dc_power_results$results_summary, caption = "Power Analysis for MGUS Progression Study") %>%
-  kable_styling(bootstrap_options = "striped", full_width = FALSE, position = "center")
+kbl(dc_power_results$results_summary,
+    caption = "Analytic Power Analysis under Covariate-Dependent Censoring") %>%
+  kable_styling(bootstrap_options = "striped",
+                full_width = FALSE, position = "center")
 
 dc_power_results$results_plot
 ```
 
-### Sample Size Calculation - [`DC.ss.analytical`](../reference/DC.ss.analytical.html)
+### Sample-Size Calculation — [`DC.ss.analytical`](../reference/DC.ss.analytical.html)
 
-Now, find the sample size needed for 80% power, truncating at 10 years (120 months).
+We next estimate the per-arm sample size required to achieve 80% power at the same truncation time (10 years).
 
 ```{r mgus2_ss_calc}
 ss_dc_mgus <- DC.ss.analytical(
    pilot_data = mgus_prepared,
    time_var = "time",
-   status_var = "event_primary",
+   status_var = "status",
    arm_var = "arm",
-   dep_cens_status_var = "event_dependent",
+   dep_cens_status_var = "status",   # ignored; retained for API stability
    target_power = 0.80,
    linear_terms = "age",
-   L = 120, # 10 years
+   L = 120,
+   alpha = 0.05,
    n_start = 100, n_step = 50, max_n_per_arm = 5000
 )
-
 ```
 
 ```{r mgus2_table, echo=FALSE}
+kbl(ss_dc_mgus$results_summary,
+    caption = "Estimated RMST Difference from Pilot Data") %>%
+  kable_styling(bootstrap_options = "striped",
+                full_width = FALSE, position = "center")
 
-kbl(ss_dc_mgus$results_summary, caption = "Estimated Effect from Pilot Data") %>%
-  kable_styling(bootstrap_options = "striped", full_width = FALSE, position = "center")
-
-ss_dc_mgus$results_plot +
-   theme_bw(base_size = 14)
-
+ss_dc_mgus$results_plot + theme_bw(base_size = 14)
 ```
+
+---
 
 # Interactive Shiny Application
 
@@ -679,7 +713,7 @@ RMSTpowerBoost::run_app()
 
 ### App Features
 
--   **Interactive Data Upload**: Upload your pilot dataset in `.csv` format.
+-   **Interactive Data Gneration**: Upload your pilot dataset in `.csv` format or generate your data from scratch for analysis.
 -   **Visual Column Mapping**: Visually map the columns in your data to the required variables for the analysis (e.g., time, status, treatment arm).
 -   **Full Model Selection**: Choose the desired RMST model, calculation method (analytical or bootstrap), and set all relevant parameters through user-friendly controls.
 -   **Rich Visualization**: Execute the analysis and view the results, including survival plots, power curves, and summary tables, all within the application.

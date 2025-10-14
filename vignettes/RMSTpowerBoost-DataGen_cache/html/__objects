@@ -5,3 +5,6 @@ summ3	summ3
 ex4	dat4	rec4
 summ4	summ4
 batch	base	m	man	out_dir	sets
+unnamed-chunk-1	cz_target
+unnamed-chunk-2	cz_explicit
+unnamed-chunk-3	cz_dep
