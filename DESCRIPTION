@@ -1,7 +1,7 @@
 Package: RMSTpowerBoost
 Type: Package
 Title: Sample Size Calculation Using RMST for Survival Data
-Version: 1.0.0
+Version: 1.0.1
 Authors@R: c(
   person(given = "Arnab", family = "Aich",
          role = c("aut", "cre"),
