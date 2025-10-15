@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">RMSTpowerBoost</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -61,12 +61,11 @@
 <div class="section level2">
 <h2 id="what-this-covers">What this covers<a class="anchor" aria-label="anchor" href="#what-this-covers"></a>
 </h2>
-<p>We show how to construct a <strong>recipe</strong> (covariates â†’
-treatment â†’ event time â†’ censoring), and then simulate datasets with
-<code><a href="../reference/simulate_from_recipe.html">simulate_from_recipe()</a></code>. We also show batch generation
-(<code><a href="../reference/generate_recipe_sets.html">generate_recipe_sets()</a></code>) and how to read compact metadata
-back (<code><a href="../reference/load_recipe_sets.html">load_recipe_sets()</a></code>), without any platform-specific
-tricks.</p>
+<p>We show how to construct a <strong>recipe</strong> (covariates (X),
+treatment (A), event time (Y), and censoring (C)), and then simulate
+datasets with <code><a href="../reference/simulate_from_recipe.html">simulate_from_recipe()</a></code>. We also show batch
+generation via <code><a href="../reference/generate_recipe_sets.html">generate_recipe_sets()</a></code> and how to read
+compact metadata back with <code><a href="../reference/load_recipe_sets.html">load_recipe_sets()</a></code>.</p>
 <p>The simulator takes a plain <strong>list</strong> as the recipe. No
 YAML is required.</p>
 <div class="section level3">
@@ -89,14 +88,14 @@ YAML is required.</p>
 <p>Each covariate has a <code>name</code>, <code>type</code>
 (<code>"continuous"</code> or <code>"categorical"</code>), a
 <code>dist</code> with <code>params</code>, and optional
-<code>transform</code> steps applied after generation
-(<code>"center(a)"</code>, <code>"scale(b)"</code>).</p>
+<code>transform</code> steps applied after generation (e.g.,
+<code>"center(a)"</code>, <code>"scale(b)"</code>).</p>
 <p><strong>Available distributions</strong></p>
 <table class="table">
 <colgroup>
-<col width="33%">
-<col width="33%">
-<col width="33%">
+<col width="16%">
+<col width="22%">
+<col width="61%">
 </colgroup>
 <thead><tr class="header">
 <th>Type</th>
@@ -162,15 +161,13 @@ YAML is required.</p>
 <td>categorical</td>
 <td><code>categorical</code></td>
 <td>
-<code>prob = c(...)</code>, <code>labels = c(...)</code>
-(optional)</td>
+<code>prob = c(...)</code>, <code>labels = c(...)</code> (opt.)</td>
 </tr>
 <tr class="even">
 <td>categorical</td>
 <td><code>ordinal</code></td>
 <td>
-<code>prob = c(...)</code>, <code>labels = c(...)</code> (optional,
-ordered)</td>
+<code>prob = c(...)</code>, <code>labels = c(...)</code> (opt.)</td>
 </tr>
 </tbody>
 </table>
@@ -180,7 +177,7 @@ ordered)</td>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"age"</span>,   type<span class="op">=</span><span class="st">"continuous"</span>,  dist<span class="op">=</span><span class="st">"normal"</span>,     params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mean<span class="op">=</span><span class="fl">62</span>, sd<span class="op">=</span><span class="fl">10</span><span class="op">)</span>,</span>
 <span>       transform<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"center(60)"</span>,<span class="st">"scale(10)"</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"sex"</span>,   type<span class="op">=</span><span class="st">"categorical"</span>, dist<span class="op">=</span><span class="st">"bernoulli"</span>,  params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>p<span class="op">=</span><span class="fl">0.45</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"stage"</span>, type<span class="op">=</span><span class="st">"categororical"</span>, dist<span class="op">=</span><span class="st">"ordinal"</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"stage"</span>, type<span class="op">=</span><span class="st">"categorical"</span>, dist<span class="op">=</span><span class="st">"ordinal"</span>,</span>
 <span>       params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>prob<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>,<span class="fl">0.5</span>,<span class="fl">0.2</span><span class="op">)</span>, labels<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"I"</span>,<span class="st">"II"</span>,<span class="st">"III"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"x"</span>,     type<span class="op">=</span><span class="st">"continuous"</span>,  dist<span class="op">=</span><span class="st">"lognormal"</span>,  params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>meanlog<span class="op">=</span><span class="fl">0</span>, sdlog<span class="op">=</span><span class="fl">0.6</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
@@ -192,9 +189,9 @@ ordered)</td>
 <p>Choose one <code>assignment</code>:</p>
 <table class="table">
 <colgroup>
-<col width="33%">
-<col width="33%">
-<col width="33%">
+<col width="12%">
+<col width="26%">
+<col width="61%">
 </colgroup>
 <thead><tr class="header">
 <th>Assignment</th>
@@ -205,24 +202,20 @@ ordered)</td>
 <tr class="odd">
 <td><code>"randomization"</code></td>
 <td><code>allocation = "a:b"</code></td>
-<td>Bernoulli with probability
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>p</mi><mn>1</mn></msub><mo>=</mo><mi>a</mi><mi>/</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>a</mi><mo>+</mo><mi>b</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">p_1 = a/(a+b)</annotation></semantics></math>.</td>
+<td>Bernoulli with probability (p_1 = a/(a+b)).</td>
 </tr>
 <tr class="even">
 <td><code>"stratified"</code></td>
 <td>
-<code>allocation</code>, <code>stratify_by = c("...")</code>
+<code>allocation</code>, <code>stratify_by = c(...)</code>
 </td>
 <td>Same allocation <strong>within</strong> each stratum defined by
 listed <strong>categorical</strong> covariates.</td>
 </tr>
 <tr class="odd">
 <td><code>"logistic_ps"</code></td>
-<td><code>ps_model = list(formula = "~ ...", beta = c(...))</code></td>
-<td>Treatment probability is
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msup><mrow><mi mathvariant="normal">l</mi><mi mathvariant="normal">o</mi><mi mathvariant="normal">g</mi><mi mathvariant="normal">i</mi><mi mathvariant="normal">t</mi></mrow><mrow><mo>−</mo><mn>1</mn></mrow></msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>η</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\mathrm{logit}^{-1}(\eta)</annotation></semantics></math>
-from user model. Provide explicit <code>beta</code> to avoid parsing
-edge-cases.</td>
+<td><code>ps_model = list(formula, beta)</code></td>
+<td>Treatment probability is (^{-1}()) from user model.</td>
 </tr>
 </tbody>
 </table>
@@ -247,21 +240,15 @@ edge-cases.</td>
 <div class="section level2">
 <h2 id="event-time-engines">Event-time engines<a class="anchor" aria-label="anchor" href="#event-time-engines"></a>
 </h2>
-<p>Let
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>Z</mi><annotation encoding="application/x-tex">Z</annotation></semantics></math>
-be treatment (0/1),
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>
-be covariates, and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>η</mi><annotation encoding="application/x-tex">\eta</annotation></semantics></math>
-be the <strong>linear predictor</strong> (defined in
-<code>effects</code>, below). Supported engines and
-<strong>baseline</strong> parameterizations:</p>
+<p>Let (Z) be treatment (0/1), (X) be covariates, and () be the
+<strong>linear predictor</strong> (defined in <code>effects</code>,
+below). Supported engines and baseline parameterizations:</p>
 <table class="table">
 <colgroup>
+<col width="11%">
+<col width="11%">
 <col width="25%">
-<col width="25%">
-<col width="25%">
-<col width="25%">
+<col width="50%">
 </colgroup>
 <thead><tr class="header">
 <th>Model (user-facing)</th>
@@ -277,9 +264,7 @@ be the <strong>linear predictor</strong> (defined in
 <td>
 <code>mu</code>, <code>sigma</code>
 </td>
-<td>
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mo>log</mo><mi>T</mi><mo>=</mo><mi>μ</mi><mo>+</mo><mi>η</mi><mo>+</mo><mi>σ</mi><mi>ε</mi></mrow><annotation encoding="application/x-tex">\log T = \mu + \eta + \sigma \varepsilon</annotation></semantics></math>,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>ε</mi><mo>∼</mo><mi>𝒩</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>0</mn><mo>,</mo><mn>1</mn><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\varepsilon \sim \mathcal{N}(0,1)</annotation></semantics></math>.</td>
+<td>(T = + + ), ((0,1)).</td>
 </tr>
 <tr class="even">
 <td>AFT Weibull</td>
@@ -287,10 +272,7 @@ be the <strong>linear predictor</strong> (defined in
 <td>
 <code>shape</code>, <code>scale</code>
 </td>
-<td>
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>S</mi><mn>0</mn></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mo>−</mo><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mi>/</mi><mi>λ</mi><mo stretchy="true" form="postfix">)</mo></mrow><mi>k</mi></msup><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">S_0(t) = \exp(-(t/\lambda)^k)</annotation></semantics></math>;
-AFT shift via
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>η</mi><annotation encoding="application/x-tex">\eta</annotation></semantics></math>.</td>
+<td>(S_0(t) = (-(t/)^k)); AFT shift via ().</td>
 </tr>
 <tr class="odd">
 <td>AFT Log-Logistic</td>
@@ -298,14 +280,13 @@ AFT shift via
 <td>
 <code>shape</code>, <code>scale</code>
 </td>
-<td>
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>T</mi><mo>=</mo><mi>λ</mi><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>η</mi><mo stretchy="true" form="postfix">)</mo></mrow><msup><mrow><mo stretchy="true" form="prefix">(</mo><mi>U</mi><mi>/</mi><mrow><mo stretchy="true" form="prefix">(</mo><mn>1</mn><mo>−</mo><mi>U</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow><mrow><mn>1</mn><mi>/</mi><mi>k</mi></mrow></msup></mrow><annotation encoding="application/x-tex">T = \lambda \exp(\eta) (U/(1-U))^{1/k}</annotation></semantics></math>.</td>
+<td>(T = (),(U/(1-U))^{1/k}).</td>
 </tr>
 <tr class="even">
 <td>PH Exponential</td>
 <td><code>"ph_pwexp"</code></td>
 <td>
-<code>rates = c(Î»)</code>, <code>cuts = numeric(0)</code>
+<code>rates = c(\lambda)</code>, <code>cuts = numeric(0)</code>
 </td>
 <td>Piecewise-Exp with a <strong>single</strong> segment is
 exponential.</td>
@@ -324,20 +305,15 @@ exponential.</td>
 <td>
 <code>rate</code>, <code>gamma</code>
 </td>
-<td>Hazard
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>h</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mi>a</mi><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>b</mi><mi>t</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">h(t) = a \exp(bt)</annotation></semantics></math>.</td>
+<td>Hazard (h(t) = a, (bt)).</td>
 </tr>
 <tr class="odd">
-<td>PH Piecewise Exponential</td>
+<td>PH Piecewise Exp</td>
 <td><code>"ph_pwexp"</code></td>
 <td>
-<code>rates = c(r1,r2,...)</code>,
-<code>cuts = c(c1,c2,...)</code>
+<code>rates = c(r1,r2,...)</code>, <code>cuts = c(...)</code>
 </td>
-<td>Rate in segment
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>s</mi><annotation encoding="application/x-tex">s</annotation></semantics></math>
-is
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>r</mi><mi>s</mi></msub><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><mi>η</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">r_s \exp(\eta)</annotation></semantics></math>.</td>
+<td>Rate in segment (s) is (r_s ()).</td>
 </tr>
 </tbody>
 </table>
@@ -348,25 +324,28 @@ log-hazard):</p>
 <code class="sourceCode R"><span><span class="va">effects</span> <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  intercept  <span class="op">=</span> <span class="fl">0</span>,                      <span class="co"># default is 0</span></span>
 <span>  treatment  <span class="op">=</span> <span class="op">-</span><span class="fl">0.25</span>,</span>
-<span>  covariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>age <span class="op">=</span> <span class="fl">0.01</span>, sex <span class="op">=</span> <span class="op">-</span><span class="fl">0.2</span><span class="op">)</span>  <span class="co"># NOTE: named LIST</span></span>
+<span>  covariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>age <span class="op">=</span> <span class="fl">0.01</span>, sex <span class="op">=</span> <span class="op">-</span><span class="fl">0.2</span><span class="op">)</span></span>
 <span>  <span class="co"># or: formula="~ age + sex", beta=c(0.01, -0.2)</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <blockquote>
 <p><code>effects$covariates</code> must be a <strong>named list</strong>
-of numerics (e.g., <code>list(age=0.01)</code>), not a named vector
-created with <code><a href="https://rdrr.io/r/base/c.html" class="external-link">c()</a></code>.</p>
+(e.g., <code>list(age=0.01)</code>), not a named vector from
+<code><a href="https://rdrr.io/r/base/c.html" class="external-link">c()</a></code>.</p>
 </blockquote>
 <hr>
 </div>
 <div class="section level2">
 <h2 id="censoring">Censoring<a class="anchor" aria-label="anchor" href="#censoring"></a>
 </h2>
-<p>Two modes are supported:</p>
+<p>We assume a <strong>single censoring mechanism</strong> that may
+depend on observed covariates (but not on the unobserved event time
+after conditioning on those covariates). Two user-facing modes are
+supported:</p>
 <table class="table">
 <colgroup>
-<col width="33%">
-<col width="33%">
-<col width="33%">
+<col width="4%">
+<col width="43%">
+<col width="51%">
 </colgroup>
 <thead><tr class="header">
 <th>Mode</th>
@@ -379,11 +358,9 @@ created with <code><a href="https://rdrr.io/r/base/c.html" class="external-link"
 <td>
 <code>target</code>, <code>admin_time</code>
 </td>
-<td>Solver finds an exponential random-censoring rate
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>λ</mi><mi>c</mi></msub><annotation encoding="application/x-tex">\lambda_c</annotation></semantics></math>
-so that overall censoring fraction
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mo>≈</mo><annotation encoding="application/x-tex">\approx</annotation></semantics></math><code>target</code>, subject to any administrative floor at
-<code>admin_time</code>.</td>
+<td>Finds an exponential random-censoring rate so overall censoring
+fraction ≈ <code>target</code>, with an administrative floor at
+<code>admin_time</code> (if provided).</td>
 </tr>
 <tr class="even">
 <td><code>"explicit"</code></td>
@@ -391,22 +368,199 @@ so that overall censoring fraction
 <code>random = list(dist="exponential", params=list(rate=...))</code>;
 <code>dependent = list(formula="~ ...", base=..., beta=c(...))</code>
 </td>
-<td>Compose administrative, random, and covariate-dependent censoring
-directly.</td>
+<td>Compose administrative, random, and
+<strong>covariate-dependent</strong> censoring directly. The
+<code>dependent</code> block defines a covariate-dependent
+<strong>log-rate</strong> model; it does <strong>not</strong> denote
+competing risks.</td>
 </tr>
 </tbody>
 </table>
-<p><strong>Examples</strong></p>
-<p>Target overall censoring:</p>
+<blockquote>
+<p><strong>Note.</strong> No cause-specific or competing-risk censoring
+is generated here; the simulator’s “dependent” option is strictly
+<strong>covariate-dependent</strong> censoring under a single
+mechanism.</p>
+</blockquote>
+<div class="section level3">
+<h3 id="examples">Examples<a class="anchor" aria-label="anchor" href="#examples"></a>
+</h3>
+<div class="section level4">
+<h4 id="target-overall-censoring">Target overall censoring<a class="anchor" aria-label="anchor" href="#target-overall-censoring"></a>
+</h4>
 <div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">cz_target</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mode<span class="op">=</span><span class="st">"target_overall"</span>, target<span class="op">=</span><span class="fl">0.25</span>, admin_time<span class="op">=</span><span class="fl">36</span><span class="op">)</span></span></code></pre></div>
-<p>Explicit mix (admin + random):</p>
+<code class="sourceCode R"><span><span class="va">cz_target</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  mode        <span class="op">=</span> <span class="st">"target_overall"</span>,</span>
+<span>  target      <span class="op">=</span> <span class="fl">0.25</span>,   <span class="co"># desired overall censoring fraction</span></span>
+<span>  admin_time  <span class="op">=</span> <span class="fl">36</span>      <span class="co"># optional administrative cutoff (same units as event time)</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="explicit-mix-administrative-random">Explicit mix (administrative + random)<a class="anchor" aria-label="anchor" href="#explicit-mix-administrative-random"></a>
+</h4>
 <div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cz_explicit</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  mode <span class="op">=</span> <span class="st">"explicit"</span>,</span>
-<span>  administrative <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>time <span class="op">=</span> <span class="fl">36</span><span class="op">)</span>,</span>
-<span>  random <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>dist <span class="op">=</span> <span class="st">"exponential"</span>, params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>rate <span class="op">=</span> <span class="fl">0.02</span><span class="op">)</span><span class="op">)</span></span>
+<span>  administrative <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>time <span class="op">=</span> <span class="fl">36</span><span class="op">)</span>,                                      <span class="co"># admin cutoff</span></span>
+<span>  random         <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>dist <span class="op">=</span> <span class="st">"exponential"</span>, params <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>rate <span class="op">=</span> <span class="fl">0.02</span><span class="op">)</span><span class="op">)</span><span class="co"># random censoring</span></span>
 <span><span class="op">)</span></span></code></pre></div>
+</div>
+<div class="section level4">
+<h4 id="explicit-covariate-dependent-censoring">Explicit <strong>covariate-dependent</strong> censoring<a class="anchor" aria-label="anchor" href="#explicit-covariate-dependent-censoring"></a>
+</h4>
+<p>The dependent block uses a <strong>log-rate</strong> model: [ _{c}(X)
+= (b) + X^,] where (b&gt;0) is the <em>baseline rate</em>.
+Implementation uses <code>base</code> as a <strong>rate</strong>, and
+<code>beta</code> on the <strong>log-rate</strong> scale. When
+<code>base</code> is supplied, the <strong>formula must not include an
+intercept</strong>.</p>
+<div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">cz_dep</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  mode <span class="op">=</span> <span class="st">"explicit"</span>,</span>
+<span>  dependent <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    <span class="co"># sex is coded numeric 0/1 in these recipes; if yours is a factor, use I(as.numeric(sex)-1)</span></span>
+<span>    formula <span class="op">=</span> <span class="st">"~ 0 + age + sex"</span>,   <span class="co"># NO intercept because we use 'base' as the rate</span></span>
+<span>    base    <span class="op">=</span> <span class="fl">0.03</span>,                <span class="co"># positive baseline rate</span></span>
+<span>    beta    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.012</span>, <span class="fl">0.35</span><span class="op">)</span>       <span class="co"># (age, sex) on log-rate scale</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  administrative <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>time <span class="op">=</span> <span class="fl">48</span><span class="op">)</span> <span class="co"># optional admin cutoff</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<blockquote>
+<p>If you prefer a log-intercept style, omit <code>base</code> and
+include an intercept in the formula and in <code>beta</code>,
+e.g. <code>formula="~ 1 + age + sex"; beta=c(-3.5, 0.012, 0.35)</code>.</p>
+</blockquote>
+<hr>
+</div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="using-a-censoring-recipe-inside-a-full-simulation">Using a censoring recipe inside a full simulation<a class="anchor" aria-label="anchor" href="#using-a-censoring-recipe-inside-a-full-simulation"></a>
+</h2>
+<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Covariates (sex will be numeric 0/1 here)</span></span>
+<span><span class="va">covs</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"age"</span>, type<span class="op">=</span><span class="st">"continuous"</span>,  dist<span class="op">=</span><span class="st">"normal"</span>,    params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mean<span class="op">=</span><span class="fl">62</span>, sd<span class="op">=</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"sex"</span>, type<span class="op">=</span><span class="st">"categorical"</span>, dist<span class="op">=</span><span class="st">"bernoulli"</span>, params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>p<span class="op">=</span><span class="fl">0.45</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Censoring: single covariate-dependent mechanism using a positive base rate</span></span>
+<span><span class="va">cz_dep</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  mode <span class="op">=</span> <span class="st">"explicit"</span>,</span>
+<span>  dependent <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    formula <span class="op">=</span> <span class="st">"~ 0 + age + sex"</span>,  <span class="co"># NO intercept; sex is numeric 0/1</span></span>
+<span>    base    <span class="op">=</span> <span class="fl">0.03</span>,               <span class="co"># baseline censoring rate (&gt;0)</span></span>
+<span>    beta    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.012</span>, <span class="fl">0.35</span><span class="op">)</span>      <span class="co"># (age, sex) on log-rate scale</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  administrative <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>time <span class="op">=</span> <span class="fl">48</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Quick sanity check (optional)</span></span>
+<span><span class="va">mm</span>   <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/stats/model.matrix.html" class="external-link">model.matrix</a></span><span class="op">(</span><span class="op">~</span> <span class="fl">0</span> <span class="op">+</span> <span class="va">age</span> <span class="op">+</span> <span class="va">sex</span>, <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>age<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">50</span>,<span class="fl">70</span><span class="op">)</span>, sex<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0</span>,<span class="fl">1</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="va">rate</span> <span class="op">&lt;-</span> <span class="va">cz_dep</span><span class="op">$</span><span class="va">dependent</span><span class="op">$</span><span class="va">base</span> <span class="op">*</span> <span class="fu"><a href="https://rdrr.io/r/base/Log.html" class="external-link">exp</a></span><span class="op">(</span><span class="va">mm</span> <span class="op"><a href="https://rdrr.io/r/base/matmult.html" class="external-link">%*%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="va">cz_dep</span><span class="op">$</span><span class="va">dependent</span><span class="op">$</span><span class="va">beta</span>, ncol<span class="op">=</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="fu"><a href="https://rdrr.io/r/base/stopifnot.html" class="external-link">stopifnot</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/all.html" class="external-link">all</a></span><span class="op">(</span><span class="va">rate</span> <span class="op">&gt;</span> <span class="fl">0</span> <span class="op">&amp;</span> <span class="fu"><a href="https://rdrr.io/r/base/is.finite.html" class="external-link">is.finite</a></span><span class="op">(</span><span class="va">rate</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Recipe</span></span>
+<span><span class="va">rec</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  n <span class="op">=</span> <span class="fl">300</span>,</span>
+<span>  covariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>defs <span class="op">=</span> <span class="va">covs</span><span class="op">)</span>,</span>
+<span>  treatment  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>assignment<span class="op">=</span><span class="st">"randomization"</span>, allocation<span class="op">=</span><span class="st">"1:1"</span><span class="op">)</span>,</span>
+<span>  event_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    model    <span class="op">=</span> <span class="st">"ph_pwexp"</span>,</span>
+<span>    baseline <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>rates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.05</span><span class="op">)</span>, cuts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span><span class="op">)</span>, <span class="co"># exponential baseline</span></span>
+<span>    effects  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>intercept<span class="op">=</span><span class="fl">0</span>, treatment<span class="op">=</span><span class="op">-</span><span class="fl">0.3</span>, covariates<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>age<span class="op">=</span><span class="fl">0.01</span>, sex<span class="op">=</span><span class="op">-</span><span class="fl">0.2</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  censoring  <span class="op">=</span> <span class="va">cz_dep</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">2025</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Simulate</span></span>
+<span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_from_recipe.html">simulate_from_recipe</a></span><span class="op">(</span><span class="fu"><a href="../reference/validate_recipe.html">validate_recipe</a></span><span class="op">(</span><span class="va">rec</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Output</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>achieved_censoring <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">dat</span>, <span class="st">"achieved_censoring"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  caption <span class="op">=</span> <span class="st">"Achieved censoring rate"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Achieved censoring rate</caption>
+<thead><tr class="header">
+<th align="right">achieved_censoring</th>
+</tr></thead>
+<tbody><tr class="odd">
+<td align="right">0.51</td>
+</tr></tbody>
+</table>
+<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu">utils</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat</span>, <span class="fl">8</span><span class="op">)</span>, caption <span class="op">=</span> <span class="st">"First 8 rows of simulated data"</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>First 8 rows of simulated data</caption>
+<thead><tr class="header">
+<th align="right">time</th>
+<th align="right">status</th>
+<th align="right">arm</th>
+<th align="right">age</th>
+<th align="right">sex</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">0.0749714</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">68.20757</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">1.1019457</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">62.35641</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="right">14.3347821</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">69.73154</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">1.0472994</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">74.72489</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">1.7066127</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">65.70975</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">0.8646883</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">60.37146</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">0.1501047</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">65.97112</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">5.0730373</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">61.20011</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
 <hr>
 </div>
 <div class="section level2">
@@ -416,74 +570,424 @@ directly.</td>
 <code><a href="../reference/simulate_from_recipe.html">simulate_from_recipe()</a></code>. We report realized censoring via
 <code>attr(dat, "achieved_censoring")</code>.</p>
 <div class="section level3">
-<h3 id="example-1-â-aft-lognormal">Example 1 â€” AFT Lognormal<a class="anchor" aria-label="anchor" href="#example-1-%C3%A2-aft-lognormal"></a>
+<h3 id="example-1-aft-lognormal">Example 1 — AFT Lognormal<a class="anchor" aria-label="anchor" href="#example-1-aft-lognormal"></a>
 </h3>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>covs1 <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">name=</span><span class="st">"age"</span>,   <span class="at">type=</span><span class="st">"continuous"</span>,  <span class="at">dist=</span><span class="st">"normal"</span>,     <span class="at">params=</span><span class="fu">list</span>(<span class="at">mean=</span><span class="dv">62</span>, <span class="at">sd=</span><span class="dv">10</span>),</span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>       <span class="at">transform=</span><span class="fu">c</span>(<span class="st">"center(60)"</span>,<span class="st">"scale(10)"</span>)),</span>
-<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">name=</span><span class="st">"sex"</span>,   <span class="at">type=</span><span class="st">"categorical"</span>, <span class="at">dist=</span><span class="st">"bernoulli"</span>,  <span class="at">params=</span><span class="fu">list</span>(<span class="at">p=</span><span class="fl">0.45</span>)),</span>
-<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">name=</span><span class="st">"stage"</span>, <span class="at">type=</span><span class="st">"categorical"</span>, <span class="at">dist=</span><span class="st">"ordinal"</span>,</span>
-<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>       <span class="at">params=</span><span class="fu">list</span>(<span class="at">prob=</span><span class="fu">c</span>(<span class="fl">0.3</span>,<span class="fl">0.5</span>,<span class="fl">0.2</span>), <span class="at">labels=</span><span class="fu">c</span>(<span class="st">"I"</span>,<span class="st">"II"</span>,<span class="st">"III"</span>))),</span>
-<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">name=</span><span class="st">"x"</span>,     <span class="at">type=</span><span class="st">"continuous"</span>,  <span class="at">dist=</span><span class="st">"lognormal"</span>,  <span class="at">params=</span><span class="fu">list</span>(<span class="at">meanlog=</span><span class="dv">0</span>, <span class="at">sdlog=</span><span class="fl">0.6</span>))</span>
-<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>)</span>
-<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a></span>
-<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a>rec1 <span class="ot">&lt;-</span> <span class="fu">list</span>(</span>
-<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a>  <span class="at">n =</span> <span class="dv">300</span>,</span>
-<span id="cb9-12"><a href="#cb9-12" tabindex="-1"></a>  <span class="at">covariates =</span> <span class="fu">list</span>(<span class="at">defs =</span> covs1),</span>
-<span id="cb9-13"><a href="#cb9-13" tabindex="-1"></a>  <span class="at">treatment  =</span> <span class="fu">list</span>(<span class="at">assignment=</span><span class="st">"randomization"</span>, <span class="at">allocation=</span><span class="st">"1:1"</span>),</span>
-<span id="cb9-14"><a href="#cb9-14" tabindex="-1"></a>  <span class="at">event_time =</span> <span class="fu">list</span>(<span class="at">model=</span><span class="st">"aft_lognormal"</span>,</span>
-<span id="cb9-15"><a href="#cb9-15" tabindex="-1"></a>                    <span class="at">baseline=</span><span class="fu">list</span>(<span class="at">mu=</span><span class="fl">3.0</span>, <span class="at">sigma=</span><span class="fl">0.6</span>),</span>
-<span id="cb9-16"><a href="#cb9-16" tabindex="-1"></a>                    <span class="at">effects=</span><span class="fu">list</span>(<span class="at">intercept=</span><span class="dv">0</span>, <span class="at">treatment=</span><span class="sc">-</span><span class="fl">0.25</span>,</span>
-<span id="cb9-17"><a href="#cb9-17" tabindex="-1"></a>                                 <span class="at">covariates=</span><span class="fu">list</span>(<span class="at">age=</span><span class="fl">0.01</span>, <span class="at">sex=</span><span class="sc">-</span><span class="fl">0.2</span>, <span class="at">x=</span><span class="fl">0.05</span>))),</span>
-<span id="cb9-18"><a href="#cb9-18" tabindex="-1"></a>  <span class="at">censoring  =</span> <span class="fu">list</span>(<span class="at">mode=</span><span class="st">"target_overall"</span>, <span class="at">target=</span><span class="fl">0.25</span>, <span class="at">admin_time=</span><span class="dv">36</span>),</span>
-<span id="cb9-19"><a href="#cb9-19" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">11</span></span>
-<span id="cb9-20"><a href="#cb9-20" tabindex="-1"></a>)</span>
-<span id="cb9-21"><a href="#cb9-21" tabindex="-1"></a></span>
-<span id="cb9-22"><a href="#cb9-22" tabindex="-1"></a>dat1 <span class="ot">&lt;-</span> <span class="fu">simulate_from_recipe</span>(<span class="fu">validate_recipe</span>(rec1))</span>
-<span id="cb9-23"><a href="#cb9-23" tabindex="-1"></a><span class="fu">head</span>(dat1)</span>
-<span id="cb9-24"><a href="#cb9-24" tabindex="-1"></a>       time status arm        age sex stage         x</span>
-<span id="cb9-25"><a href="#cb9-25" tabindex="-1"></a><span class="dv">1</span> <span class="fl">17.256803</span>      <span class="dv">1</span>   <span class="dv">0</span> <span class="sc">-</span><span class="fl">0.3910311</span>   <span class="dv">0</span>    II <span class="fl">1.2192376</span></span>
-<span id="cb9-26"><a href="#cb9-26" tabindex="-1"></a><span class="dv">2</span> <span class="fl">19.531621</span>      <span class="dv">1</span>   <span class="dv">1</span>  <span class="fl">0.2265944</span>   <span class="dv">1</span>    II <span class="fl">0.6122083</span></span>
-<span id="cb9-27"><a href="#cb9-27" tabindex="-1"></a><span class="dv">3</span> <span class="fl">11.902048</span>      <span class="dv">1</span>   <span class="dv">0</span> <span class="sc">-</span><span class="fl">1.3165531</span>   <span class="dv">0</span>   III <span class="fl">1.2334828</span></span>
-<span id="cb9-28"><a href="#cb9-28" tabindex="-1"></a><span class="dv">4</span> <span class="fl">18.770511</span>      <span class="dv">1</span>   <span class="dv">0</span> <span class="sc">-</span><span class="fl">1.1626533</span>   <span class="dv">0</span>    II <span class="fl">0.5784534</span></span>
-<span id="cb9-29"><a href="#cb9-29" tabindex="-1"></a><span class="dv">5</span> <span class="fl">16.584294</span>      <span class="dv">1</span>   <span class="dv">1</span>  <span class="fl">1.3784892</span>   <span class="dv">0</span>    II <span class="fl">0.2619596</span></span>
-<span id="cb9-30"><a href="#cb9-30" tabindex="-1"></a><span class="dv">6</span>  <span class="fl">9.377759</span>      <span class="dv">1</span>   <span class="dv">1</span> <span class="sc">-</span><span class="fl">0.7341513</span>   <span class="dv">0</span>    II <span class="fl">1.1455235</span></span>
-<span id="cb9-31"><a href="#cb9-31" tabindex="-1"></a><span class="fu">attr</span>(dat1, <span class="st">"achieved_censoring"</span>)</span>
-<span id="cb9-32"><a href="#cb9-32" tabindex="-1"></a>[<span class="dv">1</span>] <span class="fl">0.23</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Covariates</span></span>
+<span><span class="va">covs1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"age"</span>,   type<span class="op">=</span><span class="st">"continuous"</span>,  dist<span class="op">=</span><span class="st">"normal"</span>,     params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mean<span class="op">=</span><span class="fl">62</span>, sd<span class="op">=</span><span class="fl">10</span><span class="op">)</span>,</span>
+<span>       transform<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"center(60)"</span>,<span class="st">"scale(10)"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"sex"</span>,   type<span class="op">=</span><span class="st">"categorical"</span>, dist<span class="op">=</span><span class="st">"bernoulli"</span>,  params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>p<span class="op">=</span><span class="fl">0.45</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"stage"</span>, type<span class="op">=</span><span class="st">"categorical"</span>, dist<span class="op">=</span><span class="st">"ordinal"</span>,</span>
+<span>       params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>prob<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.3</span>,<span class="fl">0.5</span>,<span class="fl">0.2</span><span class="op">)</span>, labels<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"I"</span>,<span class="st">"II"</span>,<span class="st">"III"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"x"</span>,     type<span class="op">=</span><span class="st">"continuous"</span>,  dist<span class="op">=</span><span class="st">"lognormal"</span>,  params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>meanlog<span class="op">=</span><span class="fl">0</span>, sdlog<span class="op">=</span><span class="fl">0.6</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Recipe</span></span>
+<span><span class="va">rec1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  n <span class="op">=</span> <span class="fl">300</span>,</span>
+<span>  covariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>defs <span class="op">=</span> <span class="va">covs1</span><span class="op">)</span>,</span>
+<span>  treatment  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>assignment<span class="op">=</span><span class="st">"randomization"</span>, allocation<span class="op">=</span><span class="st">"1:1"</span><span class="op">)</span>,</span>
+<span>  event_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>model<span class="op">=</span><span class="st">"aft_lognormal"</span>,</span>
+<span>                    baseline<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mu<span class="op">=</span><span class="fl">3.0</span>, sigma<span class="op">=</span><span class="fl">0.6</span><span class="op">)</span>,</span>
+<span>                    effects<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>intercept<span class="op">=</span><span class="fl">0</span>, treatment<span class="op">=</span><span class="op">-</span><span class="fl">0.25</span>,</span>
+<span>                                 covariates<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>age<span class="op">=</span><span class="fl">0.01</span>, sex<span class="op">=</span><span class="op">-</span><span class="fl">0.2</span>, x<span class="op">=</span><span class="fl">0.05</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  censoring  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mode<span class="op">=</span><span class="st">"target_overall"</span>, target<span class="op">=</span><span class="fl">0.25</span>, admin_time<span class="op">=</span><span class="fl">36</span><span class="op">)</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">11</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Simulate</span></span>
+<span><span class="va">dat1</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_from_recipe.html">simulate_from_recipe</a></span><span class="op">(</span><span class="fu"><a href="../reference/validate_recipe.html">validate_recipe</a></span><span class="op">(</span><span class="va">rec1</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Display: data (first rows)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu">utils</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat1</span>, <span class="fl">8</span><span class="op">)</span>, caption <span class="op">=</span> <span class="st">"Example 1 — AFT Lognormal: first 8 rows"</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Example 1 — AFT Lognormal: first 8 rows</caption>
+<thead><tr class="header">
+<th align="right">time</th>
+<th align="right">status</th>
+<th align="right">arm</th>
+<th align="right">age</th>
+<th align="right">sex</th>
+<th align="left">stage</th>
+<th align="right">x</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">17.256804</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">-0.3910311</td>
+<td align="right">0</td>
+<td align="left">II</td>
+<td align="right">1.2192376</td>
+</tr>
+<tr class="even">
+<td align="right">19.531620</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">0.2265944</td>
+<td align="right">1</td>
+<td align="left">II</td>
+<td align="right">0.6122083</td>
+</tr>
+<tr class="odd">
+<td align="right">11.902048</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">-1.3165531</td>
+<td align="right">0</td>
+<td align="left">III</td>
+<td align="right">1.2334828</td>
+</tr>
+<tr class="even">
+<td align="right">18.770511</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">-1.1626533</td>
+<td align="right">0</td>
+<td align="left">II</td>
+<td align="right">0.5784534</td>
+</tr>
+<tr class="odd">
+<td align="right">16.584294</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1.3784892</td>
+<td align="right">0</td>
+<td align="left">II</td>
+<td align="right">0.2619596</td>
+</tr>
+<tr class="even">
+<td align="right">9.377759</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">-0.7341513</td>
+<td align="right">0</td>
+<td align="left">II</td>
+<td align="right">1.1455235</td>
+</tr>
+<tr class="odd">
+<td align="right">12.079110</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">1.5236056</td>
+<td align="right">1</td>
+<td align="left">III</td>
+<td align="right">1.7865600</td>
+</tr>
+<tr class="even">
+<td align="right">17.979116</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">0.8249178</td>
+<td align="right">1</td>
+<td align="left">II</td>
+<td align="right">1.4493842</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb13"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="co"># Display: key attributes (compact)</span></span>
+<span><span class="va">attr_tbl1</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  attribute <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"achieved_censoring"</span>, <span class="st">"n_rows"</span>, <span class="st">"n_cols"</span>, <span class="st">"class"</span><span class="op">)</span>,</span>
+<span>  value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">dat1</span>, <span class="st">"achieved_censoring"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">dat1</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">dat1</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">dat1</span><span class="op">)</span>, collapse <span class="op">=</span> <span class="st">", "</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">attr_tbl1</span>, caption <span class="op">=</span> <span class="st">"Example 1 — Attributes"</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Example 1 — Attributes</caption>
+<thead><tr class="header">
+<th align="left">attribute</th>
+<th align="left">value</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">achieved_censoring</td>
+<td align="left">0.23</td>
+</tr>
+<tr class="even">
+<td align="left">n_rows</td>
+<td align="left">300</td>
+</tr>
+<tr class="odd">
+<td align="left">n_cols</td>
+<td align="left">7</td>
+</tr>
+<tr class="even">
+<td align="left">class</td>
+<td align="left">data.frame</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section level3">
-<h3 id="example-2-â-aft-weibull">Example 2 â€” AFT Weibull<a class="anchor" aria-label="anchor" href="#example-2-%C3%A2-aft-weibull"></a>
+<h3 id="example-2-aft-weibull">Example 2 — AFT Weibull<a class="anchor" aria-label="anchor" href="#example-2-aft-weibull"></a>
 </h3>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>rec2 <span class="ot">&lt;-</span> rec1</span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>rec2<span class="sc">$</span>event_time <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="at">model=</span><span class="st">"aft_weibull"</span>,</span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>                        <span class="at">baseline=</span><span class="fu">list</span>(<span class="at">shape=</span><span class="fl">1.3</span>, <span class="at">scale=</span><span class="dv">12</span>),</span>
-<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>                        <span class="at">effects=</span><span class="fu">list</span>(<span class="at">intercept=</span><span class="dv">0</span>, <span class="at">treatment=</span><span class="sc">-</span><span class="fl">0.20</span>,</span>
-<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>                                     <span class="at">covariates=</span><span class="fu">list</span>(<span class="at">age=</span><span class="fl">0.008</span>, <span class="at">x=</span><span class="fl">0.04</span>)))</span>
-<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>dat2 <span class="ot">&lt;-</span> <span class="fu">simulate_from_recipe</span>(<span class="fu">validate_recipe</span>(rec2), <span class="at">seed=</span><span class="dv">12</span>)</span>
-<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a><span class="fu">summary</span>(dat2<span class="sc">$</span>time)</span>
-<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>   Min. <span class="dv">1</span>st Qu.  Median    Mean <span class="dv">3</span>rd Qu.    Max. </span>
-<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a> <span class="fl">0.2221</span>  <span class="fl">3.4534</span>  <span class="fl">7.2184</span>  <span class="fl">8.8069</span> <span class="fl">12.1700</span> <span class="fl">36.0000</span> </span>
-<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="fu">attr</span>(dat2, <span class="st">"achieved_censoring"</span>)</span>
-<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>[<span class="dv">1</span>] <span class="fl">0.2466667</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Start from Example 1 and tweak the event-time engine</span></span>
+<span><span class="va">rec2</span> <span class="op">&lt;-</span> <span class="va">rec1</span></span>
+<span><span class="va">rec2</span><span class="op">$</span><span class="va">event_time</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  model    <span class="op">=</span> <span class="st">"aft_weibull"</span>,</span>
+<span>  baseline <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>shape<span class="op">=</span><span class="fl">1.3</span>, scale<span class="op">=</span><span class="fl">12</span><span class="op">)</span>,</span>
+<span>  effects  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>intercept<span class="op">=</span><span class="fl">0</span>, treatment<span class="op">=</span><span class="op">-</span><span class="fl">0.20</span>, covariates<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>age<span class="op">=</span><span class="fl">0.008</span>, x<span class="op">=</span><span class="fl">0.04</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">dat2</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_from_recipe.html">simulate_from_recipe</a></span><span class="op">(</span><span class="fu"><a href="../reference/validate_recipe.html">validate_recipe</a></span><span class="op">(</span><span class="va">rec2</span><span class="op">)</span>, seed<span class="op">=</span><span class="fl">12</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Display: data (first rows)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu">utils</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat2</span>, <span class="fl">8</span><span class="op">)</span>, caption <span class="op">=</span> <span class="st">"Example 2 — AFT Weibull: first 8 rows"</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Example 2 — AFT Weibull: first 8 rows</caption>
+<thead><tr class="header">
+<th align="right">time</th>
+<th align="right">status</th>
+<th align="right">arm</th>
+<th align="right">age</th>
+<th align="right">sex</th>
+<th align="left">stage</th>
+<th align="right">x</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">8.0059365</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">-1.2805676</td>
+<td align="right">0</td>
+<td align="left">I</td>
+<td align="right">0.4280147</td>
+</tr>
+<tr class="even">
+<td align="right">22.1334913</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">1.7771695</td>
+<td align="right">0</td>
+<td align="left">II</td>
+<td align="right">2.1502917</td>
+</tr>
+<tr class="odd">
+<td align="right">3.1817150</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">-0.7567445</td>
+<td align="right">0</td>
+<td align="left">II</td>
+<td align="right">0.9171049</td>
+</tr>
+<tr class="even">
+<td align="right">0.8247902</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">-0.7200052</td>
+<td align="right">1</td>
+<td align="left">II</td>
+<td align="right">1.5528655</td>
+</tr>
+<tr class="odd">
+<td align="right">3.9411737</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">-1.7976421</td>
+<td align="right">0</td>
+<td align="left">II</td>
+<td align="right">0.6726879</td>
+</tr>
+<tr class="even">
+<td align="right">12.4980918</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">-0.0722960</td>
+<td align="right">0</td>
+<td align="left">II</td>
+<td align="right">2.2757744</td>
+</tr>
+<tr class="odd">
+<td align="right">9.3739465</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">-0.1153487</td>
+<td align="right">0</td>
+<td align="left">I</td>
+<td align="right">0.3663151</td>
+</tr>
+<tr class="even">
+<td align="right">1.0425923</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">-0.4282552</td>
+<td align="right">0</td>
+<td align="left">III</td>
+<td align="right">0.9247253</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb15"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="co"># Display: key attributes (compact)</span></span>
+<span><span class="va">attr_tbl2</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  attribute <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"achieved_censoring"</span>, <span class="st">"n_rows"</span>, <span class="st">"n_cols"</span>, <span class="st">"class"</span><span class="op">)</span>,</span>
+<span>  value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">dat2</span>, <span class="st">"achieved_censoring"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">dat2</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">dat2</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">dat2</span><span class="op">)</span>, collapse <span class="op">=</span> <span class="st">", "</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">attr_tbl2</span>, caption <span class="op">=</span> <span class="st">"Example 2 — Attributes"</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Example 2 — Attributes</caption>
+<thead><tr class="header">
+<th align="left">attribute</th>
+<th align="left">value</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">achieved_censoring</td>
+<td align="left">0.246666666666667</td>
+</tr>
+<tr class="even">
+<td align="left">n_rows</td>
+<td align="left">300</td>
+</tr>
+<tr class="odd">
+<td align="left">n_cols</td>
+<td align="left">7</td>
+</tr>
+<tr class="even">
+<td align="left">class</td>
+<td align="left">data.frame</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section level3">
-<h3 id="example-3-â-ph-piecewise-exponential-single-segment">Example 3 â€” PH piecewise exponential (single segment)<a class="anchor" aria-label="anchor" href="#example-3-%C3%A2-ph-piecewise-exponential-single-segment"></a>
+<h3 id="example-3-ph-exponential-single-segment">Example 3 — PH Exponential (single segment)<a class="anchor" aria-label="anchor" href="#example-3-ph-exponential-single-segment"></a>
 </h3>
-<div class="sourceCode" id="cb11"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb16"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rec3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  n <span class="op">=</span> <span class="fl">400</span>,</span>
 <span>  covariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>defs <span class="op">=</span> <span class="va">covs1</span><span class="op">)</span>,</span>
 <span>  treatment  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>assignment<span class="op">=</span><span class="st">"randomization"</span>, allocation<span class="op">=</span><span class="st">"1:1"</span><span class="op">)</span>,</span>
-<span>  event_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>model<span class="op">=</span><span class="st">"ph_pwexp"</span>,</span>
-<span>                    baseline<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>rates<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.05</span><span class="op">)</span>, cuts<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>                    effects<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>intercept<span class="op">=</span><span class="fl">0</span>, treatment<span class="op">=</span><span class="op">-</span><span class="fl">0.3</span>,</span>
-<span>                                 covariates<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>age<span class="op">=</span><span class="fl">0.01</span>, x<span class="op">=</span><span class="fl">0.03</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  event_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    model    <span class="op">=</span> <span class="st">"ph_pwexp"</span>,</span>
+<span>    baseline <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>rates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.05</span><span class="op">)</span>, cuts <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/numeric.html" class="external-link">numeric</a></span><span class="op">(</span><span class="fl">0</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    effects  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>intercept<span class="op">=</span><span class="fl">0</span>, treatment<span class="op">=</span><span class="op">-</span><span class="fl">0.3</span>, covariates<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>age<span class="op">=</span><span class="fl">0.01</span>, x<span class="op">=</span><span class="fl">0.03</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
 <span>  censoring  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mode<span class="op">=</span><span class="st">"target_overall"</span>, target<span class="op">=</span><span class="fl">0.20</span>, admin_time<span class="op">=</span><span class="fl">30</span><span class="op">)</span>,</span>
 <span>  seed <span class="op">=</span> <span class="fl">13</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">dat3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_from_recipe.html">simulate_from_recipe</a></span><span class="op">(</span><span class="fu"><a href="../reference/validate_recipe.html">validate_recipe</a></span><span class="op">(</span><span class="va">rec3</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<span></span>
+<span><span class="va">dat3</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_from_recipe.html">simulate_from_recipe</a></span><span class="op">(</span><span class="fu"><a href="../reference/validate_recipe.html">validate_recipe</a></span><span class="op">(</span><span class="va">rec3</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Display: data (first rows)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu">utils</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat3</span>, <span class="fl">8</span><span class="op">)</span>, caption <span class="op">=</span> <span class="st">"Example 3 — PH Exponential: first 8 rows"</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
-<caption>Example 3 â€” Summary</caption>
+<caption>Example 3 — PH Exponential: first 8 rows</caption>
+<thead><tr class="header">
+<th align="right">time</th>
+<th align="right">status</th>
+<th align="right">arm</th>
+<th align="right">age</th>
+<th align="right">sex</th>
+<th align="left">stage</th>
+<th align="right">x</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">30.00000</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">0.7543269</td>
+<td align="right">1</td>
+<td align="left">III</td>
+<td align="right">2.4109639</td>
+</tr>
+<tr class="even">
+<td align="right">12.97451</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">-0.0802719</td>
+<td align="right">1</td>
+<td align="left">II</td>
+<td align="right">1.0548136</td>
+</tr>
+<tr class="odd">
+<td align="right">30.00000</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">1.9751634</td>
+<td align="right">1</td>
+<td align="left">I</td>
+<td align="right">0.3014883</td>
+</tr>
+<tr class="even">
+<td align="right">10.72582</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">0.3873201</td>
+<td align="right">0</td>
+<td align="left">I</td>
+<td align="right">2.3418948</td>
+</tr>
+<tr class="odd">
+<td align="right">16.35756</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">1.3425261</td>
+<td align="right">1</td>
+<td align="left">I</td>
+<td align="right">1.8945147</td>
+</tr>
+<tr class="even">
+<td align="right">26.61325</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">0.6155261</td>
+<td align="right">1</td>
+<td align="left">III</td>
+<td align="right">1.0956426</td>
+</tr>
+<tr class="odd">
+<td align="right">30.00000</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">1.4295066</td>
+<td align="right">0</td>
+<td align="left">II</td>
+<td align="right">1.0172397</td>
+</tr>
+<tr class="even">
+<td align="right">30.00000</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">0.4366797</td>
+<td align="right">0</td>
+<td align="left">II</td>
+<td align="right">1.9923261</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="co"># Display: a small summary + attributes</span></span>
+<span><span class="va">summ3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  Metric <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n"</span>, <span class="st">"Events"</span>, <span class="st">"Censoring rate"</span>, <span class="st">"Mean time"</span>, <span class="st">"Median time"</span><span class="op">)</span>,</span>
+<span>  Value  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">dat3</span><span class="op">)</span>,</span>
+<span>             <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">dat3</span><span class="op">$</span><span class="va">status</span> <span class="op">==</span> <span class="fl">1</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>             <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">dat3</span><span class="op">$</span><span class="va">status</span> <span class="op">==</span> <span class="fl">0</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>             <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">dat3</span><span class="op">$</span><span class="va">time</span>,   na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>,</span>
+<span>             <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">dat3</span><span class="op">$</span><span class="va">time</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">summ3</span>, caption <span class="op">=</span> <span class="st">"Example 3 — Summary"</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Example 3 — Summary</caption>
 <thead><tr class="header">
 <th align="left">Metric</th>
 <th align="right">Value</th>
@@ -511,11 +1015,48 @@ directly.</td>
 </tr>
 </tbody>
 </table>
+<div class="sourceCode" id="cb18"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">attr_tbl3</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  attribute <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"achieved_censoring"</span>, <span class="st">"n_rows"</span>, <span class="st">"n_cols"</span>, <span class="st">"class"</span><span class="op">)</span>,</span>
+<span>  value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">dat3</span>, <span class="st">"achieved_censoring"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">dat3</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">dat3</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">dat3</span><span class="op">)</span>, collapse <span class="op">=</span> <span class="st">", "</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">attr_tbl3</span>, caption <span class="op">=</span> <span class="st">"Example 3 — Attributes"</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Example 3 — Attributes</caption>
+<thead><tr class="header">
+<th align="left">attribute</th>
+<th align="left">value</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">achieved_censoring</td>
+<td align="left">0.2575</td>
+</tr>
+<tr class="even">
+<td align="left">n_rows</td>
+<td align="left">400</td>
+</tr>
+<tr class="odd">
+<td align="left">n_cols</td>
+<td align="left">7</td>
+</tr>
+<tr class="even">
+<td align="left">class</td>
+<td align="left">data.frame</td>
+</tr>
+</tbody>
+</table>
 </div>
 <div class="section level3">
-<h3 id="example-4-â-ph-piecewise-exponential-multi-segment">Example 4 â€” PH piecewise exponential (multi-segment)<a class="anchor" aria-label="anchor" href="#example-4-%C3%A2-ph-piecewise-exponential-multi-segment"></a>
+<h3 id="example-4-ph-piecewise-exponential-multi-segment">Example 4 — PH Piecewise Exponential (multi-segment)<a class="anchor" aria-label="anchor" href="#example-4-ph-piecewise-exponential-multi-segment"></a>
 </h3>
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
+<div class="sourceCode" id="cb19"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">rec4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  n <span class="op">=</span> <span class="fl">500</span>,</span>
 <span>  covariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>defs <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
@@ -524,50 +1065,313 @@ directly.</td>
 <span>    <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"x"</span>,   type<span class="op">=</span><span class="st">"continuous"</span>,  dist<span class="op">=</span><span class="st">"lognormal"</span>, params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>meanlog<span class="op">=</span><span class="fl">0</span>, sdlog<span class="op">=</span><span class="fl">0.5</span><span class="op">)</span><span class="op">)</span></span>
 <span>  <span class="op">)</span><span class="op">)</span>,</span>
 <span>  treatment  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>assignment<span class="op">=</span><span class="st">"randomization"</span>, allocation<span class="op">=</span><span class="st">"1:1"</span><span class="op">)</span>,</span>
-<span>  event_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>model<span class="op">=</span><span class="st">"ph_pwexp"</span>,</span>
-<span>                    baseline<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>rates<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.10</span>, <span class="fl">0.06</span>, <span class="fl">0.03</span><span class="op">)</span>, cuts<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">6</span>, <span class="fl">18</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>                    effects<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>intercept<span class="op">=</span><span class="fl">0</span>, treatment<span class="op">=</span><span class="op">-</span><span class="fl">0.4</span>,</span>
-<span>                                 covariates<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>age<span class="op">=</span><span class="fl">0.01</span>, x<span class="op">=</span><span class="fl">0.03</span><span class="op">)</span><span class="op">)</span><span class="op">)</span>,</span>
-<span>  censoring  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mode<span class="op">=</span><span class="st">"target_overall"</span>, target<span class="op">=</span><span class="fl">0.25</span>, admin_time<span class="op">=</span><span class="fl">30</span><span class="op">)</span></span>
+<span>  event_time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    model    <span class="op">=</span> <span class="st">"ph_pwexp"</span>,</span>
+<span>    baseline <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>rates<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.10</span>, <span class="fl">0.06</span>, <span class="fl">0.03</span><span class="op">)</span>, cuts<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">6</span>, <span class="fl">18</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    effects  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>intercept<span class="op">=</span><span class="fl">0</span>, treatment<span class="op">=</span><span class="op">-</span><span class="fl">0.4</span>, covariates<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>age<span class="op">=</span><span class="fl">0.01</span>, x<span class="op">=</span><span class="fl">0.03</span><span class="op">)</span><span class="op">)</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  censoring  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mode<span class="op">=</span><span class="st">"target_overall"</span>, target<span class="op">=</span><span class="fl">0.25</span>, admin_time<span class="op">=</span><span class="fl">30</span><span class="op">)</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">123</span></span>
 <span><span class="op">)</span></span>
-<span><span class="va">dat4</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_from_recipe.html">simulate_from_recipe</a></span><span class="op">(</span><span class="fu"><a href="../reference/validate_recipe.html">validate_recipe</a></span><span class="op">(</span><span class="va">rec4</span><span class="op">)</span>, seed<span class="op">=</span><span class="fl">123</span><span class="op">)</span></span></code></pre></div>
+<span></span>
+<span><span class="va">dat4</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_from_recipe.html">simulate_from_recipe</a></span><span class="op">(</span><span class="fu"><a href="../reference/validate_recipe.html">validate_recipe</a></span><span class="op">(</span><span class="va">rec4</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Display: data (first rows)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu">utils</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat4</span>, <span class="fl">8</span><span class="op">)</span>, caption <span class="op">=</span> <span class="st">"Example 4 — PH Piecewise Exponential (multi-segment): first 8 rows"</span><span class="op">)</span></span></code></pre></div>
 <table class="table">
-<caption>Example 4 â€” Summary</caption>
+<caption>Example 4 — PH Piecewise Exponential (multi-segment): first 8
+rows</caption>
+<thead><tr class="header">
+<th align="right">time</th>
+<th align="right">status</th>
+<th align="right">arm</th>
+<th align="right">age</th>
+<th align="right">sex</th>
+<th align="right">x</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">11.9350637</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">55.51619</td>
+<td align="right">0</td>
+<td align="right">2.1580717</td>
+</tr>
+<tr class="even">
+<td align="right">0.4796944</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">58.15858</td>
+<td align="right">1</td>
+<td align="right">0.9466222</td>
+</tr>
+<tr class="odd">
+<td align="right">7.2330213</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">72.46967</td>
+<td align="right">0</td>
+<td align="right">1.2914109</td>
+</tr>
+<tr class="even">
+<td align="right">2.4702411</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">60.56407</td>
+<td align="right">1</td>
+<td align="right">1.1129109</td>
+</tr>
+<tr class="odd">
+<td align="right">15.1776274</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">61.03430</td>
+<td align="right">1</td>
+<td align="right">0.9111385</td>
+</tr>
+<tr class="even">
+<td align="right">1.9382470</td>
+<td align="right">1</td>
+<td align="right">0</td>
+<td align="right">73.72052</td>
+<td align="right">0</td>
+<td align="right">0.9415791</td>
+</tr>
+<tr class="odd">
+<td align="right">2.3146500</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">63.68733</td>
+<td align="right">1</td>
+<td align="right">1.6593354</td>
+</tr>
+<tr class="even">
+<td align="right">6.3131555</td>
+<td align="right">1</td>
+<td align="right">1</td>
+<td align="right">49.87951</td>
+<td align="right">0</td>
+<td align="right">0.9041780</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb20"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="co"># Display: summary + attributes</span></span>
+<span><span class="va">summ4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  Metric <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"n"</span>, <span class="st">"Events"</span>, <span class="st">"Censoring rate"</span>, <span class="st">"Mean time"</span>, <span class="st">"Median time"</span><span class="op">)</span>,</span>
+<span>  Value  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">dat4</span><span class="op">)</span>,</span>
+<span>             <span class="fu"><a href="https://rdrr.io/r/base/sum.html" class="external-link">sum</a></span><span class="op">(</span><span class="va">dat4</span><span class="op">$</span><span class="va">status</span> <span class="op">==</span> <span class="fl">1</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>,</span>
+<span>             <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">dat4</span><span class="op">$</span><span class="va">status</span> <span class="op">==</span> <span class="fl">0</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span>,</span>
+<span>             <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/mean.html" class="external-link">mean</a></span><span class="op">(</span><span class="va">dat4</span><span class="op">$</span><span class="va">time</span>,   na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span>,</span>
+<span>             <span class="fu"><a href="https://rdrr.io/r/base/Round.html" class="external-link">round</a></span><span class="op">(</span><span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/median.html" class="external-link">median</a></span><span class="op">(</span><span class="va">dat4</span><span class="op">$</span><span class="va">time</span>, na.rm <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span>, <span class="fl">2</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">summ4</span>, caption <span class="op">=</span> <span class="st">"Example 4 — Summary"</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Example 4 — Summary</caption>
 <thead><tr class="header">
 <th align="left">Metric</th>
-<th align="left">Metric.1</th>
 <th align="right">Value</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td align="left">n</td>
-<td align="left">n</td>
 <td align="right">500.000</td>
 </tr>
 <tr class="even">
-<td align="left">Events</td>
 <td align="left">Events</td>
 <td align="right">367.000</td>
 </tr>
 <tr class="odd">
 <td align="left">Censoring rate</td>
-<td align="left">Censoring rate</td>
 <td align="right">0.266</td>
 </tr>
 <tr class="even">
-<td align="left">Mean time</td>
 <td align="left">Mean time</td>
 <td align="right">5.640</td>
 </tr>
 <tr class="odd">
 <td align="left">Median time</td>
-<td align="left">Median time</td>
 <td align="right">3.560</td>
+</tr>
+</tbody>
+</table>
+<div class="sourceCode" id="cb21"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span></span>
+<span><span class="va">attr_tbl4</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span>
+<span>  attribute <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"achieved_censoring"</span>, <span class="st">"n_rows"</span>, <span class="st">"n_cols"</span>, <span class="st">"class"</span><span class="op">)</span>,</span>
+<span>  value <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span></span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/character.html" class="external-link">as.character</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">dat4</span>, <span class="st">"achieved_censoring"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">nrow</a></span><span class="op">(</span><span class="va">dat4</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/nrow.html" class="external-link">ncol</a></span><span class="op">(</span><span class="va">dat4</span><span class="op">)</span>,</span>
+<span>    <span class="fu"><a href="https://rdrr.io/r/base/paste.html" class="external-link">paste</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/class.html" class="external-link">class</a></span><span class="op">(</span><span class="va">dat4</span><span class="op">)</span>, collapse <span class="op">=</span> <span class="st">", "</span><span class="op">)</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="va">attr_tbl4</span>, caption <span class="op">=</span> <span class="st">"Example 4 — Attributes"</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Example 4 — Attributes</caption>
+<thead><tr class="header">
+<th align="left">attribute</th>
+<th align="left">value</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left">achieved_censoring</td>
+<td align="left">0.266</td>
+</tr>
+<tr class="even">
+<td align="left">n_rows</td>
+<td align="left">500</td>
+</tr>
+<tr class="odd">
+<td align="left">n_cols</td>
+<td align="left">6</td>
+</tr>
+<tr class="even">
+<td align="left">class</td>
+<td align="left">data.frame</td>
 </tr>
 </tbody>
 </table>
 <hr>
 </div>
+</div>
+<div class="section level2">
+<h2 id="generate-data-based-on-formula-event-censoring">Generate data based on formula (event &amp; censoring)<a class="anchor" aria-label="anchor" href="#generate-data-based-on-formula-event-censoring"></a>
+</h2>
+<p>This example uses <code>~</code> formulas for both event-time
+covariate effects and covariate-dependent censoring. We keep the
+treatment effect as a separate scalar to avoid design ambiguity.</p>
+<div class="sourceCode" id="cb22"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># Covariates (sex numeric 0/1)</span></span>
+<span><span class="va">covs_f</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"age"</span>, type<span class="op">=</span><span class="st">"continuous"</span>,  dist<span class="op">=</span><span class="st">"normal"</span>,    params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mean<span class="op">=</span><span class="fl">62</span>, sd<span class="op">=</span><span class="fl">10</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>name<span class="op">=</span><span class="st">"sex"</span>, type<span class="op">=</span><span class="st">"categorical"</span>, dist<span class="op">=</span><span class="st">"bernoulli"</span>, params<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>p<span class="op">=</span><span class="fl">0.45</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="va">trt_f</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>assignment<span class="op">=</span><span class="st">"randomization"</span>, allocation<span class="op">=</span><span class="st">"1:1"</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Event-time engine: AFT lognormal with formula-based covariate effects</span></span>
+<span><span class="va">evt_f</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  model    <span class="op">=</span> <span class="st">"aft_lognormal"</span>,</span>
+<span>  baseline <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mu <span class="op">=</span> <span class="fl">3.1</span>, sigma <span class="op">=</span> <span class="fl">0.55</span><span class="op">)</span>,</span>
+<span>  effects  <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    treatment  <span class="op">=</span> <span class="op">-</span><span class="fl">0.25</span>,                 <span class="co"># effect of treatment (log-time scale)</span></span>
+<span>    formula    <span class="op">=</span> <span class="st">"~ 0 + age + sex"</span>,     <span class="co"># covariate effects via formula (no intercept)</span></span>
+<span>    beta       <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.010</span>, <span class="op">-</span><span class="fl">0.20</span><span class="op">)</span>        <span class="co"># (age, sex) -- match order in formula</span></span>
+<span>  <span class="op">)</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Censoring: covariate-dependent via log-rate model (single mechanism)</span></span>
+<span><span class="va">cz_f</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  mode <span class="op">=</span> <span class="st">"explicit"</span>,</span>
+<span>  dependent <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>    formula <span class="op">=</span> <span class="st">"~ 0 + age + sex"</span>,  <span class="co"># NO intercept; sex numeric 0/1</span></span>
+<span>    base    <span class="op">=</span> <span class="fl">0.03</span>,               <span class="co"># positive rate</span></span>
+<span>    beta    <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">0.012</span>, <span class="fl">0.35</span><span class="op">)</span>      <span class="co"># (age, sex) on log-rate scale</span></span>
+<span>  <span class="op">)</span>,</span>
+<span>  administrative <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>time <span class="op">=</span> <span class="fl">48</span><span class="op">)</span>  <span class="co"># optional admin cutoff</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Full recipe</span></span>
+<span><span class="va">rec_f</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
+<span>  n <span class="op">=</span> <span class="fl">350</span>,</span>
+<span>  covariates <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>defs <span class="op">=</span> <span class="va">covs_f</span><span class="op">)</span>,</span>
+<span>  treatment  <span class="op">=</span> <span class="va">trt_f</span>,</span>
+<span>  event_time <span class="op">=</span> <span class="va">evt_f</span>,</span>
+<span>  censoring  <span class="op">=</span> <span class="va">cz_f</span>,</span>
+<span>  seed <span class="op">=</span> <span class="fl">777</span></span>
+<span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Simulate</span></span>
+<span><span class="va">dat_f</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/simulate_from_recipe.html">simulate_from_recipe</a></span><span class="op">(</span><span class="fu"><a href="../reference/validate_recipe.html">validate_recipe</a></span><span class="op">(</span><span class="va">rec_f</span><span class="op">)</span><span class="op">)</span></span>
+<span></span>
+<span><span class="co"># Display</span></span>
+<span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span></span>
+<span>  <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span>achieved_censoring <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/attr.html" class="external-link">attr</a></span><span class="op">(</span><span class="va">dat_f</span>, <span class="st">"achieved_censoring"</span><span class="op">)</span><span class="op">)</span>,</span>
+<span>  caption <span class="op">=</span> <span class="st">"Achieved censoring rate (formula-based example)"</span></span>
+<span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>Achieved censoring rate (formula-based example)</caption>
+<thead><tr class="header">
+<th align="right">achieved_censoring</th>
+</tr></thead>
+<tbody><tr class="odd">
+<td align="right">0.9028571</td>
+</tr></tbody>
+</table>
+<div class="sourceCode" id="cb23"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">knitr</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/pkg/knitr/man/kable.html" class="external-link">kable</a></span><span class="op">(</span><span class="fu">utils</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/utils/head.html" class="external-link">head</a></span><span class="op">(</span><span class="va">dat_f</span>, <span class="fl">8</span><span class="op">)</span>, caption <span class="op">=</span> <span class="st">"First 8 rows — formula-based example"</span><span class="op">)</span></span></code></pre></div>
+<table class="table">
+<caption>First 8 rows — formula-based example</caption>
+<thead><tr class="header">
+<th align="right">time</th>
+<th align="right">status</th>
+<th align="right">arm</th>
+<th align="right">age</th>
+<th align="right">sex</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="right">0.5200119</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">66.89786</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">12.4499453</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">58.01459</td>
+<td align="right">0</td>
+</tr>
+<tr class="odd">
+<td align="right">18.2041119</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">67.10836</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">10.3316633</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">58.01188</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="right">0.7918592</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">78.38686</td>
+<td align="right">0</td>
+</tr>
+<tr class="even">
+<td align="right">9.0102499</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">68.21274</td>
+<td align="right">1</td>
+</tr>
+<tr class="odd">
+<td align="right">1.0401903</td>
+<td align="right">0</td>
+<td align="right">1</td>
+<td align="right">64.02704</td>
+<td align="right">1</td>
+</tr>
+<tr class="even">
+<td align="right">0.7415469</td>
+<td align="right">0</td>
+<td align="right">0</td>
+<td align="right">73.08938</td>
+<td align="right">0</td>
+</tr>
+</tbody>
+</table>
+<hr>
 </div>
 <div class="section level2">
 <h2 id="batch-generation-with-metadata">Batch generation with metadata<a class="anchor" aria-label="anchor" href="#batch-generation-with-metadata"></a>
@@ -576,158 +1380,165 @@ directly.</td>
 together. The writer creates a <code>manifest.rds</code> with a
 <strong>list-column</strong> <code>meta</code> describing each dataset.
 The loader reattaches attributes when reading back.</p>
-<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>base <span class="ot">&lt;-</span> <span class="fu">validate_recipe</span>(rec2)</span>
-<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a></span>
-<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>out_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(<span class="fu">tempdir</span>(), <span class="st">"rmstss-manifest-demo"</span>)</span>
-<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="fu">unlink</span>(out_dir, <span class="at">recursive =</span> <span class="cn">TRUE</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span>
-<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a></span>
-<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a>man <span class="ot">&lt;-</span> <span class="fu">generate_recipe_sets</span>(</span>
-<span id="cb13-7"><a href="#cb13-7" tabindex="-1"></a>  <span class="at">base_recipe =</span> base,</span>
-<span id="cb13-8"><a href="#cb13-8" tabindex="-1"></a>  <span class="at">vary =</span> <span class="fu">list</span>(<span class="at">n =</span> <span class="fu">c</span>(<span class="dv">200</span>, <span class="dv">400</span>),</span>
-<span id="cb13-9"><a href="#cb13-9" tabindex="-1"></a>              <span class="st">"event_time.effects.treatment"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.15</span>, <span class="sc">-</span><span class="fl">0.25</span>)),</span>
-<span id="cb13-10"><a href="#cb13-10" tabindex="-1"></a>  <span class="at">out_dir  =</span> out_dir,</span>
-<span id="cb13-11"><a href="#cb13-11" tabindex="-1"></a>  <span class="at">formats  =</span> <span class="fu">c</span>(<span class="st">"rds"</span>,<span class="st">"csv"</span>),</span>
-<span id="cb13-12"><a href="#cb13-12" tabindex="-1"></a>  <span class="at">n_reps   =</span> <span class="dv">1</span>,</span>
-<span id="cb13-13"><a href="#cb13-13" tabindex="-1"></a>  <span class="at">seed_base =</span> <span class="dv">2025</span></span>
-<span id="cb13-14"><a href="#cb13-14" tabindex="-1"></a>)</span>
-<span id="cb13-15"><a href="#cb13-15" tabindex="-1"></a></span>
-<span id="cb13-16"><a href="#cb13-16" tabindex="-1"></a><span class="co"># Inspect the first row's compact metadata (fields only; no file paths)</span></span>
-<span id="cb13-17"><a href="#cb13-17" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="fu">file.path</span>(out_dir, <span class="st">"manifest.rds"</span>))</span>
-<span id="cb13-18"><a href="#cb13-18" tabindex="-1"></a><span class="fu">names</span>(m)</span>
-<span id="cb13-19"><a href="#cb13-19" tabindex="-1"></a> [<span class="dv">1</span>] <span class="st">"scenario_id"</span>                     <span class="st">"rep"</span>                            </span>
-<span id="cb13-20"><a href="#cb13-20" tabindex="-1"></a> [<span class="dv">3</span>] <span class="st">"seed"</span>                            <span class="st">"achieved_censoring"</span>             </span>
-<span id="cb13-21"><a href="#cb13-21" tabindex="-1"></a> [<span class="dv">5</span>] <span class="st">"n"</span>                               <span class="st">"file_txt"</span>                       </span>
-<span id="cb13-22"><a href="#cb13-22" tabindex="-1"></a> [<span class="dv">7</span>] <span class="st">"file_csv"</span>                        <span class="st">"file_rds"</span>                       </span>
-<span id="cb13-23"><a href="#cb13-23" tabindex="-1"></a> [<span class="dv">9</span>] <span class="st">"file_rdata"</span>                      <span class="st">"p__n"</span>                           </span>
-<span id="cb13-24"><a href="#cb13-24" tabindex="-1"></a>[<span class="dv">11</span>] <span class="st">"p__event_time.effects.treatment"</span> <span class="st">"meta"</span>                           </span>
-<span id="cb13-25"><a href="#cb13-25" tabindex="-1"></a><span class="cf">if</span> (<span class="st">"meta"</span> <span class="sc">%in%</span> <span class="fu">names</span>(m) <span class="sc">&amp;&amp;</span> <span class="fu">length</span>(m<span class="sc">$</span>meta[[<span class="dv">1</span>]]) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
-<span id="cb13-26"><a href="#cb13-26" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">model =</span> m<span class="sc">$</span>meta[[<span class="dv">1</span>]]<span class="sc">$</span>model,</span>
-<span id="cb13-27"><a href="#cb13-27" tabindex="-1"></a>       <span class="at">baseline =</span> m<span class="sc">$</span>meta[[<span class="dv">1</span>]]<span class="sc">$</span>baseline,</span>
-<span id="cb13-28"><a href="#cb13-28" tabindex="-1"></a>       <span class="at">effects =</span> m<span class="sc">$</span>meta[[<span class="dv">1</span>]]<span class="sc">$</span>effects,</span>
-<span id="cb13-29"><a href="#cb13-29" tabindex="-1"></a>       <span class="at">achieved_censoring =</span> m<span class="sc">$</span>meta[[<span class="dv">1</span>]]<span class="sc">$</span>achieved_censoring,</span>
-<span id="cb13-30"><a href="#cb13-30" tabindex="-1"></a>       <span class="at">n =</span> m<span class="sc">$</span>meta[[<span class="dv">1</span>]]<span class="sc">$</span>n)</span>
-<span id="cb13-31"><a href="#cb13-31" tabindex="-1"></a>} <span class="cf">else</span> {</span>
-<span id="cb13-32"><a href="#cb13-32" tabindex="-1"></a>  <span class="st">"Manifest is minimal (older run); use rebuild_manifest() to enrich."</span></span>
-<span id="cb13-33"><a href="#cb13-33" tabindex="-1"></a>}</span>
-<span id="cb13-34"><a href="#cb13-34" tabindex="-1"></a><span class="sc">$</span>model</span>
-<span id="cb13-35"><a href="#cb13-35" tabindex="-1"></a>[<span class="dv">1</span>] <span class="st">"aft_weibull"</span></span>
-<span id="cb13-36"><a href="#cb13-36" tabindex="-1"></a></span>
-<span id="cb13-37"><a href="#cb13-37" tabindex="-1"></a><span class="sc">$</span>baseline</span>
-<span id="cb13-38"><a href="#cb13-38" tabindex="-1"></a><span class="sc">$</span>baseline<span class="sc">$</span>shape</span>
-<span id="cb13-39"><a href="#cb13-39" tabindex="-1"></a>[<span class="dv">1</span>] <span class="fl">1.3</span></span>
-<span id="cb13-40"><a href="#cb13-40" tabindex="-1"></a></span>
-<span id="cb13-41"><a href="#cb13-41" tabindex="-1"></a><span class="sc">$</span>baseline<span class="sc">$</span>scale</span>
-<span id="cb13-42"><a href="#cb13-42" tabindex="-1"></a>[<span class="dv">1</span>] <span class="dv">12</span></span>
-<span id="cb13-43"><a href="#cb13-43" tabindex="-1"></a></span>
-<span id="cb13-44"><a href="#cb13-44" tabindex="-1"></a></span>
-<span id="cb13-45"><a href="#cb13-45" tabindex="-1"></a><span class="sc">$</span>effects</span>
-<span id="cb13-46"><a href="#cb13-46" tabindex="-1"></a><span class="sc">$</span>effects<span class="sc">$</span>intercept</span>
-<span id="cb13-47"><a href="#cb13-47" tabindex="-1"></a>[<span class="dv">1</span>] <span class="dv">0</span></span>
-<span id="cb13-48"><a href="#cb13-48" tabindex="-1"></a></span>
-<span id="cb13-49"><a href="#cb13-49" tabindex="-1"></a><span class="sc">$</span>effects<span class="sc">$</span>treatment</span>
-<span id="cb13-50"><a href="#cb13-50" tabindex="-1"></a>[<span class="dv">1</span>] <span class="sc">-</span><span class="fl">0.15</span></span>
-<span id="cb13-51"><a href="#cb13-51" tabindex="-1"></a></span>
-<span id="cb13-52"><a href="#cb13-52" tabindex="-1"></a><span class="sc">$</span>effects<span class="sc">$</span>covariates</span>
-<span id="cb13-53"><a href="#cb13-53" tabindex="-1"></a><span class="sc">$</span>effects<span class="sc">$</span>covariates<span class="sc">$</span>age</span>
-<span id="cb13-54"><a href="#cb13-54" tabindex="-1"></a>[<span class="dv">1</span>] <span class="fl">0.008</span></span>
-<span id="cb13-55"><a href="#cb13-55" tabindex="-1"></a></span>
-<span id="cb13-56"><a href="#cb13-56" tabindex="-1"></a><span class="sc">$</span>effects<span class="sc">$</span>covariates<span class="sc">$</span>x</span>
-<span id="cb13-57"><a href="#cb13-57" tabindex="-1"></a>[<span class="dv">1</span>] <span class="fl">0.04</span></span>
-<span id="cb13-58"><a href="#cb13-58" tabindex="-1"></a></span>
-<span id="cb13-59"><a href="#cb13-59" tabindex="-1"></a></span>
-<span id="cb13-60"><a href="#cb13-60" tabindex="-1"></a></span>
-<span id="cb13-61"><a href="#cb13-61" tabindex="-1"></a><span class="sc">$</span>achieved_censoring</span>
-<span id="cb13-62"><a href="#cb13-62" tabindex="-1"></a>[<span class="dv">1</span>] <span class="fl">0.28</span></span>
-<span id="cb13-63"><a href="#cb13-63" tabindex="-1"></a></span>
-<span id="cb13-64"><a href="#cb13-64" tabindex="-1"></a><span class="sc">$</span>n</span>
-<span id="cb13-65"><a href="#cb13-65" tabindex="-1"></a>[<span class="dv">1</span>] <span class="dv">200</span></span>
-<span id="cb13-66"><a href="#cb13-66" tabindex="-1"></a></span>
-<span id="cb13-67"><a href="#cb13-67" tabindex="-1"></a><span class="co"># Load datasets back</span></span>
-<span id="cb13-68"><a href="#cb13-68" tabindex="-1"></a>sets <span class="ot">&lt;-</span> <span class="fu">load_recipe_sets</span>(<span class="fu">file.path</span>(out_dir, <span class="st">"manifest.rds"</span>))</span>
-<span id="cb13-69"><a href="#cb13-69" tabindex="-1"></a><span class="fu">attr</span>(sets[[<span class="dv">1</span>]]<span class="sc">$</span>data, <span class="st">"achieved_censoring"</span>)</span>
-<span id="cb13-70"><a href="#cb13-70" tabindex="-1"></a>[<span class="dv">1</span>] <span class="fl">0.28</span></span>
-<span id="cb13-71"><a href="#cb13-71" tabindex="-1"></a><span class="fu">str</span>(sets[[<span class="dv">1</span>]]<span class="sc">$</span>meta)</span>
-<span id="cb13-72"><a href="#cb13-72" tabindex="-1"></a>List of <span class="dv">19</span></span>
-<span id="cb13-73"><a href="#cb13-73" tabindex="-1"></a> <span class="sc">$</span> dataset_id        <span class="sc">:</span> chr <span class="st">"sc001_r01"</span></span>
-<span id="cb13-74"><a href="#cb13-74" tabindex="-1"></a> <span class="sc">$</span> scenario_id       <span class="sc">:</span> int <span class="dv">1</span></span>
-<span id="cb13-75"><a href="#cb13-75" tabindex="-1"></a> <span class="sc">$</span> rep               <span class="sc">:</span> int <span class="dv">1</span></span>
-<span id="cb13-76"><a href="#cb13-76" tabindex="-1"></a> <span class="sc">$</span> seed_used         <span class="sc">:</span> int <span class="dv">3026</span></span>
-<span id="cb13-77"><a href="#cb13-77" tabindex="-1"></a> <span class="sc">$</span> n                 <span class="sc">:</span> int <span class="dv">200</span></span>
-<span id="cb13-78"><a href="#cb13-78" tabindex="-1"></a> <span class="sc">$</span> n_treat           <span class="sc">:</span> int <span class="dv">110</span></span>
-<span id="cb13-79"><a href="#cb13-79" tabindex="-1"></a> <span class="sc">$</span> n_control         <span class="sc">:</span> int <span class="dv">90</span></span>
-<span id="cb13-80"><a href="#cb13-80" tabindex="-1"></a> <span class="sc">$</span> event_rate        <span class="sc">:</span> num <span class="fl">0.72</span></span>
-<span id="cb13-81"><a href="#cb13-81" tabindex="-1"></a> <span class="sc">$</span> achieved_censoring<span class="sc">:</span> num <span class="fl">0.28</span></span>
-<span id="cb13-82"><a href="#cb13-82" tabindex="-1"></a> <span class="sc">$</span> model             <span class="sc">:</span> chr <span class="st">"aft_weibull"</span></span>
-<span id="cb13-83"><a href="#cb13-83" tabindex="-1"></a> <span class="sc">$</span> baseline          <span class="sc">:</span>List of <span class="dv">2</span></span>
-<span id="cb13-84"><a href="#cb13-84" tabindex="-1"></a>  ..<span class="sc">$</span> shape<span class="sc">:</span> num <span class="fl">1.3</span></span>
-<span id="cb13-85"><a href="#cb13-85" tabindex="-1"></a>  ..<span class="sc">$</span> scale<span class="sc">:</span> num <span class="dv">12</span></span>
-<span id="cb13-86"><a href="#cb13-86" tabindex="-1"></a> <span class="sc">$</span> effects           <span class="sc">:</span>List of <span class="dv">3</span></span>
-<span id="cb13-87"><a href="#cb13-87" tabindex="-1"></a>  ..<span class="sc">$</span> intercept <span class="sc">:</span> num <span class="dv">0</span></span>
-<span id="cb13-88"><a href="#cb13-88" tabindex="-1"></a>  ..<span class="sc">$</span> treatment <span class="sc">:</span> num <span class="sc">-</span><span class="fl">0.15</span></span>
-<span id="cb13-89"><a href="#cb13-89" tabindex="-1"></a>  ..<span class="sc">$</span> covariates<span class="sc">:</span>List of <span class="dv">2</span></span>
-<span id="cb13-90"><a href="#cb13-90" tabindex="-1"></a>  .. ..<span class="sc">$</span> age<span class="sc">:</span> num <span class="fl">0.008</span></span>
-<span id="cb13-91"><a href="#cb13-91" tabindex="-1"></a>  .. ..<span class="sc">$</span> x  <span class="sc">:</span> num <span class="fl">0.04</span></span>
-<span id="cb13-92"><a href="#cb13-92" tabindex="-1"></a> <span class="sc">$</span> treatment         <span class="sc">:</span>List of <span class="dv">2</span></span>
-<span id="cb13-93"><a href="#cb13-93" tabindex="-1"></a>  ..<span class="sc">$</span> assignment<span class="sc">:</span> chr <span class="st">"randomization"</span></span>
-<span id="cb13-94"><a href="#cb13-94" tabindex="-1"></a>  ..<span class="sc">$</span> allocation<span class="sc">:</span> chr <span class="st">"1:1"</span></span>
-<span id="cb13-95"><a href="#cb13-95" tabindex="-1"></a> <span class="sc">$</span> censoring         <span class="sc">:</span>List of <span class="dv">3</span></span>
-<span id="cb13-96"><a href="#cb13-96" tabindex="-1"></a>  ..<span class="sc">$</span> mode      <span class="sc">:</span> chr <span class="st">"target_overall"</span></span>
-<span id="cb13-97"><a href="#cb13-97" tabindex="-1"></a>  ..<span class="sc">$</span> target    <span class="sc">:</span> num <span class="fl">0.25</span></span>
-<span id="cb13-98"><a href="#cb13-98" tabindex="-1"></a>  ..<span class="sc">$</span> admin_time<span class="sc">:</span> num <span class="dv">36</span></span>
-<span id="cb13-99"><a href="#cb13-99" tabindex="-1"></a> <span class="sc">$</span> covariates        <span class="sc">:</span>List of <span class="dv">4</span></span>
-<span id="cb13-100"><a href="#cb13-100" tabindex="-1"></a>  ..<span class="sc">$</span> <span class="er">:</span>List of <span class="dv">4</span></span>
-<span id="cb13-101"><a href="#cb13-101" tabindex="-1"></a>  .. ..<span class="sc">$</span> name  <span class="sc">:</span> chr <span class="st">"age"</span></span>
-<span id="cb13-102"><a href="#cb13-102" tabindex="-1"></a>  .. ..<span class="sc">$</span> type  <span class="sc">:</span> chr <span class="st">"continuous"</span></span>
-<span id="cb13-103"><a href="#cb13-103" tabindex="-1"></a>  .. ..<span class="sc">$</span> dist  <span class="sc">:</span> chr <span class="st">"normal"</span></span>
-<span id="cb13-104"><a href="#cb13-104" tabindex="-1"></a>  .. ..<span class="sc">$</span> params<span class="sc">:</span>List of <span class="dv">2</span></span>
-<span id="cb13-105"><a href="#cb13-105" tabindex="-1"></a>  .. .. ..<span class="sc">$</span> mean<span class="sc">:</span> num <span class="dv">62</span></span>
-<span id="cb13-106"><a href="#cb13-106" tabindex="-1"></a>  .. .. ..<span class="sc">$</span> sd  <span class="sc">:</span> num <span class="dv">10</span></span>
-<span id="cb13-107"><a href="#cb13-107" tabindex="-1"></a>  ..<span class="sc">$</span> <span class="er">:</span>List of <span class="dv">4</span></span>
-<span id="cb13-108"><a href="#cb13-108" tabindex="-1"></a>  .. ..<span class="sc">$</span> name  <span class="sc">:</span> chr <span class="st">"sex"</span></span>
-<span id="cb13-109"><a href="#cb13-109" tabindex="-1"></a>  .. ..<span class="sc">$</span> type  <span class="sc">:</span> chr <span class="st">"categorical"</span></span>
-<span id="cb13-110"><a href="#cb13-110" tabindex="-1"></a>  .. ..<span class="sc">$</span> dist  <span class="sc">:</span> chr <span class="st">"bernoulli"</span></span>
-<span id="cb13-111"><a href="#cb13-111" tabindex="-1"></a>  .. ..<span class="sc">$</span> params<span class="sc">:</span>List of <span class="dv">1</span></span>
-<span id="cb13-112"><a href="#cb13-112" tabindex="-1"></a>  .. .. ..<span class="sc">$</span> p<span class="sc">:</span> num <span class="fl">0.45</span></span>
-<span id="cb13-113"><a href="#cb13-113" tabindex="-1"></a>  ..<span class="sc">$</span> <span class="er">:</span>List of <span class="dv">4</span></span>
-<span id="cb13-114"><a href="#cb13-114" tabindex="-1"></a>  .. ..<span class="sc">$</span> name  <span class="sc">:</span> chr <span class="st">"stage"</span></span>
-<span id="cb13-115"><a href="#cb13-115" tabindex="-1"></a>  .. ..<span class="sc">$</span> type  <span class="sc">:</span> chr <span class="st">"categorical"</span></span>
-<span id="cb13-116"><a href="#cb13-116" tabindex="-1"></a>  .. ..<span class="sc">$</span> dist  <span class="sc">:</span> chr <span class="st">"ordinal"</span></span>
-<span id="cb13-117"><a href="#cb13-117" tabindex="-1"></a>  .. ..<span class="sc">$</span> params<span class="sc">:</span>List of <span class="dv">2</span></span>
-<span id="cb13-118"><a href="#cb13-118" tabindex="-1"></a>  .. .. ..<span class="sc">$</span> prob  <span class="sc">:</span> num [<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>] <span class="fl">0.3</span> <span class="fl">0.5</span> <span class="fl">0.2</span></span>
-<span id="cb13-119"><a href="#cb13-119" tabindex="-1"></a>  .. .. ..<span class="sc">$</span> labels<span class="sc">:</span> chr [<span class="dv">1</span><span class="sc">:</span><span class="dv">3</span>] <span class="st">"I"</span> <span class="st">"II"</span> <span class="st">"III"</span></span>
-<span id="cb13-120"><a href="#cb13-120" tabindex="-1"></a>  ..<span class="sc">$</span> <span class="er">:</span>List of <span class="dv">4</span></span>
-<span id="cb13-121"><a href="#cb13-121" tabindex="-1"></a>  .. ..<span class="sc">$</span> name  <span class="sc">:</span> chr <span class="st">"x"</span></span>
-<span id="cb13-122"><a href="#cb13-122" tabindex="-1"></a>  .. ..<span class="sc">$</span> type  <span class="sc">:</span> chr <span class="st">"continuous"</span></span>
-<span id="cb13-123"><a href="#cb13-123" tabindex="-1"></a>  .. ..<span class="sc">$</span> dist  <span class="sc">:</span> chr <span class="st">"lognormal"</span></span>
-<span id="cb13-124"><a href="#cb13-124" tabindex="-1"></a>  .. ..<span class="sc">$</span> params<span class="sc">:</span>List of <span class="dv">2</span></span>
-<span id="cb13-125"><a href="#cb13-125" tabindex="-1"></a>  .. .. ..<span class="sc">$</span> meanlog<span class="sc">:</span> num <span class="dv">0</span></span>
-<span id="cb13-126"><a href="#cb13-126" tabindex="-1"></a>  .. .. ..<span class="sc">$</span> sdlog  <span class="sc">:</span> num <span class="fl">0.6</span></span>
-<span id="cb13-127"><a href="#cb13-127" tabindex="-1"></a> <span class="sc">$</span> allocation        <span class="sc">:</span> chr <span class="st">"1:1"</span></span>
-<span id="cb13-128"><a href="#cb13-128" tabindex="-1"></a> <span class="sc">$</span> params            <span class="sc">:</span>List of <span class="dv">2</span></span>
-<span id="cb13-129"><a href="#cb13-129" tabindex="-1"></a>  ..<span class="sc">$</span> n                           <span class="sc">:</span> num <span class="dv">200</span></span>
-<span id="cb13-130"><a href="#cb13-130" tabindex="-1"></a>  ..<span class="sc">$</span> event_time.effects.treatment<span class="sc">:</span> num <span class="sc">-</span><span class="fl">0.15</span></span>
-<span id="cb13-131"><a href="#cb13-131" tabindex="-1"></a> <span class="sc">$</span> files             <span class="sc">:</span>List of <span class="dv">4</span></span>
-<span id="cb13-132"><a href="#cb13-132" tabindex="-1"></a>  ..<span class="sc">$</span> txt  <span class="sc">:</span> chr <span class="cn">NA</span></span>
-<span id="cb13-133"><a href="#cb13-133" tabindex="-1"></a>  ..<span class="sc">$</span> csv  <span class="sc">:</span> chr <span class="st">"/tmp/Rtmp4tpTyf/rmstss-manifest-demo/sc1_r1.csv"</span></span>
-<span id="cb13-134"><a href="#cb13-134" tabindex="-1"></a>  ..<span class="sc">$</span> rds  <span class="sc">:</span> chr <span class="st">"/tmp/Rtmp4tpTyf/rmstss-manifest-demo/sc1_r1.rds"</span></span>
-<span id="cb13-135"><a href="#cb13-135" tabindex="-1"></a>  ..<span class="sc">$</span> rdata<span class="sc">:</span> chr <span class="cn">NA</span></span>
-<span id="cb13-136"><a href="#cb13-136" tabindex="-1"></a> <span class="sc">$</span> created_at        <span class="sc">:</span> chr <span class="st">"2025-10-14 05:27:35.010455"</span></span></code></pre></div>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a><span class="co"># Build a base recipe here (self-contained)</span></span>
+<span id="cb24-2"><a href="#cb24-2" tabindex="-1"></a>base <span class="ot">&lt;-</span> <span class="fu">validate_recipe</span>(<span class="fu">list</span>(</span>
+<span id="cb24-3"><a href="#cb24-3" tabindex="-1"></a>  <span class="at">n =</span> <span class="dv">200</span>,</span>
+<span id="cb24-4"><a href="#cb24-4" tabindex="-1"></a>  <span class="at">covariates =</span> <span class="fu">list</span>(<span class="at">defs =</span> <span class="fu">list</span>(</span>
+<span id="cb24-5"><a href="#cb24-5" tabindex="-1"></a>    <span class="fu">list</span>(<span class="at">name=</span><span class="st">"age"</span>, <span class="at">type=</span><span class="st">"continuous"</span>,  <span class="at">dist=</span><span class="st">"normal"</span>, <span class="at">params=</span><span class="fu">list</span>(<span class="at">mean=</span><span class="dv">62</span>, <span class="at">sd=</span><span class="dv">10</span>)),</span>
+<span id="cb24-6"><a href="#cb24-6" tabindex="-1"></a>    <span class="fu">list</span>(<span class="at">name=</span><span class="st">"sex"</span>, <span class="at">type=</span><span class="st">"categorical"</span>, <span class="at">dist=</span><span class="st">"bernoulli"</span>, <span class="at">params=</span><span class="fu">list</span>(<span class="at">p=</span><span class="fl">0.45</span>)),</span>
+<span id="cb24-7"><a href="#cb24-7" tabindex="-1"></a>    <span class="fu">list</span>(<span class="at">name=</span><span class="st">"x"</span>,   <span class="at">type=</span><span class="st">"continuous"</span>,  <span class="at">dist=</span><span class="st">"lognormal"</span>, <span class="at">params=</span><span class="fu">list</span>(<span class="at">meanlog=</span><span class="dv">0</span>, <span class="at">sdlog=</span><span class="fl">0.6</span>))</span>
+<span id="cb24-8"><a href="#cb24-8" tabindex="-1"></a>  )),</span>
+<span id="cb24-9"><a href="#cb24-9" tabindex="-1"></a>  <span class="at">treatment  =</span> <span class="fu">list</span>(<span class="at">assignment=</span><span class="st">"randomization"</span>, <span class="at">allocation=</span><span class="st">"1:1"</span>),</span>
+<span id="cb24-10"><a href="#cb24-10" tabindex="-1"></a>  <span class="at">event_time =</span> <span class="fu">list</span>(</span>
+<span id="cb24-11"><a href="#cb24-11" tabindex="-1"></a>    <span class="at">model    =</span> <span class="st">"aft_weibull"</span>,</span>
+<span id="cb24-12"><a href="#cb24-12" tabindex="-1"></a>    <span class="at">baseline =</span> <span class="fu">list</span>(<span class="at">shape=</span><span class="fl">1.3</span>, <span class="at">scale=</span><span class="dv">12</span>),</span>
+<span id="cb24-13"><a href="#cb24-13" tabindex="-1"></a>    <span class="at">effects  =</span> <span class="fu">list</span>(<span class="at">intercept=</span><span class="dv">0</span>, <span class="at">treatment=</span><span class="sc">-</span><span class="fl">0.20</span>, <span class="at">covariates=</span><span class="fu">list</span>(<span class="at">age=</span><span class="fl">0.008</span>, <span class="at">x=</span><span class="fl">0.04</span>))</span>
+<span id="cb24-14"><a href="#cb24-14" tabindex="-1"></a>  ),</span>
+<span id="cb24-15"><a href="#cb24-15" tabindex="-1"></a>  <span class="at">censoring  =</span> <span class="fu">list</span>(<span class="at">mode=</span><span class="st">"target_overall"</span>, <span class="at">target=</span><span class="fl">0.25</span>, <span class="at">admin_time=</span><span class="dv">36</span>),</span>
+<span id="cb24-16"><a href="#cb24-16" tabindex="-1"></a>  <span class="at">seed =</span> <span class="dv">3026</span></span>
+<span id="cb24-17"><a href="#cb24-17" tabindex="-1"></a>))</span>
+<span id="cb24-18"><a href="#cb24-18" tabindex="-1"></a></span>
+<span id="cb24-19"><a href="#cb24-19" tabindex="-1"></a>out_dir <span class="ot">&lt;-</span> <span class="fu">file.path</span>(<span class="fu">tempdir</span>(), <span class="st">"rmstss-manifest-demo"</span>)</span>
+<span id="cb24-20"><a href="#cb24-20" tabindex="-1"></a><span class="fu">unlink</span>(out_dir, <span class="at">recursive =</span> <span class="cn">TRUE</span>, <span class="at">force =</span> <span class="cn">TRUE</span>)</span>
+<span id="cb24-21"><a href="#cb24-21" tabindex="-1"></a></span>
+<span id="cb24-22"><a href="#cb24-22" tabindex="-1"></a>man <span class="ot">&lt;-</span> <span class="fu">generate_recipe_sets</span>(</span>
+<span id="cb24-23"><a href="#cb24-23" tabindex="-1"></a>  <span class="at">base_recipe =</span> base,</span>
+<span id="cb24-24"><a href="#cb24-24" tabindex="-1"></a>  <span class="at">vary =</span> <span class="fu">list</span>(<span class="at">n =</span> <span class="fu">c</span>(<span class="dv">200</span>, <span class="dv">400</span>),</span>
+<span id="cb24-25"><a href="#cb24-25" tabindex="-1"></a>              <span class="st">"event_time.effects.treatment"</span> <span class="ot">=</span> <span class="fu">c</span>(<span class="sc">-</span><span class="fl">0.15</span>, <span class="sc">-</span><span class="fl">0.25</span>)),</span>
+<span id="cb24-26"><a href="#cb24-26" tabindex="-1"></a>  <span class="at">out_dir  =</span> out_dir,</span>
+<span id="cb24-27"><a href="#cb24-27" tabindex="-1"></a>  <span class="at">formats  =</span> <span class="fu">c</span>(<span class="st">"rds"</span>,<span class="st">"csv"</span>),</span>
+<span id="cb24-28"><a href="#cb24-28" tabindex="-1"></a>  <span class="at">n_reps   =</span> <span class="dv">1</span>,</span>
+<span id="cb24-29"><a href="#cb24-29" tabindex="-1"></a>  <span class="at">seed_base =</span> <span class="dv">2025</span></span>
+<span id="cb24-30"><a href="#cb24-30" tabindex="-1"></a>)</span>
+<span id="cb24-31"><a href="#cb24-31" tabindex="-1"></a></span>
+<span id="cb24-32"><a href="#cb24-32" tabindex="-1"></a><span class="co"># Inspect the first row's compact metadata (fields only; no file paths)</span></span>
+<span id="cb24-33"><a href="#cb24-33" tabindex="-1"></a>m <span class="ot">&lt;-</span> <span class="fu">readRDS</span>(<span class="fu">file.path</span>(out_dir, <span class="st">"manifest.rds"</span>))</span>
+<span id="cb24-34"><a href="#cb24-34" tabindex="-1"></a><span class="fu">names</span>(m)</span>
+<span id="cb24-35"><a href="#cb24-35" tabindex="-1"></a> [<span class="dv">1</span>] <span class="st">"scenario_id"</span>                     <span class="st">"rep"</span>                            </span>
+<span id="cb24-36"><a href="#cb24-36" tabindex="-1"></a> [<span class="dv">3</span>] <span class="st">"seed"</span>                            <span class="st">"achieved_censoring"</span>             </span>
+<span id="cb24-37"><a href="#cb24-37" tabindex="-1"></a> [<span class="dv">5</span>] <span class="st">"n"</span>                               <span class="st">"file_txt"</span>                       </span>
+<span id="cb24-38"><a href="#cb24-38" tabindex="-1"></a> [<span class="dv">7</span>] <span class="st">"file_csv"</span>                        <span class="st">"file_rds"</span>                       </span>
+<span id="cb24-39"><a href="#cb24-39" tabindex="-1"></a> [<span class="dv">9</span>] <span class="st">"file_rdata"</span>                      <span class="st">"p__n"</span>                           </span>
+<span id="cb24-40"><a href="#cb24-40" tabindex="-1"></a>[<span class="dv">11</span>] <span class="st">"p__event_time.effects.treatment"</span> <span class="st">"meta"</span>                           </span>
+<span id="cb24-41"><a href="#cb24-41" tabindex="-1"></a><span class="cf">if</span> (<span class="st">"meta"</span> <span class="sc">%in%</span> <span class="fu">names</span>(m) <span class="sc">&amp;&amp;</span> <span class="fu">length</span>(m<span class="sc">$</span>meta[[<span class="dv">1</span>]]) <span class="sc">&gt;</span> <span class="dv">0</span>) {</span>
+<span id="cb24-42"><a href="#cb24-42" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">model =</span> m<span class="sc">$</span>meta[[<span class="dv">1</span>]]<span class="sc">$</span>model,</span>
+<span id="cb24-43"><a href="#cb24-43" tabindex="-1"></a>       <span class="at">baseline =</span> m<span class="sc">$</span>meta[[<span class="dv">1</span>]]<span class="sc">$</span>baseline,</span>
+<span id="cb24-44"><a href="#cb24-44" tabindex="-1"></a>       <span class="at">effects =</span> m<span class="sc">$</span>meta[[<span class="dv">1</span>]]<span class="sc">$</span>effects,</span>
+<span id="cb24-45"><a href="#cb24-45" tabindex="-1"></a>       <span class="at">achieved_censoring =</span> m<span class="sc">$</span>meta[[<span class="dv">1</span>]]<span class="sc">$</span>achieved_censoring,</span>
+<span id="cb24-46"><a href="#cb24-46" tabindex="-1"></a>       <span class="at">n =</span> m<span class="sc">$</span>meta[[<span class="dv">1</span>]]<span class="sc">$</span>n)</span>
+<span id="cb24-47"><a href="#cb24-47" tabindex="-1"></a>} <span class="cf">else</span> {</span>
+<span id="cb24-48"><a href="#cb24-48" tabindex="-1"></a>  <span class="st">"Manifest is minimal (older run); use rebuild_manifest() to enrich."</span></span>
+<span id="cb24-49"><a href="#cb24-49" tabindex="-1"></a>}</span>
+<span id="cb24-50"><a href="#cb24-50" tabindex="-1"></a><span class="sc">$</span>model</span>
+<span id="cb24-51"><a href="#cb24-51" tabindex="-1"></a>[<span class="dv">1</span>] <span class="st">"aft_weibull"</span></span>
+<span id="cb24-52"><a href="#cb24-52" tabindex="-1"></a></span>
+<span id="cb24-53"><a href="#cb24-53" tabindex="-1"></a><span class="sc">$</span>baseline</span>
+<span id="cb24-54"><a href="#cb24-54" tabindex="-1"></a><span class="sc">$</span>baseline<span class="sc">$</span>shape</span>
+<span id="cb24-55"><a href="#cb24-55" tabindex="-1"></a>[<span class="dv">1</span>] <span class="fl">1.3</span></span>
+<span id="cb24-56"><a href="#cb24-56" tabindex="-1"></a></span>
+<span id="cb24-57"><a href="#cb24-57" tabindex="-1"></a><span class="sc">$</span>baseline<span class="sc">$</span>scale</span>
+<span id="cb24-58"><a href="#cb24-58" tabindex="-1"></a>[<span class="dv">1</span>] <span class="dv">12</span></span>
+<span id="cb24-59"><a href="#cb24-59" tabindex="-1"></a></span>
+<span id="cb24-60"><a href="#cb24-60" tabindex="-1"></a></span>
+<span id="cb24-61"><a href="#cb24-61" tabindex="-1"></a><span class="sc">$</span>effects</span>
+<span id="cb24-62"><a href="#cb24-62" tabindex="-1"></a><span class="sc">$</span>effects<span class="sc">$</span>intercept</span>
+<span id="cb24-63"><a href="#cb24-63" tabindex="-1"></a>[<span class="dv">1</span>] <span class="dv">0</span></span>
+<span id="cb24-64"><a href="#cb24-64" tabindex="-1"></a></span>
+<span id="cb24-65"><a href="#cb24-65" tabindex="-1"></a><span class="sc">$</span>effects<span class="sc">$</span>treatment</span>
+<span id="cb24-66"><a href="#cb24-66" tabindex="-1"></a>[<span class="dv">1</span>] <span class="sc">-</span><span class="fl">0.15</span></span>
+<span id="cb24-67"><a href="#cb24-67" tabindex="-1"></a></span>
+<span id="cb24-68"><a href="#cb24-68" tabindex="-1"></a><span class="sc">$</span>effects<span class="sc">$</span>covariates</span>
+<span id="cb24-69"><a href="#cb24-69" tabindex="-1"></a><span class="sc">$</span>effects<span class="sc">$</span>covariates<span class="sc">$</span>age</span>
+<span id="cb24-70"><a href="#cb24-70" tabindex="-1"></a>[<span class="dv">1</span>] <span class="fl">0.008</span></span>
+<span id="cb24-71"><a href="#cb24-71" tabindex="-1"></a></span>
+<span id="cb24-72"><a href="#cb24-72" tabindex="-1"></a><span class="sc">$</span>effects<span class="sc">$</span>covariates<span class="sc">$</span>x</span>
+<span id="cb24-73"><a href="#cb24-73" tabindex="-1"></a>[<span class="dv">1</span>] <span class="fl">0.04</span></span>
+<span id="cb24-74"><a href="#cb24-74" tabindex="-1"></a></span>
+<span id="cb24-75"><a href="#cb24-75" tabindex="-1"></a></span>
+<span id="cb24-76"><a href="#cb24-76" tabindex="-1"></a></span>
+<span id="cb24-77"><a href="#cb24-77" tabindex="-1"></a><span class="sc">$</span>achieved_censoring</span>
+<span id="cb24-78"><a href="#cb24-78" tabindex="-1"></a>[<span class="dv">1</span>] <span class="fl">0.265</span></span>
+<span id="cb24-79"><a href="#cb24-79" tabindex="-1"></a></span>
+<span id="cb24-80"><a href="#cb24-80" tabindex="-1"></a><span class="sc">$</span>n</span>
+<span id="cb24-81"><a href="#cb24-81" tabindex="-1"></a>[<span class="dv">1</span>] <span class="dv">200</span></span>
+<span id="cb24-82"><a href="#cb24-82" tabindex="-1"></a></span>
+<span id="cb24-83"><a href="#cb24-83" tabindex="-1"></a><span class="co"># Load datasets back</span></span>
+<span id="cb24-84"><a href="#cb24-84" tabindex="-1"></a>sets <span class="ot">&lt;-</span> <span class="fu">load_recipe_sets</span>(<span class="fu">file.path</span>(out_dir, <span class="st">"manifest.rds"</span>))</span>
+<span id="cb24-85"><a href="#cb24-85" tabindex="-1"></a><span class="fu">attr</span>(sets[[<span class="dv">1</span>]]<span class="sc">$</span>data, <span class="st">"achieved_censoring"</span>)</span>
+<span id="cb24-86"><a href="#cb24-86" tabindex="-1"></a>[<span class="dv">1</span>] <span class="fl">0.265</span></span>
+<span id="cb24-87"><a href="#cb24-87" tabindex="-1"></a><span class="fu">str</span>(sets[[<span class="dv">1</span>]]<span class="sc">$</span>meta)</span>
+<span id="cb24-88"><a href="#cb24-88" tabindex="-1"></a>List of <span class="dv">19</span></span>
+<span id="cb24-89"><a href="#cb24-89" tabindex="-1"></a> <span class="sc">$</span> dataset_id        <span class="sc">:</span> chr <span class="st">"sc001_r01"</span></span>
+<span id="cb24-90"><a href="#cb24-90" tabindex="-1"></a> <span class="sc">$</span> scenario_id       <span class="sc">:</span> int <span class="dv">1</span></span>
+<span id="cb24-91"><a href="#cb24-91" tabindex="-1"></a> <span class="sc">$</span> rep               <span class="sc">:</span> int <span class="dv">1</span></span>
+<span id="cb24-92"><a href="#cb24-92" tabindex="-1"></a> <span class="sc">$</span> seed_used         <span class="sc">:</span> int <span class="dv">3026</span></span>
+<span id="cb24-93"><a href="#cb24-93" tabindex="-1"></a> <span class="sc">$</span> n                 <span class="sc">:</span> int <span class="dv">200</span></span>
+<span id="cb24-94"><a href="#cb24-94" tabindex="-1"></a> <span class="sc">$</span> n_treat           <span class="sc">:</span> int <span class="dv">95</span></span>
+<span id="cb24-95"><a href="#cb24-95" tabindex="-1"></a> <span class="sc">$</span> n_control         <span class="sc">:</span> int <span class="dv">105</span></span>
+<span id="cb24-96"><a href="#cb24-96" tabindex="-1"></a> <span class="sc">$</span> event_rate        <span class="sc">:</span> num <span class="fl">0.735</span></span>
+<span id="cb24-97"><a href="#cb24-97" tabindex="-1"></a> <span class="sc">$</span> achieved_censoring<span class="sc">:</span> num <span class="fl">0.265</span></span>
+<span id="cb24-98"><a href="#cb24-98" tabindex="-1"></a> <span class="sc">$</span> model             <span class="sc">:</span> chr <span class="st">"aft_weibull"</span></span>
+<span id="cb24-99"><a href="#cb24-99" tabindex="-1"></a> <span class="sc">$</span> baseline          <span class="sc">:</span>List of <span class="dv">2</span></span>
+<span id="cb24-100"><a href="#cb24-100" tabindex="-1"></a>  ..<span class="sc">$</span> shape<span class="sc">:</span> num <span class="fl">1.3</span></span>
+<span id="cb24-101"><a href="#cb24-101" tabindex="-1"></a>  ..<span class="sc">$</span> scale<span class="sc">:</span> num <span class="dv">12</span></span>
+<span id="cb24-102"><a href="#cb24-102" tabindex="-1"></a> <span class="sc">$</span> effects           <span class="sc">:</span>List of <span class="dv">3</span></span>
+<span id="cb24-103"><a href="#cb24-103" tabindex="-1"></a>  ..<span class="sc">$</span> intercept <span class="sc">:</span> num <span class="dv">0</span></span>
+<span id="cb24-104"><a href="#cb24-104" tabindex="-1"></a>  ..<span class="sc">$</span> treatment <span class="sc">:</span> num <span class="sc">-</span><span class="fl">0.15</span></span>
+<span id="cb24-105"><a href="#cb24-105" tabindex="-1"></a>  ..<span class="sc">$</span> covariates<span class="sc">:</span>List of <span class="dv">2</span></span>
+<span id="cb24-106"><a href="#cb24-106" tabindex="-1"></a>  .. ..<span class="sc">$</span> age<span class="sc">:</span> num <span class="fl">0.008</span></span>
+<span id="cb24-107"><a href="#cb24-107" tabindex="-1"></a>  .. ..<span class="sc">$</span> x  <span class="sc">:</span> num <span class="fl">0.04</span></span>
+<span id="cb24-108"><a href="#cb24-108" tabindex="-1"></a> <span class="sc">$</span> treatment         <span class="sc">:</span>List of <span class="dv">2</span></span>
+<span id="cb24-109"><a href="#cb24-109" tabindex="-1"></a>  ..<span class="sc">$</span> assignment<span class="sc">:</span> chr <span class="st">"randomization"</span></span>
+<span id="cb24-110"><a href="#cb24-110" tabindex="-1"></a>  ..<span class="sc">$</span> allocation<span class="sc">:</span> chr <span class="st">"1:1"</span></span>
+<span id="cb24-111"><a href="#cb24-111" tabindex="-1"></a> <span class="sc">$</span> censoring         <span class="sc">:</span>List of <span class="dv">3</span></span>
+<span id="cb24-112"><a href="#cb24-112" tabindex="-1"></a>  ..<span class="sc">$</span> mode      <span class="sc">:</span> chr <span class="st">"target_overall"</span></span>
+<span id="cb24-113"><a href="#cb24-113" tabindex="-1"></a>  ..<span class="sc">$</span> target    <span class="sc">:</span> num <span class="fl">0.25</span></span>
+<span id="cb24-114"><a href="#cb24-114" tabindex="-1"></a>  ..<span class="sc">$</span> admin_time<span class="sc">:</span> num <span class="dv">36</span></span>
+<span id="cb24-115"><a href="#cb24-115" tabindex="-1"></a> <span class="sc">$</span> covariates        <span class="sc">:</span>List of <span class="dv">3</span></span>
+<span id="cb24-116"><a href="#cb24-116" tabindex="-1"></a>  ..<span class="sc">$</span> <span class="er">:</span>List of <span class="dv">4</span></span>
+<span id="cb24-117"><a href="#cb24-117" tabindex="-1"></a>  .. ..<span class="sc">$</span> name  <span class="sc">:</span> chr <span class="st">"age"</span></span>
+<span id="cb24-118"><a href="#cb24-118" tabindex="-1"></a>  .. ..<span class="sc">$</span> type  <span class="sc">:</span> chr <span class="st">"continuous"</span></span>
+<span id="cb24-119"><a href="#cb24-119" tabindex="-1"></a>  .. ..<span class="sc">$</span> dist  <span class="sc">:</span> chr <span class="st">"normal"</span></span>
+<span id="cb24-120"><a href="#cb24-120" tabindex="-1"></a>  .. ..<span class="sc">$</span> params<span class="sc">:</span>List of <span class="dv">2</span></span>
+<span id="cb24-121"><a href="#cb24-121" tabindex="-1"></a>  .. .. ..<span class="sc">$</span> mean<span class="sc">:</span> num <span class="dv">62</span></span>
+<span id="cb24-122"><a href="#cb24-122" tabindex="-1"></a>  .. .. ..<span class="sc">$</span> sd  <span class="sc">:</span> num <span class="dv">10</span></span>
+<span id="cb24-123"><a href="#cb24-123" tabindex="-1"></a>  ..<span class="sc">$</span> <span class="er">:</span>List of <span class="dv">4</span></span>
+<span id="cb24-124"><a href="#cb24-124" tabindex="-1"></a>  .. ..<span class="sc">$</span> name  <span class="sc">:</span> chr <span class="st">"sex"</span></span>
+<span id="cb24-125"><a href="#cb24-125" tabindex="-1"></a>  .. ..<span class="sc">$</span> type  <span class="sc">:</span> chr <span class="st">"categorical"</span></span>
+<span id="cb24-126"><a href="#cb24-126" tabindex="-1"></a>  .. ..<span class="sc">$</span> dist  <span class="sc">:</span> chr <span class="st">"bernoulli"</span></span>
+<span id="cb24-127"><a href="#cb24-127" tabindex="-1"></a>  .. ..<span class="sc">$</span> params<span class="sc">:</span>List of <span class="dv">1</span></span>
+<span id="cb24-128"><a href="#cb24-128" tabindex="-1"></a>  .. .. ..<span class="sc">$</span> p<span class="sc">:</span> num <span class="fl">0.45</span></span>
+<span id="cb24-129"><a href="#cb24-129" tabindex="-1"></a>  ..<span class="sc">$</span> <span class="er">:</span>List of <span class="dv">4</span></span>
+<span id="cb24-130"><a href="#cb24-130" tabindex="-1"></a>  .. ..<span class="sc">$</span> name  <span class="sc">:</span> chr <span class="st">"x"</span></span>
+<span id="cb24-131"><a href="#cb24-131" tabindex="-1"></a>  .. ..<span class="sc">$</span> type  <span class="sc">:</span> chr <span class="st">"continuous"</span></span>
+<span id="cb24-132"><a href="#cb24-132" tabindex="-1"></a>  .. ..<span class="sc">$</span> dist  <span class="sc">:</span> chr <span class="st">"lognormal"</span></span>
+<span id="cb24-133"><a href="#cb24-133" tabindex="-1"></a>  .. ..<span class="sc">$</span> params<span class="sc">:</span>List of <span class="dv">2</span></span>
+<span id="cb24-134"><a href="#cb24-134" tabindex="-1"></a>  .. .. ..<span class="sc">$</span> meanlog<span class="sc">:</span> num <span class="dv">0</span></span>
+<span id="cb24-135"><a href="#cb24-135" tabindex="-1"></a>  .. .. ..<span class="sc">$</span> sdlog  <span class="sc">:</span> num <span class="fl">0.6</span></span>
+<span id="cb24-136"><a href="#cb24-136" tabindex="-1"></a> <span class="sc">$</span> allocation        <span class="sc">:</span> chr <span class="st">"1:1"</span></span>
+<span id="cb24-137"><a href="#cb24-137" tabindex="-1"></a> <span class="sc">$</span> params            <span class="sc">:</span>List of <span class="dv">2</span></span>
+<span id="cb24-138"><a href="#cb24-138" tabindex="-1"></a>  ..<span class="sc">$</span> n                           <span class="sc">:</span> num <span class="dv">200</span></span>
+<span id="cb24-139"><a href="#cb24-139" tabindex="-1"></a>  ..<span class="sc">$</span> event_time.effects.treatment<span class="sc">:</span> num <span class="sc">-</span><span class="fl">0.15</span></span>
+<span id="cb24-140"><a href="#cb24-140" tabindex="-1"></a> <span class="sc">$</span> files             <span class="sc">:</span>List of <span class="dv">4</span></span>
+<span id="cb24-141"><a href="#cb24-141" tabindex="-1"></a>  ..<span class="sc">$</span> txt  <span class="sc">:</span> chr <span class="cn">NA</span></span>
+<span id="cb24-142"><a href="#cb24-142" tabindex="-1"></a>  ..<span class="sc">$</span> csv  <span class="sc">:</span> chr <span class="st">"/tmp/Rtmpfmk8t1/rmstss-manifest-demo/sc1_r1.csv"</span></span>
+<span id="cb24-143"><a href="#cb24-143" tabindex="-1"></a>  ..<span class="sc">$</span> rds  <span class="sc">:</span> chr <span class="st">"/tmp/Rtmpfmk8t1/rmstss-manifest-demo/sc1_r1.rds"</span></span>
+<span id="cb24-144"><a href="#cb24-144" tabindex="-1"></a>  ..<span class="sc">$</span> rdata<span class="sc">:</span> chr <span class="cn">NA</span></span>
+<span id="cb24-145"><a href="#cb24-145" tabindex="-1"></a> <span class="sc">$</span> created_at        <span class="sc">:</span> chr <span class="st">"2025-10-15 05:25:32.625117"</span></span></code></pre></div>
 <hr>
 </div>
 <div class="section level2">
 <h2 id="reproducibility-tips">Reproducibility tips<a class="anchor" aria-label="anchor" href="#reproducibility-tips"></a>
 </h2>
-<ul>
-<li>Set <code>seed</code> in the recipe or pass <code>seed=</code> to
-<code><a href="../reference/simulate_from_recipe.html">simulate_from_recipe()</a></code>.</li>
-<li>For grids, fix a deterministic scheme like
-<code>seed_base + scenario_id*1000 + rep</code> (this is what
-<code><a href="../reference/generate_recipe_sets.html">generate_recipe_sets()</a></code> does).</li>
-</ul>
-<p>Thatâ€™s itâ€”you now have the moving parts to define covariates,
-choose an event-time engine, specify censoring, simulate data, and
-(optionally) batch-create scenarios with compact metadata for downstream
-analysis.</p>
+<p>Set <code>seed</code> in the recipe or pass <code>seed=</code> to
+<code><a href="../reference/simulate_from_recipe.html">simulate_from_recipe()</a></code>.</p>
+<blockquote>
+<p><strong>Assumptions.</strong> The censoring hazard depends on
+observed covariates via a user-specified single mechanism. There are no
+competing risks. Datasets contain only <code>time</code>,
+<code>status</code>, treatment, and covariates—no dependent-censoring
+indicators.</p>
+</blockquote>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
     </nav></aside>

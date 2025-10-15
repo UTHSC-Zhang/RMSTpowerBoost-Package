@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">RMSTpowerBoost</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -149,9 +149,8 @@ studies where a covariate (like age or a biomarker) is expected to have
 a complex, non-linear relationship with the RMST.</li>
 <li>
 <strong><code>Dependent Censoring Model</code></strong>: For studies
-with competing risks, where censoring may be related to covariates
-(e.g., a patient receiving a transplant is no longer at risk for
-pre-transplant mortality).</li>
+where censoring may be related to covariates (e.g., a patient receiving
+a transplant is no longer at risk for pre-transplant mortality).</li>
 </ul>
 </li>
 </ul>
@@ -190,10 +189,6 @@ mapping options will appear:</p>
 <code>Semiparametric (GAM)</code> models. Select the column that
 identifies the strata (e.g., <code>center_id</code>,
 <code>region</code>).</li>
-<li>
-<strong>Dependent Censoring Status:</strong> This appears for the
-<code>Dependent Censoring Model</code>. Select the column that indicates
-whether a patient was censored due to the competing risk event.</li>
 <li>
 <strong>Linear Covariates:</strong> Select one or more columns to
 include as adjustment covariates in the model, assuming they have a
@@ -362,18 +357,14 @@ power and the final required sample size.</li>
 </ul>
 </li>
 <li>
-<strong>Effect Size Summary:</strong> A table summarizing the
-treatment effect (e.g., RMST Difference or RMST Ratio) as estimated from
-your pilot data. This is the effect size that the power calculation is
-based on.</li>
+<strong>Analysis Summary:</strong> A table summarizing the treatment
+effect (e.g., RMST Difference or RMST Ratio) as estimated from your
+pilot data. This is the effect size that the power calculation is based
+on.</li>
 <li>
 <strong>Log-Rank Test Summary:</strong> Provides the results of a
 log-rank test performed on your pilot data, offering a basic comparison
 of the survival curves.</li>
-<li>
-<strong>Download PDF Report:</strong> Once an analysis is complete,
-a button appears here allowing you to download a formatted PDF report
-summarizing your inputs, methods, and results.</li>
 </ul>
 </div>
 <div class="section level4">
@@ -382,6 +373,18 @@ summarizing your inputs, methods, and results.</li>
 <p>This tab displays detailed messages and outputs generated during the
 calculation process. It is useful for understanding the steps the
 application is taking and for debugging in case of an error.</p>
+</div>
+<div class="section level4">
+<h4 id="download-report-tab">Download Report Tab<a class="anchor" aria-label="anchor" href="#download-report-tab"></a>
+</h4>
+<p>This tab allows you to generate a PDF report of your analysis, which
+includes:</p>
+<ul>
+<li>A summary of the pilot data and model used.</li>
+<li>The results of the power/sample size calculation.</li>
+<li>The Kaplan-Meier plot and power/sample size curve.</li>
+<li>The log-rank test summary.</li>
+</ul>
 </div>
 </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

@@ -20,7 +20,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">RMSTpowerBoost</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.1</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -1296,136 +1296,146 @@ recurrence-free survival.</p>
 <span id="cb15-25"><a href="#cb15-25" tabindex="-1"></a><span class="er">|</span><span class="dv">95</span>% CI Upper         <span class="sc">|</span> <span class="fl">91.6471557</span><span class="sc">|</span></span></code></pre></div>
 <p><img src="RMSTpowerBoost-Main_files/figure-html/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;"></p>
 <hr>
+<p>Here’s a rewritten version of that section — fully aligned with your
+<strong>single covariate-dependent censoring (IPCW)</strong> mechanism.
+It preserves your structure, but all narrative, math, and code now
+describe the simplified, unified model. This version reads cleanly for
+both JSS and pkgdown contexts.</p>
+<hr>
 </div>
 </div>
 </div>
 <div class="section level2">
-<h2 id="dependent-censoring-models">Dependent Censoring Models<a class="anchor" aria-label="anchor" href="#dependent-censoring-models"></a>
+<h2 id="covariate-dependent-censoring-models">Covariate-Dependent Censoring Models<a class="anchor" aria-label="anchor" href="#covariate-dependent-censoring-models"></a>
 </h2>
-<p>In some studies, particularly observational or registry studies,
-censoring may not be independent of the event of interest. A classic
-example is in transplant medicine, where receiving an organ transplant
-removes a patient from being at risk of pre-transplant death. This is a
-form of <strong>competing risk</strong>, which can also be viewed as
-dependent censoring.</p>
+<p>In many observational or longitudinal studies, the probability of
+being censored may depend on measured subject characteristics—such as
+age, disease stage, or biomarker level—but <strong>not</strong> on the
+unobserved event time after conditioning on those covariates.<br>
+This setting is referred to as <strong>covariate-dependent (or
+conditionally independent) censoring</strong>.<br>
+Inverse-probability-of-censoring weighting (IPCW) provides a principled
+way to account for this dependence while maintaining unbiased estimation
+of the restricted mean survival time (RMST).</p>
 <div class="section level3">
 <h3 id="theory-and-model-4">Theory and Model<a class="anchor" aria-label="anchor" href="#theory-and-model-4"></a>
 </h3>
-<p>The methods from <span class="citation">(<a href="#ref-wang2018">Wang
-and Schaubel 2018</a>)</span> address this by extending the IPCW
-framework. Instead of a single model for the overall censoring
-distribution, <strong>cause-specific PH models</strong> are fitted for
-each of the
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>K</mi><annotation encoding="application/x-tex">K</annotation></semantics></math>
-sources of censoring (e.g., one model for administrative censoring,
-another for the competing event).</p>
-<p>The final weight for a subject is then a product of the weights
-derived from all censoring causes, calculated as:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>W</mi><mi>i</mi></msub><mo>=</mo><mo>exp</mo><mrow><mo stretchy="true" form="prefix">(</mo><munderover><mo>∑</mo><mrow><mi>k</mi><mo>=</mo><mn>1</mn></mrow><mi>K</mi></munderover><msub><mover><mi>Λ</mi><mo accent="true">̂</mo></mover><mi>k</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">W_i = \exp\left(\sum_{k=1}^{K} \hat{\Lambda}_{k}(Y_i)\right)</annotation></semantics></math>
-where
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>Λ</mi><mo accent="true">̂</mo></mover><mi>k</mi></msub><annotation encoding="application/x-tex">\hat{\Lambda}_{k}</annotation></semantics></math>
-is the estimated cumulative hazard for censoring cause <code>k</code>,
-and
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>Y</mi><mi>i</mi></msub><mo>=</mo><mo>min</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo>,</mo><mi>L</mi><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">Y_i = \min(T_i, L)</annotation></semantics></math>
-is the truncated event time. The final analysis is a weighted linear
-regression on the RMST.</p>
+<p>We assume a single censoring mechanism described by a Cox
+proportional-hazards model for the censoring time:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">Pr</mtext><mrow><mo stretchy="true" form="prefix">(</mo><mi>C</mi><mo>≤</mo><mi>t</mi><mo>∣</mo><mi>X</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mn>1</mn><mo>−</mo><mi>G</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>X</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="2.0em"></mspace><mi>G</mi><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>X</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>=</mo><mo>exp</mo><mo stretchy="false" form="prefix">{</mo><mo>−</mo><msub><mi>Λ</mi><mi>C</mi></msub><mrow><mo stretchy="true" form="prefix">(</mo><mi>t</mi><mo>∣</mo><mi>X</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo stretchy="false" form="postfix">}</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\text{Pr}(C \le t \mid X) = 1 - G(t \mid X),
+\qquad
+G(t \mid X) = \exp\{-\Lambda_C(t \mid X)\},
+</annotation></semantics></math> where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>
+denotes the observed covariates (e.g., age, sex, treatment arm).<br>
+Each subject receives an inverse-probability weight
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>W</mi><mi>i</mi></msub><mo>=</mo><mfrac><mn>1</mn><mrow><mover><mi>G</mi><mo accent="true">̂</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>X</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow></mfrac><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>Y</mi><mi>i</mi></msub><mo>=</mo><mo>min</mo><mrow><mo stretchy="true" form="prefix">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo>,</mo><mi>L</mi><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo></mrow><annotation encoding="application/x-tex">
+W_i = \frac{1}{\widehat{G}(Y_i \mid X_i)},
+\qquad
+Y_i = \min(T_i, L),
+</annotation></semantics></math> with
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>i</mi></msub><annotation encoding="application/x-tex">T_i</annotation></semantics></math>
+the event time and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>
+the truncation horizon for RMST.<br>
+Weights are stabilized and truncated to prevent numerical
+instability.<br>
+The weighted regression
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>E</mi><mrow><mo stretchy="true" form="prefix">[</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>A</mi><mi>i</mi></msub><mo>,</mo><msub><mi>X</mi><mi>i</mi></msub><mo stretchy="true" form="postfix">]</mo></mrow><mo>=</mo><msub><mi>β</mi><mn>0</mn></msub><mo>+</mo><msub><mi>β</mi><mi>A</mi></msub><msub><mi>A</mi><mi>i</mi></msub><mo>+</mo><msubsup><mi>X</mi><mi>i</mi><mi>⊤</mi></msubsup><msub><mi>β</mi><mi>X</mi></msub></mrow><annotation encoding="application/x-tex">
+E[Y_i \mid A_i, X_i] = \beta_0 + \beta_A A_i + X_i^\top\beta_X
+</annotation></semantics></math> is then fitted using weighted least
+squares.<br>
+The variance of
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>β</mi><mo accent="true">̂</mo></mover><mi>A</mi></msub><annotation encoding="application/x-tex">\hat\beta_A</annotation></semantics></math>
+is estimated with a sandwich-type estimator that treats the censoring
+model as known.</p>
 <div class="section level4">
 <h4 id="power-calculation-formula-dc-power-analytical">Power Calculation Formula (<code>DC.power.analytical</code>)<a class="anchor" aria-label="anchor" href="#power-calculation-formula-dc-power-analytical"></a>
 </h4>
-<p>Power is calculated analytically using the standard formula:
-<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">Power</mtext><mo>=</mo><mi>Φ</mi><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mo stretchy="true" form="prefix">|</mo><msub><mi>β</mi><mtext mathvariant="normal">effect</mtext></msub><mo stretchy="true" form="postfix">|</mo></mrow><msub><mi>σ</mi><mi>N</mi></msub></mfrac><mo>−</mo><msub><mi>z</mi><mrow><mn>1</mn><mo>−</mo><mi>α</mi><mi>/</mi><mn>2</mn></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\text{Power} = \Phi\left( \frac{|\beta_{\text{effect}}|}{\sigma_N} - z_{1-\alpha/2} \right)</annotation></semantics></math>
-The key difference in this model is that the variance,
-<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msubsup><mi>σ</mi><mi>N</mi><mn>2</mn></msubsup><annotation encoding="application/x-tex">\sigma_N^2</annotation></semantics></math>,
-is derived from a robust sandwich estimator that properly accounts for
-the multiple weighting components from the different cause-specific
-hazard models.</p>
+<p>Analytic power is computed as
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">Power</mtext><mo>=</mo><mi>Φ</mi><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mo stretchy="true" form="prefix">|</mo><msub><mover><mi>β</mi><mo accent="true">̂</mo></mover><mi>A</mi></msub><mo stretchy="true" form="postfix">|</mo></mrow><msub><mi>σ</mi><mi>N</mi></msub></mfrac><mo>−</mo><msub><mi>z</mi><mrow><mn>1</mn><mo>−</mo><mi>α</mi><mi>/</mi><mn>2</mn></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="2.0em"></mspace><msubsup><mi>σ</mi><mi>N</mi><mn>2</mn></msubsup><mo>=</mo><mfrac><mrow><mover><mrow><mi mathvariant="normal">V</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi></mrow><mo accent="true">̂</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><msub><mover><mi>β</mi><mo accent="true">̂</mo></mover><mi>A</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><mi>N</mi></mfrac><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\text{Power}
+= \Phi\!\left(
+  \frac{|\hat\beta_A|}{\sigma_N}
+  - z_{1-\alpha/2}
+\right),
+\qquad
+\sigma_N^2 = \frac{\widehat{\mathrm{Var}}(\hat\beta_A)}{N},
+</annotation></semantics></math> where
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mrow><mi mathvariant="normal">V</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi></mrow><mo accent="true">̂</mo></mover><mrow><mo stretchy="true" form="prefix">(</mo><msub><mover><mi>β</mi><mo accent="true">̂</mo></mover><mi>A</mi></msub><mo stretchy="true" form="postfix">)</mo></mrow></mrow><annotation encoding="application/x-tex">\widehat{\mathrm{Var}}(\hat\beta_A)</annotation></semantics></math>
+is the asymptotic variance estimated from the pilot data and
+<math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
+is the total sample size.<br>
+Because the same IPCW model is used for all subjects, no cause-specific
+components appear in the variance.</p>
 </div>
 </div>
 <div class="section level3">
 <h3 id="analytical-methods-3">Analytical Methods<a class="anchor" aria-label="anchor" href="#analytical-methods-3"></a>
 </h3>
-<p>We will use the <code>mgus2</code> dataset for this scenario.</p>
-<pre><code>  id age sex dxyr  hgb creat mspike ptime pstat time death event_primary
-1  1  88   F 1981 13.1   1.3    0.5    30     0   30     1             0
-2  2  78   F 1968 11.5   1.2    2.0    25     0   25     1             0
-3  3  94   M 1980 10.5   1.5    2.6    46     0   46     1             0
-4  4  68   M 1977 15.2   1.2    1.2    92     0   92     1             0
-5  5  90   F 1973 10.7   0.8    1.0     8     0    8     1             0
-6  6  90   M 1990 12.9   1.0    0.5     4     0    4     1             0
-  event_dependent arm
-1               1   0
-2               1   0
-3               1   1
-4               1   1
-5               1   0
-6               1   1</code></pre>
+<p>We demonstrate this approach using the <code>mgus2</code> dataset,
+modeling censoring as a function of age and sex but <strong>not</strong>
+as competing events.</p>
+<pre><code>  id age sex dxyr  hgb creat mspike ptime pstat time death status arm
+1  1  88   F 1981 13.1   1.3    0.5    30     0   30     1      0   0
+2  2  78   F 1968 11.5   1.2    2.0    25     0   25     1      0   0
+3  3  94   M 1980 10.5   1.5    2.6    46     0   46     1      0   1
+4  4  68   M 1977 15.2   1.2    1.2    92     0   92     1      0   1
+5  5  90   F 1973 10.7   0.8    1.0     8     0    8     1      0   0
+6  6  90   M 1990 12.9   1.0    0.5     4     0    4     1      0   1</code></pre>
 <div class="section level4">
-<h4 id="power-calculation---dc-power-analytical">Power Calculation - <a href="../reference/DC.power.analytical.html"><code>DC.power.analytical</code></a><a class="anchor" aria-label="anchor" href="#power-calculation---dc-power-analytical"></a>
+<h4 id="power-calculation-dc-power-analytical">Power Calculation — <a href="../reference/DC.power.analytical.html"><code>DC.power.analytical</code></a><a class="anchor" aria-label="anchor" href="#power-calculation-dc-power-analytical"></a>
 </h4>
-<p>This function calculates power for a study with dependent censoring
-(competing risks) for a given set of sample sizes.</p>
-<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a>dc_power_results <span class="ot">&lt;-</span> <span class="fu">DC.power.analytical</span>(</span>
-<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>   <span class="at">pilot_data =</span> mgus_prepared,</span>
-<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a>   <span class="at">time_var =</span> <span class="st">"time"</span>,</span>
-<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a>   <span class="at">status_var =</span> <span class="st">"event_primary"</span>,</span>
-<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a>   <span class="at">arm_var =</span> <span class="st">"arm"</span>,</span>
-<span id="cb17-6"><a href="#cb17-6" tabindex="-1"></a>   <span class="at">dep_cens_status_var =</span> <span class="st">"event_dependent"</span>,</span>
-<span id="cb17-7"><a href="#cb17-7" tabindex="-1"></a>   <span class="at">sample_sizes =</span> <span class="fu">c</span>(<span class="dv">100</span>, <span class="dv">250</span>, <span class="dv">500</span>),</span>
-<span id="cb17-8"><a href="#cb17-8" tabindex="-1"></a>   <span class="at">linear_terms =</span> <span class="st">"age"</span>,</span>
-<span id="cb17-9"><a href="#cb17-9" tabindex="-1"></a>   <span class="at">L =</span> <span class="dv">120</span> <span class="co"># 10 years</span></span>
-<span id="cb17-10"><a href="#cb17-10" tabindex="-1"></a>)</span>
-<span id="cb17-11"><a href="#cb17-11" tabindex="-1"></a><span class="sc">---</span> Estimating parameters from pilot data... <span class="sc">---</span></span>
-<span id="cb17-12"><a href="#cb17-12" tabindex="-1"></a><span class="sc">---</span> Calculating asymptotic variance... <span class="sc">---</span></span>
-<span id="cb17-13"><a href="#cb17-13" tabindex="-1"></a><span class="sc">---</span> Calculating power <span class="cf">for</span> specified sample sizes... <span class="sc">---</span></span></code></pre></div>
+<p>This function estimates analytic power for the RMST regression under
+a single covariate-dependent censoring mechanism.</p>
+<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="va">dc_power_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/DC.power.analytical.html">DC.power.analytical</a></span><span class="op">(</span></span>
+<span>   pilot_data <span class="op">=</span> <span class="va">mgus_prepared</span>,</span>
+<span>   time_var <span class="op">=</span> <span class="st">"time"</span>,</span>
+<span>   status_var <span class="op">=</span> <span class="st">"status"</span>,</span>
+<span>   arm_var <span class="op">=</span> <span class="st">"arm"</span>,</span>
+<span>   sample_sizes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">250</span>, <span class="fl">500</span><span class="op">)</span>,</span>
+<span>   linear_terms <span class="op">=</span> <span class="st">"age"</span>,</span>
+<span>   L <span class="op">=</span> <span class="fl">120</span>,   <span class="co"># 10 years</span></span>
+<span>   alpha <span class="op">=</span> <span class="fl">0.05</span></span>
+<span><span class="op">)</span></span></code></pre></div>
 <table class="table table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <caption>
-Power Analysis for MGUS Progression Study
+Analytic Power Analysis under Covariate-Dependent Censoring
 </caption>
 <tbody><tr></tr></tbody>
 </table>
 <p><img src="RMSTpowerBoost-Main_files/figure-html/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level4">
-<h4 id="sample-size-calculation---dc-ss-analytical">Sample Size Calculation - <a href="../reference/DC.ss.analytical.html"><code>DC.ss.analytical</code></a><a class="anchor" aria-label="anchor" href="#sample-size-calculation---dc-ss-analytical"></a>
+<h4 id="sample-size-calculation-dc-ss-analytical">Sample-Size Calculation — <a href="../reference/DC.ss.analytical.html"><code>DC.ss.analytical</code></a><a class="anchor" aria-label="anchor" href="#sample-size-calculation-dc-ss-analytical"></a>
 </h4>
-<p>Now, find the sample size needed for 80% power, truncating at 10
-years (120 months).</p>
+<p>We next estimate the per-arm sample size required to achieve 80%
+power at the same truncation time (10 years).</p>
 <div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a>ss_dc_mgus <span class="ot">&lt;-</span> <span class="fu">DC.ss.analytical</span>(</span>
 <span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>   <span class="at">pilot_data =</span> mgus_prepared,</span>
 <span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a>   <span class="at">time_var =</span> <span class="st">"time"</span>,</span>
-<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a>   <span class="at">status_var =</span> <span class="st">"event_primary"</span>,</span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a>   <span class="at">status_var =</span> <span class="st">"status"</span>,</span>
 <span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a>   <span class="at">arm_var =</span> <span class="st">"arm"</span>,</span>
-<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a>   <span class="at">dep_cens_status_var =</span> <span class="st">"event_dependent"</span>,</span>
-<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a>   <span class="at">target_power =</span> <span class="fl">0.80</span>,</span>
-<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a>   <span class="at">linear_terms =</span> <span class="st">"age"</span>,</span>
-<span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a>   <span class="at">L =</span> <span class="dv">120</span>, <span class="co"># 10 years</span></span>
+<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a>   <span class="at">target_power =</span> <span class="fl">0.80</span>,</span>
+<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a>   <span class="at">linear_terms =</span> <span class="st">"age"</span>,</span>
+<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a>   <span class="at">L =</span> <span class="dv">120</span>,</span>
+<span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a>   <span class="at">alpha =</span> <span class="fl">0.05</span>,</span>
 <span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a>   <span class="at">n_start =</span> <span class="dv">100</span>, <span class="at">n_step =</span> <span class="dv">50</span>, <span class="at">max_n_per_arm =</span> <span class="dv">5000</span></span>
 <span id="cb18-11"><a href="#cb18-11" tabindex="-1"></a>)</span>
-<span id="cb18-12"><a href="#cb18-12" tabindex="-1"></a><span class="sc">---</span> Estimating parameters from pilot data <span class="cf">for</span> analytic calculation... <span class="sc">---</span></span>
-<span id="cb18-13"><a href="#cb18-13" tabindex="-1"></a><span class="sc">---</span> Searching <span class="cf">for</span> Sample <span class="fu">Size</span> (Method<span class="sc">:</span> Analytic) <span class="sc">---</span></span>
-<span id="cb18-14"><a href="#cb18-14" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">100</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.216</span></span>
-<span id="cb18-15"><a href="#cb18-15" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">150</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.301</span></span>
-<span id="cb18-16"><a href="#cb18-16" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">200</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.383</span></span>
-<span id="cb18-17"><a href="#cb18-17" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">250</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.46</span></span>
-<span id="cb18-18"><a href="#cb18-18" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">300</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.53</span></span>
-<span id="cb18-19"><a href="#cb18-19" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">350</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.595</span></span>
-<span id="cb18-20"><a href="#cb18-20" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">400</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.652</span></span>
-<span id="cb18-21"><a href="#cb18-21" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">450</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.703</span></span>
-<span id="cb18-22"><a href="#cb18-22" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">500</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.748</span></span>
-<span id="cb18-23"><a href="#cb18-23" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">550</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.787</span></span>
-<span id="cb18-24"><a href="#cb18-24" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">600</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.821</span></span>
-<span id="cb18-25"><a href="#cb18-25" tabindex="-1"></a></span>
-<span id="cb18-26"><a href="#cb18-26" tabindex="-1"></a><span class="sc">---</span> Calculation Summary <span class="sc">---</span></span>
-<span id="cb18-27"><a href="#cb18-27" tabindex="-1"></a></span>
-<span id="cb18-28"><a href="#cb18-28" tabindex="-1"></a></span>
-<span id="cb18-29"><a href="#cb18-29" tabindex="-1"></a>Table<span class="sc">:</span> Required Sample Size</span>
-<span id="cb18-30"><a href="#cb18-30" tabindex="-1"></a></span>
-<span id="cb18-31"><a href="#cb18-31" tabindex="-1"></a><span class="sc">|</span> Target_Power<span class="sc">|</span> Required_N_per_Arm<span class="sc">|</span></span>
-<span id="cb18-32"><a href="#cb18-32" tabindex="-1"></a><span class="er">|</span><span class="sc">------------</span><span class="er">:|</span><span class="sc">------------------</span><span class="er">:|</span></span>
-<span id="cb18-33"><a href="#cb18-33" tabindex="-1"></a><span class="er">|</span>          <span class="fl">0.8</span><span class="sc">|</span>                <span class="dv">600</span><span class="sc">|</span></span></code></pre></div>
+<span id="cb18-12"><a href="#cb18-12" tabindex="-1"></a></span>
+<span id="cb18-13"><a href="#cb18-13" tabindex="-1"></a><span class="sc">---</span> Calculation Summary <span class="sc">---</span></span>
+<span id="cb18-14"><a href="#cb18-14" tabindex="-1"></a></span>
+<span id="cb18-15"><a href="#cb18-15" tabindex="-1"></a></span>
+<span id="cb18-16"><a href="#cb18-16" tabindex="-1"></a>Table<span class="sc">:</span> Required Sample Size</span>
+<span id="cb18-17"><a href="#cb18-17" tabindex="-1"></a></span>
+<span id="cb18-18"><a href="#cb18-18" tabindex="-1"></a><span class="sc">|</span> Target_Power<span class="sc">|</span> Required_N_per_Arm<span class="sc">|</span></span>
+<span id="cb18-19"><a href="#cb18-19" tabindex="-1"></a><span class="er">|</span><span class="sc">------------</span><span class="er">:|</span><span class="sc">------------------</span><span class="er">:|</span></span>
+<span id="cb18-20"><a href="#cb18-20" tabindex="-1"></a><span class="er">|</span>          <span class="fl">0.8</span><span class="sc">|</span>                <span class="dv">250</span><span class="sc">|</span></span></code></pre></div>
 <table class="table table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <caption>
-Estimated Effect from Pilot Data
+Estimated RMST Difference from Pilot Data
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -1445,11 +1455,12 @@ arm
 Assumed RMST Difference (from pilot)
 </td>
 <td style="text-align:right;">
-1.556343
+-10.61349
 </td>
 </tr></tbody>
 </table>
 <p><img src="RMSTpowerBoost-Main_files/figure-html/mgus2_table-1.png" width="672" style="display: block; margin: auto;"></p>
+<hr>
 </div>
 </div>
 </div>
@@ -1485,8 +1496,9 @@ application on your own machine with the following command:</p></li>
 </h4>
 <ul>
 <li>
-<strong>Interactive Data Upload</strong>: Upload your pilot dataset
-in <code>.csv</code> format.</li>
+<strong>Interactive Data Gneration</strong>: Upload your pilot
+dataset in <code>.csv</code> format or generate your data from scratch
+for analysis.</li>
 <li>
 <strong>Visual Column Mapping</strong>: Visually map the columns in
 your data to the required variables for the analysis (e.g., time,
