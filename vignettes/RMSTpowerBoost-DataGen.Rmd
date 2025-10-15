@@ -22,13 +22,12 @@ vignette: >
 is_pkgdown <- identical(Sys.getenv("IN_PKGDOWN"), "true")
 knitr::opts_chunk$set(
   collapse = TRUE,
-  cache = FALSE,                 # avoid stale state across runs
-  cache.lazy = FALSE,            # materialize objects now (safer)
+  cache = FALSE,                
+  cache.lazy = FALSE,            
   autodep = TRUE,
   comment = NA,
   fig.width = 6, fig.height = 4,
-  warning = FALSE, message = FALSE,
-  eval = is_pkgdown || identical(Sys.getenv("NOT_CRAN"), "true")
+  warning = FALSE, message = FALSE
 )
 library(RMSTpowerBoost)
 set.seed(1)

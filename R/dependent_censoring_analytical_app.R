@@ -115,7 +115,7 @@ DC.power.analytical.app <- function(pilot_data,
       ggplot2::geom_point(color = "#0072B2", size = 3) +
       ggplot2::labs(
          title = "Analytic Power Curve: RMST with Covariate-Dependent Censoring (IPCW)",
-         subtitle = "Single censoring mechanism; variance ignores uncertainty in Ĝ.",
+         subtitle = "IPCW-based; single censoring mechanism.",
          x = "Sample Size Per Arm", y = "Estimated Power"
       ) +
       ggplot2::ylim(0, 1) +

@@ -1,14 +1,14 @@
-veteran_data_prep	
-veteran_power_calc	
-veteran_table_plot	
-veteran_ss_calc	
-veteran_ss_table	
-linear_boot_example	
+veteran_data_prep	vet
+veteran_power_calc	power_results_vet
+veteran_table_plot	.RMSTpowerBoost-Main_cache/html/veteran_table_plot_128b70f80a2ecd103baf963f47984afa_meta
+veteran_ss_calc	ss_results_vet
+veteran_ss_table	.RMSTpowerBoost-Main_cache/html/veteran_ss_table_386299544e9fe9d8644dd76d902363b0_meta
+linear_boot_example	power_boot_vet
 unnamed-chunk-1	
-unnamed-chunk-2	
+unnamed-chunk-2	ss_boot_vet
 unnamed-chunk-3	
-colon_data_prep	
-colon_ss_calc	
+colon_data_prep	colon_death
+colon_ss_calc	ss_results_colon
 colon_ss_table	
 additive_power_calc	
 additive_power_table_plot	

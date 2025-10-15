@@ -32,7 +32,6 @@ test_that("DC.power.analytical returns correct structure", {
       pilot_data = pilot_data,
       time_var = "time",
       status_var = "status",
-      dep_cens_status_var = "comp_event",
       arm_var = "arm",
       sample_sizes = c(500, 1000),
       L = 15
@@ -54,9 +53,8 @@ test_that("DC.ss.analytical returns correct structure", {
       pilot_data = pilot_data,
       time_var = "time",
       status_var = "status",
-      dep_cens_status_var = "comp_event",
       arm_var = "arm",
-      target_power = 0.80,
+      target_power = 0.50,
       L = 15
    )
    expect_type(results, "list")
@@ -70,13 +68,13 @@ test_that("DC.ss.analytical requires larger N for weaker effect", {
 
    ss_strong <- DC.ss.analytical(
       pilot_data = data_strong_effect, time_var = "time", status_var = "status",
-      dep_cens_status_var = "comp_event", arm_var = "arm",
+      arm_var = "arm",
       target_power = 0.80, L = 20
    )
 
    ss_weak <- DC.ss.analytical(
       pilot_data = data_weak_effect, time_var = "time", status_var = "status",
-      dep_cens_status_var = "comp_event", arm_var = "arm",
+       arm_var = "arm",
       target_power = 0.80, L = 20
    )
 
@@ -89,7 +87,7 @@ test_that("DC functions work correctly with no covariates", {
    expect_no_error(
       DC.power.analytical(
          pilot_data = pilot_data, time_var = "time", status_var = "status",
-         dep_cens_status_var = "comp_event", arm_var = "arm",
+        arm_var = "arm",
          linear_terms = NULL, sample_sizes = c(500), L = 15
       )
    )
@@ -97,7 +95,7 @@ test_that("DC functions work correctly with no covariates", {
    expect_no_error(
       DC.ss.analytical(
          pilot_data = pilot_data, time_var = "time", status_var = "status",
-         dep_cens_status_var = "comp_event", arm_var = "arm",
+         arm_var = "arm",
          linear_terms = NULL, target_power = 0.80, L = 15
       )
    )

@@ -2,14 +2,13 @@
 % Please edit documentation in R/dependent_censoring_analytical.R
 \name{DC.power.analytical}
 \alias{DC.power.analytical}
-\title{Analyze Power for RMST Model with Dependent Censoring (Analytic)}
+\title{Analyze Power for RMST Model with Covariate-Dependent Censoring (Analytic)}
 \usage{
 DC.power.analytical(
   pilot_data,
   time_var,
   status_var,
   arm_var,
-  dep_cens_status_var,
   sample_sizes,
   linear_terms = NULL,
   L,
@@ -17,80 +16,41 @@ DC.power.analytical(
 )
 }
 \arguments{
-\item{pilot_data}{A \code{data.frame} containing pilot study data.}
+\item{pilot_data}{A \code{data.frame} with pilot data.}
 
-\item{time_var}{A character string for the time-to-event variable.}
+\item{time_var}{Name of the time-to-event variable.}
 
-\item{status_var}{A character string for the primary event status (1=event, 0=otherwise).}
+\item{status_var}{Name of the primary event indicator (1=event, 0=censored).}
 
-\item{arm_var}{A character string for the treatment arm variable (1=treatment, 0=control).}
+\item{arm_var}{Name of the treatment indicator (1=treatment, 0=control).}
 
-\item{dep_cens_status_var}{A character string for the dependent censoring status (1=dependent event, 0=otherwise).}
+\item{sample_sizes}{Numeric vector of per-arm sample sizes for power.}
 
-\item{sample_sizes}{A numeric vector of sample sizes \emph{per arm} to calculate power for.}
+\item{linear_terms}{Optional character vector of additional covariate names (used in both models).}
 
-\item{linear_terms}{An optional character vector of other covariate names.}
+\item{L}{RMST truncation time.}
 
-\item{L}{The numeric value for the RMST truncation time.}
-
-\item{alpha}{The significance level (Type I error rate).}
+\item{alpha}{Two-sided Type I error.}
 }
 \value{
-A \code{list} containing:
-\item{results_data}{A \code{data.frame} with sample sizes and corresponding powers.}
-\item{results_plot}{A \code{ggplot} object visualizing the power curve.}
+A \code{list} with:
+\item{results_data}{A data.frame with \code{N_per_Arm} and \code{Power}.}
+\item{results_plot}{A ggplot object of the power curve.}
 }
 \description{
-Performs power analysis for an RMST model with multiple censoring causes
-using a direct formula-based method.
+Performs power analysis for an RMST model when the censoring mechanism
+depends on observed covariates. Competing risks are not modeled here.
 }
 \details{
-This function calculates power based on a linear model for RMST in the presence
-of both independent and dependent censoring (or competing risks). The method uses
-cause-specific IPCW to account for the censoring events.
+This function assumes a single censoring process whose hazard depends on covariates
+(but not on treatment by default). It fits a Cox model for censoring
+\deqn{\Pr(\text{censoring by } t \mid X) = 1 - G(t \mid X)}
+using \code{Surv(time, status==0) ~ linear\_terms}, then forms inverse-probability-of-censoring
+weights (IPCW) \eqn{w_i = 1/\hat G(Y_i\mid X_i)} evaluated at \eqn{Y_i=\min(T_i,L)}.
+The RMST regression \eqn{E[Y_i \mid A_i,X_i]} is then fit by weighted least squares,
+and power is derived from a sandwich variance that ignores uncertainty from
+estimating \eqn{\hat G}.
 
-Specifically, it fits a separate Cox proportional hazards model for each censoring
-cause to estimate the cause-specific hazards. The final IPCW weight for each
-subject is calculated by combining the cumulative hazards from all censoring causes:
-\deqn{W_i = \exp(\sum_{k=1}^{K} \hat{\Lambda}_{k}(Y_i))}
-where \eqn{\hat{\Lambda}_{k}} is the estimated cumulative hazard for censoring cause \code{k}.
-
-The power is then derived from the asymptotic sandwich variance of the treatment
-effect in the resulting weighted linear model. This implementation uses a robust
-variance estimator that provides a good approximation but does not account for the
-variability from estimating the IPCW weights themselves.
-}
-\examples{
-# Generate sample pilot data
-set.seed(123)
-n_pilot <- 150
-pilot_df <- data.frame(
-  time = rexp(n_pilot, rate = 0.1),
-  arm = rep(0:1, each = n_pilot / 2),
-  age = rnorm(n_pilot, mean = 60, sd = 10)
-)
-# Introduce a treatment effect
-pilot_df$time[pilot_df$arm == 1] <- pilot_df$time[pilot_df$arm == 1] * 1.2
-
-# Create competing event indicators
-# Assume 70\% primary event, 15\% dependent censoring, 15\% independent censoring
-event_type <- sample(0:2, n_pilot, replace = TRUE, prob = c(0.7, 0.15, 0.15))
-pilot_df$status <- ifelse(event_type == 0, 1, 0)
-pilot_df$dep_cens_status <- ifelse(event_type == 1, 1, 0)
-pilot_df$time[event_type != 0] <- pilot_df$time[event_type != 0] * 0.8
-
-# Run the power analysis
-dc_power_results <- DC.power.analytical(
-  pilot_data = pilot_df,
-  time_var = "time",
-  status_var = "status",
-  arm_var = "arm",
-  dep_cens_status_var = "dep_cens_status",
-  sample_sizes = c(200, 300, 400),
-  linear_terms = "age",
-  L = 20,
-  alpha = 0.05
-)
-print(dc_power_results$results_data)
-print(dc_power_results$results_plot)
+Note: \code{dep_cens_status_var} is accepted for API compatibility but is
+ignored under this setting (no competing risks are modeled).
 }

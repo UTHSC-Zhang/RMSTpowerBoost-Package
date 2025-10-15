@@ -162,11 +162,11 @@ covariate_plots <- function(df, arm_var = NULL, palette = c("#0d6efd","#dc3545",
 # Build a model.matrix column order from covariate definitions
 build_mm_columns <- function(cov_defs, include_intercept = TRUE) {
   if (!length(cov_defs)) return(character(0))
-  
+
   # Determine the longest categorical level count
   rows <- 1
   cols <- list()
-  
+
   for (d in cov_defs) {
     if (d$type == "continuous") {
       cols[[d$name]] <- 0
@@ -180,18 +180,18 @@ build_mm_columns <- function(cov_defs, include_intercept = TRUE) {
       rows <- max(rows, length(lv))
     }
   }
-  
+
   # Rep every column to the SAME length
   df <- as.data.frame(
     lapply(cols, function(x) rep(x, length.out = max(1, rows))),
     stringsAsFactors = FALSE
   )
-  
+
   form <- as.formula(paste0(
     if (include_intercept) "~ 1 +" else "~ -1 +",
     paste(vapply(cov_defs, function(d) d$name, character(1)), collapse = " + ")
   ))
-  
+
   mm <- model.matrix(form, data = df)
   colnames(mm)
 }
@@ -358,30 +358,31 @@ make_inline_template <- function() {
   writeLines(txt, tf)
   tf
 }
-
 report_inputs_builder <- function(input) {
-  list(
-    model_selection = input$model_selection,
-    analysis_type   = input$analysis_type,
-    time_var        = input$time_var,
-    status_var      = input$status_var,
-    arm_var         = input$arm_var,
-    strata_var      = input$strata_var %||% "",
-    dep_cens_var    = input$dep_cens_var %||% "",
-    calc_method     = input$calc_method %||% "Analytical",
-    L               = input$L,
-    alpha           = input$alpha,
-    sample_sizes    = input$sample_sizes,
-    target_power    = input$target_power
-  )
+   list(
+      model_selection = input$model_selection,
+      analysis_type   = input$analysis_type,
+      time_var        = input$time_var,
+      status_var      = input$status_var,
+      arm_var         = input$arm_var,
+      strata_var      = input$strata_var %||% "",
+      dc_linear_terms = input$dc_linear_terms %||% character(0),  # ← added
+      calc_method     = input$calc_method %||% "Analytical",
+      L               = input$L,
+      alpha           = input$alpha,
+      sample_sizes    = input$sample_sizes,
+      target_power    = input$target_power
+   )
 }
+
+
 
 # ------------------ UI ------------------
 ui <- fluidPage(
   theme = bs_theme(version = 5, bootswatch = "flatly"),
   useShinyjs(),
   titlePanel("RMSTpowerBoost: Power and Sample Size Calculator"),
-  
+
   sidebarLayout(
     sidebarPanel(
       width = 4,
@@ -442,7 +443,7 @@ ui <- fluidPage(
           )
         ))
       ),
-      
+
       # Step 2+3: Model + Analysis (hidden until data ready)
       shinyjs::hidden(
         wellPanel(
@@ -483,7 +484,7 @@ ui <- fluidPage(
         )
       )
     ),
-    
+
     mainPanel(
       width = 8,
       tabsetPanel(
@@ -550,7 +551,7 @@ repeated_power_from_pilot <- function(pilot_df, time_var, status_var, arm_var,
   df$arm <- as.factor(df$arm)
   if (nlevels(df$arm) != 2L) stop("Repeated method currently expects exactly 2 arms.")
   if (!is.null(seed) && is.finite(seed)) set.seed(as.integer(seed))
-  
+
   if (!is.null(strata_var)) {
     names(df)[names(df) == strata_var] <- "stratum"
     df$stratum <- as.factor(df$stratum)
@@ -559,7 +560,7 @@ repeated_power_from_pilot <- function(pilot_df, time_var, status_var, arm_var,
   } else {
     split_by <- split(df, df$arm, drop = TRUE)
   }
-  
+
   out <- lapply(n_per_arm_vec, function(n_arm){
     rej <- logical(R)
     for (r in seq_len(R)) {
@@ -601,7 +602,7 @@ server <- function(input, output, session) {
   bslib::bs_themer()
   license_content <- tryCatch(paste(readLines("LICENSE"), collapse = "\n"), error = function(e) "LICENSE not found.")
   output$license_display <- renderPrint({ cat(license_content) })
-  
+
   theme_palette <- reactive({
     th <- bslib::bs_current_theme()
     # grab a few bootstrap variables; fall back if missing
@@ -611,7 +612,7 @@ server <- function(input, output, session) {
     if (length(cols) < 2) cols <- c("#0d6efd", "#dc3545", "#198754", "#0dcaf0")
     cols
   })
-  
+
   rv <- reactiveValues(
     covariates = list(),
     cat_rows = tibble::tibble(cat = character(), prob = numeric(), coef = numeric()),
@@ -620,14 +621,14 @@ server <- function(input, output, session) {
     data_source = NULL,
     console_buf = character(0)
   )
-  
+
   # Toggle Upload vs Generate
   observeEvent(input$data_mode, {
     rv$data_mode <- input$data_mode
     shinyjs::toggle(id = "upload_panel", condition = input$data_mode == "Upload")
     shinyjs::toggle(id = "simulate_panel", condition = input$data_mode == "Generate")
   }, ignoreInit = FALSE)
-  
+
   # ---------- Covariate details UI ----------
   output$cov_details_ui <- renderUI({
     if ((input$cov_type %||% "continuous") == "continuous") {
@@ -658,7 +659,7 @@ server <- function(input, output, session) {
       )
     }
   })
-  
+
   # Continuous parameter UI
   output$cont_param_ui <- renderUI({
     switch(input$cont_dist %||% "normal",
@@ -691,7 +692,7 @@ server <- function(input, output, session) {
            )
     )
   })
-  
+
   # Category rows table & actions
   observeEvent(input$add_cat_row, {
     nm <- input$cat_add_name %||% ""
@@ -700,13 +701,13 @@ server <- function(input, output, session) {
     if (!is.na(pr) && (pr < 0 || pr > 1)) { showNotification("Probability must be between 0 and 1.", type = "warning"); return() }
     cf <- input$cat_add_coef
     if (!is.finite(cf)) { showNotification("Coefficient must be numeric.", type = "warning"); return() }
-    
+
     rv$cat_rows <- dplyr::bind_rows(rv$cat_rows, tibble::tibble(cat = nm, prob = pr, coef = cf))
-    
+
     # NEW: clear the per-row inputs immediately after adding
     reset_cat_entry_ui(session)
   })
-  
+
   observeEvent(input$reset_cat_rows, { rv$cat_rows <- tibble::tibble(cat = character(), prob = numeric(), coef = numeric()) })
   output$cat_table <- renderDT({
     if (!nrow(rv$cat_rows)) {
@@ -729,11 +730,11 @@ server <- function(input, output, session) {
       showNotification("Select a category row to remove.", type = "warning")
     }
   })
-  
-  
+
+
   # Transform visibility (continuous only)
   observe({ shinyjs::toggle(id = "transform_block", condition = (input$cov_type %||% "") == "continuous") })
-  
+
   # Reset builder
   observeEvent(input$reset_cov_builder, {
     updateTextInput(session, "cov_name", value = "")
@@ -745,7 +746,7 @@ server <- function(input, output, session) {
     rv$cat_rows <- tibble::tibble(cat = character(), prob = numeric(), coef = numeric())
     reset_cat_entry_ui(session)   # ← add this
   })
-  
+
   observeEvent(input$reset_cat_rows, {
     rv$cat_rows <- tibble::tibble(cat = character(), prob = numeric(), coef = numeric())
     reset_cat_entry_ui(session)   # ← nice touch
@@ -762,12 +763,12 @@ server <- function(input, output, session) {
       i <- i + 1
     }
   })
-  
+
   # Add covariate to list
   observeEvent(input$add_cov, {
     req(input$cov_type)
     vname <- next_cov_name()
-    
+
     if (input$cov_type == "continuous") {
       # ------- CONTINUOUS -------
       pars <- switch(input$cont_dist,
@@ -783,28 +784,28 @@ server <- function(input, output, session) {
       if (!is.finite(as.numeric(input$cont_beta))) {
         showNotification("Continuous coefficient must be a single number.", type = "error"); return()
       }
-      
+
       rv$covariates <- c(rv$covariates, list(list(
         name = vname, type = "continuous", dist = input$cont_dist, params = pars,
         transform = tf, beta = as.numeric(input$cont_beta)
       )))
-      
+
       # >>> RESET UI after adding a continuous covariate
       reset_cov_builder_ui(session)
       rv$cat_rows <- tibble::tibble(cat = character(), prob = numeric(), coef = numeric())
       reset_cat_entry_ui(session)
-      
+
     } else {
       # ------- CATEGORICAL -------
       if (!nrow(rv$cat_rows)) { showNotification("Add at least one category.", type = "error"); return() }
-      
+
       cats <- rv$cat_rows$cat
       prob <- rv$cat_rows$prob
       coef <- rv$cat_rows$coef
-      
+
       # Validate coefs
       if (any(!is.finite(coef))) { showNotification("All category coefficients must be numeric.", type="error"); return() }
-      
+
       # Fill NA probs with equal shares of the remainder
       p_known <- prob
       p_known[is.na(p_known)] <- 0
@@ -816,7 +817,7 @@ server <- function(input, output, session) {
         prob[is.na(prob)] <- add_each
         rem <- 1 - sum(prob)
       }
-      
+
       # If still < 1, append a remainder category
       if (rem > 1e-8) {
         new_name <- paste0("category-", length(cats) + 1)
@@ -824,19 +825,19 @@ server <- function(input, output, session) {
         prob <- c(prob, rem)
         coef <- c(coef, 0)  # neutral effect for auto-added level
       }
-      
+
       # Special case: only one level entered with prob < 1
       if (length(cats) == 1 && abs(1 - prob[1]) > 1e-8) {
         cats <- c(cats, paste0("category-", 2))
         prob <- c(prob, 1 - prob[1])
         coef <- c(coef, 0)
       }
-      
+
       # Final check
       if (any(prob < 0) || abs(sum(prob) - 1) > 1e-6) {
         showNotification("Category probabilities must be ≥ 0 and sum to 1 (after auto-completion).", type="error"); return()
       }
-      
+
       # Bernoulli vs multiclass
       if (length(cats) == 2) {
         pars <- list(p = prob[2])
@@ -851,15 +852,15 @@ server <- function(input, output, session) {
           params = pars, transform = NULL, beta = coef
         )))
       }
-      
+
       # >>> RESET UI after adding a categorical covariate
       reset_cov_builder_ui(session)
       rv$cat_rows <- tibble::tibble(cat = character(), prob = numeric(), coef = numeric())
       reset_cat_entry_ui(session)
     }
   })
-  
-  
+
+
   # Covariate list table
   output$cov_table <- renderDT({
     if (!length(rv$covariates)) return(DT::datatable(data.frame(), selection = "none"))
@@ -885,8 +886,8 @@ server <- function(input, output, session) {
       showNotification("Select a covariate to remove.", type = "warning")
     }
   })
-  
-  
+
+
   # Baseline UI (grouped)
   output$sim_baseline_ui <- renderUI({
     pad <- function(x) div(style = "display:inline-block; margin-right:12px;", x)
@@ -902,7 +903,7 @@ server <- function(input, output, session) {
                                pad(textInput("b_cuts",  "cuts (comma)",  value = "5")))
     )
   })
-  
+
   # Upload
   observeEvent(input$pilot_data_upload, {
     req(input$pilot_data_upload)
@@ -913,13 +914,13 @@ server <- function(input, output, session) {
     shinyjs::show(id = "model_analysis_panel")
     updateTabsetPanel(session, "main_tabs", selected = "Data Preview")
   })
-  
+
   # Reset data (generation card)
   observeEvent(input$reset_generate, {
     rv$data_df <- NULL; rv$data_source <- NULL
     showNotification("Data reset.", type="message")
   })
-  
+
   # Generate
   observeEvent(input$generate_sim, {
     if (!length(rv$covariates)) { showNotification("Please add at least one covariate before simulating.", type = "warning"); return() }
@@ -995,37 +996,90 @@ server <- function(input, output, session) {
       Censoring  = list(mode = "target_overall", target = input$sim_cens, admin_time = Inf)
     )
   })
-  
+
   # Column mapping (now includes strata & dep. censoring status when needed)
   output$col_mapping_ui <- renderUI({
-    df <- rv$data_df; req(df)
-    cn <- names(df)
-    needs_strata <- (input$model_selection %in% c("Additive Stratified Model","Multiplicative Stratified Model"))
-    needs_dep    <- (input$model_selection %in% c("Dependent Censoring Model"))
-    tagList(
-      fluidRow(
-        column(4, selectInput("time_var", "Time-to-Event", choices = cn,
-                              selected = if ("time" %in% cn) "time" else cn[1])),
-        column(4, selectInput("status_var", "Status (1=event)", choices = cn,
-                              selected = if ("status" %in% cn) "status" else cn[min(2,length(cn))])),
-        column(4, selectInput("arm_var", "Treatment Arm (1=treat)", choices = cn,
-                              selected = if ("arm" %in% cn) "arm" else cn[min(3,length(cn))]))
-      ),
-      if (needs_strata) {
+     df <- rv$data_df; req(df)
+     cn <- names(df)
+
+     # Which models need extra fields?
+     needs_strata <- (input$model_selection %in% c("Additive Stratified Model", "Multiplicative Stratified Model"))
+     needs_dep    <- (input$model_selection %in% c("Dependent Censoring Model"))
+
+     # Safe defaults for the core mappings
+     default_time   <- if ("time"   %in% cn) "time"   else cn[1]
+     default_status <- if ("status" %in% cn) "status" else cn[min(2, length(cn))]
+     default_arm    <- if ("arm"    %in% cn) "arm"    else cn[min(3, length(cn))]
+
+     tagList(
+        # Base mappings: time / status / arm
         fluidRow(
-          column(6, selectInput("strata_var", "Stratification Variable", choices = cn,
-                                selected = setdiff(cn, c(input$time_var, input$status_var, input$arm_var))[1]))
-        )
-      },
-      if (needs_dep) {
-        fluidRow(
-          column(6, selectInput("dep_cens_var", "Dependent Censoring Status", choices = cn,
-                                selected = setdiff(cn, c(input$time_var, input$status_var, input$arm_var, input$strata_var))[1]))
-        )
-      }
-    )
+           column(
+              4,
+              selectInput(
+                 "time_var", "Time-to-Event",
+                 choices = cn, selected = default_time
+              )
+           ),
+           column(
+              4,
+              selectInput(
+                 "status_var", "Status (1=event)",
+                 choices = cn, selected = default_status
+              )
+           ),
+           column(
+              4,
+              selectInput(
+                 "arm_var", "Treatment Arm (1=treat)",
+                 choices = cn, selected = default_arm
+              )
+           )
+        ),
+
+        # Stratification (if applicable)
+        if (needs_strata) {
+           fluidRow({
+              cand_strata <- setdiff(cn, unique(na.omit(c(input$time_var, input$status_var, input$arm_var))))
+              default_strata <- if (length(cand_strata)) cand_strata[1] else NULL
+              column(
+                 6,
+                 selectInput(
+                    "strata_var", "Stratification Variable",
+                    choices = cand_strata, selected = default_strata
+                 )
+              )
+           })
+        },
+
+        # Dependent censoring (linear terms for Cox G-model; no arm, no status)
+        if (needs_dep) {
+           fluidRow({
+              cand_dep <- setdiff(
+                 cn,
+                 unique(na.omit(c(input$time_var, input$status_var, input$arm_var, input$strata_var)))
+              )
+              def_dep <- intersect(c("age", "sex", "x"), cand_dep)
+              if (!length(def_dep)) def_dep <- NULL
+
+              column(
+                 12,
+                 selectizeInput(
+                    "dc_linear_terms",
+                    "Covariates for censoring Cox model (linear terms)",
+                    choices  = cand_dep,
+                    selected = def_dep,
+                    multiple = TRUE,
+                    options  = list(placeholder = "Choose 0+ covariates")
+                 ),
+                 helpText("Censoring model: Surv(time, status == 0) ~ <selected terms>. Treatment is excluded.")
+              )
+           })
+        }
+     )
   })
-  
+
+
   # Analysis inputs
   output$analysis_inputs_ui <- renderUI({
     if (input$analysis_type == "Power") {
@@ -1034,10 +1088,10 @@ server <- function(input, output, session) {
       sliderInput("target_power", "Target Power", min = 0.1, max = 1, value = 0.8, step = 0.01)
     }
   })
-  
+
   # Data Preview
   output$data_preview_table <- DT::renderDataTable({ req(rv$data_df); DT_25(rv$data_df) })
-  
+
   # Covariate plots
   # UI container
   output$cov_plots_ui <- renderUI({
@@ -1046,7 +1100,7 @@ server <- function(input, output, session) {
     if (!length(plots)) return(p("No covariate plots are available."))
     tagList(lapply(names(plots), function(nm) plotlyOutput(paste0("cov_plot_", nm), height = "300px")))
   })
-  
+
   # Render each plot
   observe({
     req(rv$data_df)
@@ -1059,18 +1113,18 @@ server <- function(input, output, session) {
       })
     })
   })
-  
-  
+
+
   # Run analysis
   run_output <- reactiveVal(list(results = NULL, log = "Analysis has not been run yet."))
   console_log <- reactiveVal("")
-  
+
   run_analysis_results <- eventReactive(input$run_analysis, {
     validate(need(rv$data_df, "Please upload or simulate data first."))
     validate(need(input$time_var, "Please map Time-to-Event column."))
     validate(need(input$status_var, "Please map Status column."))
     validate(need(input$arm_var, "Please map Treatment Arm column."))
-    
+
     analysis_results <- NULL
     log_text <- capture.output({
       withProgress(message = 'Running Analysis', value = 0, {
@@ -1084,12 +1138,6 @@ server <- function(input, output, session) {
             (input$model_selection %in% c("Additive Stratified Model","Multiplicative Stratified Model"))) {
           analysis_data$stratum <- as.factor(rv$data_df[[input$strata_var]])
         }
-        # Dependent censoring variable available but not directly used in log-rank; retained for models that need it
-        if (!is.null(input$dep_cens_var) && nzchar(input$dep_cens_var) &&
-            (input$model_selection %in% c("Dependent Censoring Model"))) {
-          analysis_data$dep_cens_status <- rv$data_df[[input$dep_cens_var]]
-        }
-        
         # ----- Log-rank (stratified if applicable) -----
         setProgress(0.5, detail = "Log-rank test...")
         logrank_summary_df <- NULL
@@ -1115,7 +1163,7 @@ server <- function(input, output, session) {
           )
           analysis_data_for_plot <- analysis_data
         })
-        
+
         # ----- Power / Sample size -----
         setProgress(0.8, detail = if (input$calc_method == "Analytical") "Computing (analytical) …" else "Computing (repeated) …")
         make_power_plot <- function(df_power, title_suffix = "") {
@@ -1127,8 +1175,8 @@ server <- function(input, output, session) {
             labs(x = "Sample size per arm", y = "Power", title = paste("Method:", title_suffix)) +
             transparent_theme(base_size = 13)
         }
-        
-        
+
+
         # parse Ns
         if (input$analysis_type == "Power") {
           n_vec <- as.numeric(trimws(strsplit(input$sample_sizes, ",")[[1]]))
@@ -1138,7 +1186,7 @@ server <- function(input, output, session) {
           # grid for hunting minimum N meeting target_power
           grid <- seq(30, 1000, by = 10)
         }
-        
+
         if (input$calc_method == "Repeated") {
           R <- input$R_reps %||% 500
           if (input$analysis_type == "Power") {
@@ -1170,19 +1218,64 @@ server <- function(input, output, session) {
             }
           }
         } else {
-          # Analytical placeholder (keep your original behavior but prettier points/lines)
-          if (input$analysis_type == "Power") {
-            dfp <- data.frame(N_per_arm = c(100,150,200), Power = c(0.72,0.81,0.88))
-            results_plot <- make_power_plot(dfp, "analytical")
-            results_data <- dfp
-          } else {
-            grid <- data.frame(N_per_arm = c(120, 160, 200), Power = c(0.70, 0.80, 0.87))
-            results_plot <- make_power_plot(grid, "analytical") +
-              geom_hline(yintercept = input$target_power, linetype = 2)
-            results_data <- grid
-          }
+           # ----- ANALYTICAL BRANCH -----
+           if (input$model_selection == "Dependent Censoring Model") {
+              # Use the new DC analytic helpers
+              if (input$analysis_type == "Power") {
+                 n_vec <- as.numeric(trimws(strsplit(input$sample_sizes, ",")[[1]]))
+                 n_vec <- n_vec[is.finite(n_vec) & n_vec > 0]
+                 if (!length(n_vec)) n_vec <- c(100,150,200)
+
+                 dc <- DC.power.analytical.app(
+                    pilot_data          = rv$data_df,
+                    time_var            = input$time_var,
+                    status_var          = input$status_var,
+                    arm_var             = input$arm_var,
+                    dep_cens_status_var = NULL,  # ignored by the estimator
+                    sample_sizes        = n_vec,
+                    linear_terms        = input$dc_linear_terms %||% character(0),
+                    L                   = input$L,
+                    alpha               = input$alpha
+                 )
+                 results_plot    <- dc$results_plot
+                 results_data    <- dc$results_data
+                 results_summary <- dc$results_summary
+
+              } else {
+                 dc <- DC.ss.analytical.app(
+                    pilot_data          = rv$data_df,
+                    time_var            = input$time_var,
+                    status_var          = input$status_var,
+                    arm_var             = input$arm_var,
+                    dep_cens_status_var = NULL,  # ignored by the estimator
+                    target_power        = input$target_power,
+                    linear_terms        = input$dc_linear_terms %||% character(0),
+                    L                   = input$L,
+                    alpha               = input$alpha,
+                    n_start             = 50,
+                    n_step              = 25,
+                    max_n_per_arm       = 2000
+                 )
+                 results_plot    <- dc$results_plot
+                 results_data    <- dc$results_data
+                 results_summary <- dc$results_summary
+              }
+
+           } else {
+              # Keep your existing simple placeholder for other models
+              if (input$analysis_type == "Power") {
+                 dfp <- data.frame(N_per_arm = c(100,150,200), Power = c(0.72,0.81,0.88))
+                 results_plot <- make_power_plot(dfp, "analytical")
+                 results_data <- dfp
+              } else {
+                 grid <- data.frame(N_per_arm = c(120, 160, 200), Power = c(0.70, 0.80, 0.87))
+                 results_plot <- make_power_plot(grid, "analytical") +
+                    geom_hline(yintercept = input$target_power, linetype = 2)
+                 results_data <- grid
+              }
+           }
         }
-        
+
         results_summary <- data.frame(
           Arm_1 = sum(analysis_data$arm == levels(analysis_data$arm)[1]),
           Arm_2 = sum(analysis_data$arm == levels(analysis_data$arm)[2]),
@@ -1198,17 +1291,17 @@ server <- function(input, output, session) {
         )
       })
     }, type = c("output","message"))
-    
+
     console_log(paste(log_text, collapse = "\n"))
     list(results = analysis_results, log = paste(log_text, collapse = "\n"))
   })
-  
+
   observeEvent(run_analysis_results(), {
     run_output(run_analysis_results())
     shinyjs::show(id = "download_reset_row")
     updateTabsetPanel(session, "main_tabs", selected = "Summary")
   })
-  
+
   # KM plots (faceted by stratum; at most 2 per row)
   output$km_note <- renderUI({
     req(run_output()$results$km_note)
@@ -1220,12 +1313,12 @@ server <- function(input, output, session) {
       c("Control","Treatment")
     } else lv
   }
-  
+
   output$survival_plotly_output <- renderPlotly({
     req(run_output()$results$analysis_data_for_plot, input$alpha)
     plot_data <- run_output()$results$analysis_data_for_plot
     pal <- theme_palette()
-    
+
     if ("stratum" %in% names(plot_data)) {
       str_levels <- levels(as.factor(plot_data$stratum))
       plots <- lapply(seq_along(str_levels), function(i) {
@@ -1233,7 +1326,7 @@ server <- function(input, output, session) {
         d  <- subset(plot_data, stratum == st)
         d$arm <- factor(d$arm)
         fit <- survfit(Surv(time, status) ~ arm, data = d)
-        
+
         gp <- ggsurvplot(
           fit, data = d,
           conf.int = TRUE, conf.int.alpha = 0.3, conf.int.style = "ribbon",
@@ -1245,22 +1338,22 @@ server <- function(input, output, session) {
           ylab = "Survival probability",
           ggtheme = transparent_theme()
         )$plot
-        
+
         pl <- to_plotly_clear(gp)
         if (i > 1) pl <- plotly::layout(pl, showlegend = FALSE)
         pl
       })
-      
+
       ncols <- 2
       nrows <- ceiling(length(plots) / ncols)
       sp <- do.call(plotly::subplot, c(plots, nrows = nrows,
                                        shareX = TRUE, shareY = TRUE,
                                        titleX = TRUE, titleY = TRUE,
                                        margin = 0.04))
-      
+
       # add per-panel titles
       sp <- add_subplot_titles(sp, paste(input$strata_var, "=", str_levels))
-      
+
       # add an overall title
       sp <- plotly::layout(
         sp,
@@ -1272,7 +1365,7 @@ server <- function(input, output, session) {
         plot_bgcolor  = "rgba(0,0,0,0)"
       )
       sp
-      
+
     } else {
       plot_data$arm <- factor(plot_data$arm)
       fit <- survfit(Surv(time, status) ~ arm, data = plot_data)
@@ -1296,18 +1389,18 @@ server <- function(input, output, session) {
         )
     }
   })
-  
-  
-  
-  
-  
+
+
+
+
+
   # Power plot (already colorful and connected via make_power_plot)
   output$results_plot <- renderPlotly({
     req(run_output()$results$results_plot)
     to_plotly_clear(run_output()$results$results_plot)
-    
+
   })
-  
+
   # Summary (tables only)
   output$results_table_ui <- renderUI({
     req(run_output()$results$results_data)
@@ -1341,10 +1434,10 @@ server <- function(input, output, session) {
     }
     ui
   })
-  
+
   # Console log (text only)
   output$console_log_output <- renderText({ paste(console_log(), collapse = "\n") })
-  
+
   # ------------------ Downloads (PDF & HTML) ------------------
   data_provenance <- reactive({
     prov <- rv$provenance
@@ -1359,7 +1452,7 @@ server <- function(input, output, session) {
     prov
   })
   get_pilot_data <- reactive({ rv$data_df })
-  
+
   output$download_report_pdf <- downloadHandler(
     filename = function() paste0("RMSTpowerBoost_report_", Sys.Date(), ".pdf"),
     contentType = "application/pdf",
@@ -1410,14 +1503,14 @@ server <- function(input, output, session) {
       )
     }
   )
-  
+
   # Reveal Step2+3 when data is present; hide simulate after success
   observe({
     shinyjs::toggle(id = "model_analysis_panel", condition = !is.null(rv$data_df))
     shinyjs::toggle(id = "simulate_panel", condition = is.null(rv$data_df) && rv$data_mode == "Generate")
     shinyjs::toggle(id = "upload_panel",   condition = is.null(rv$data_df) && rv$data_mode == "Upload")
   })
-  
+
   # Reset all (appears after analysis)
   observeEvent(input$reset_all, {
     rv$covariates <- list()

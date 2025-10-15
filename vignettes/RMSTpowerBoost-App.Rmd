@@ -161,37 +161,3 @@ This tab allows you to generate a PDF report of your analysis, which includes:
   * The Kaplan-Meier plot and power/sample size curve.
   * The log-rank test summary.
 
-# Workflow Chart
-```{r tikz_workflow, results='asis', echo=FALSE}
-cat('<script type="text/tikz">')
-cat('
-\\begin{tikzpicture}[node distance=8mm, font=\\small,
-layer/.style={rounded corners, draw=black!30, fill=blue!5, inner sep=5mm, text width=0.85\\linewidth},
-arrow/.style={-latex, thick, draw=black!60}]
-\\node[layer] (data) {{\\bf Data (import or simulation)}\\\\[-2pt]
-\\begin{itemize}\\setlength{\\itemsep}{1pt}
-\\item Choose hazard engine (Weibull, log-normal, or piecewise exponential)
-\\item Specify treatment effect $\\tau$, stratification, and covariates $\\mathbf{Z}$
-\\item Define censoring: independent $w_i=\\Delta_i/\\hat G(Y_i)$ or dependent $w_i^\\ast=\\exp\\{\\sum_k\\hat\\Lambda_k(Y_i)\\}$
-\\end{itemize}};
-\\node[layer, below=of data] (est) {{\\bf Model estimation (IPCW-weighted RMST)}\\\\[-2pt]
-\\begin{itemize}\\setlength{\\itemsep}{1pt}
-\\item Select model: linear, stratified, GAM, or dependent-censoring adjusted
-\\item Choose truncation horizon $L$ and map variables
-\\end{itemize}};
-\\node[layer, below=of est] (inf) {{\\bf Inference and design}\\\\[-2pt]
-\\begin{itemize}\\setlength{\\itemsep}{1pt}
-\\item Target power or sample size
-\\item Select analytical or bootstrap-based method
-\\end{itemize}};
-\\node[layer, below=of inf] (viz) {{\\bf Visualization and reporting}\\\\[-2pt]
-\\begin{itemize}\\setlength{\\itemsep}{1pt}
-\\item Generate power and survival plots, summary tables, and diagnostics
-\\end{itemize}};
-\\draw[arrow] (data.south) -- (est.north);
-\\draw[arrow] (est.south) -- (inf.north);
-\\draw[arrow] (inf.south) -- (viz.north);
-\\end{tikzpicture}
-')
-cat('</script>')
-```

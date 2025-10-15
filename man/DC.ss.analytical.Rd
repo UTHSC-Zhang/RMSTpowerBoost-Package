@@ -2,14 +2,13 @@
 % Please edit documentation in R/dependent_censoring_analytical.R
 \name{DC.ss.analytical}
 \alias{DC.ss.analytical}
-\title{Find Sample Size for RMST Model with Dependent Censoring (Analytic)}
+\title{Find Sample Size for RMST with Covariate-Dependent Censoring (Analytic)}
 \usage{
 DC.ss.analytical(
   pilot_data,
   time_var,
   status_var,
   arm_var,
-  dep_cens_status_var,
   target_power,
   linear_terms = NULL,
   L,
@@ -22,77 +21,40 @@ DC.ss.analytical(
 \arguments{
 \item{pilot_data}{A \code{data.frame} containing pilot study data.}
 
-\item{time_var}{A character string for the time-to-event variable.}
+\item{time_var}{Time variable.}
 
-\item{status_var}{A character string for the primary event status (1=event, 0=otherwise).}
+\item{status_var}{Event indicator (1=event, 0=censored).}
 
-\item{arm_var}{A character string for the treatment arm variable (1=treatment, 0=control).}
+\item{arm_var}{Treatment indicator (1/0).}
 
-\item{dep_cens_status_var}{A character string for the dependent censoring status (1=dependent event, 0=otherwise).}
+\item{target_power}{Desired power.}
 
-\item{target_power}{A single numeric value for the desired power.}
+\item{linear_terms}{Optional covariates used in both models.}
 
-\item{linear_terms}{An optional character vector of other covariate names.}
+\item{L}{RMST truncation time.}
 
-\item{L}{The numeric value for the RMST truncation time.}
+\item{alpha}{Two-sided Type I error.}
 
-\item{alpha}{The significance level (Type I error rate).}
+\item{n_start}{Starting per-arm N.}
 
-\item{n_start}{The starting sample size \emph{per arm} for the search.}
+\item{n_step}{Step size for search.}
 
-\item{n_step}{The increment in sample size at each step of the search.}
-
-\item{max_n_per_arm}{The maximum sample size \emph{per arm} to search up to.}
+\item{max_n_per_arm}{Maximum per-arm N to search.}
 }
 \value{
-A \code{list} containing:
-\item{results_data}{A \code{data.frame} with the target power and required sample size.}
-\item{results_plot}{A \code{ggplot} object visualizing the search path.}
-\item{results_summary}{A \code{data.frame} summarizing the estimated treatment effect.}
+A \code{list} with:
+\item{results_data}{data.frame with \code{Target_Power} and \code{Required_N_per_Arm}.}
+\item{results_plot}{ggplot showing the search path.}
+\item{results_summary}{data.frame summarizing the pilot arm effect.}
 }
 \description{
-Calculates the required sample size for a target power for an RMST model
-with dependent censoring.
+Iteratively finds required per-arm sample size for a target power,
+using the same IPCW-based analytic variance as \code{DC.power.analytical}.
 }
 \details{
-This function performs an iterative search for the sample size needed to
-achieve a specified \code{target_power}. It uses the same underlying theory as
-\code{DC.power.analytical}. It performs a one-time estimation of the treatment
-effect and its asymptotic variance from the pilot data, then uses these
-parameters in an analytic formula to efficiently search for the required sample size.
-}
-\examples{
-# Generate sample pilot data with a clear treatment effect
-set.seed(456)
-n_pilot <- 200
-pilot_df_ss <- data.frame(
-  time = rexp(n_pilot, rate = 0.2),
-  arm = rep(0:1, each = n_pilot / 2),
-  age = rnorm(n_pilot, mean = 55, sd = 8)
-)
-# Introduce a treatment effect
-pilot_df_ss$time[pilot_df_ss$arm == 1] <- pilot_df_ss$time[pilot_df_ss$arm == 1] * 1.5
+Uses a single censoring Cox model \code{Surv(time, status==0) ~ linear_terms} to form IPCW
+and fits a weighted RMST regression. Treatment is excluded from the censoring model
+by default. Competing risks are not modeled. Variance ignores uncertainty in \eqn{\hat G}.
 
-# Create competing event indicators
-event_type <- sample(0:2, n_pilot, replace = TRUE, prob = c(0.6, 0.2, 0.2))
-pilot_df_ss$status <- ifelse(event_type == 0, 1, 0)
-pilot_df_ss$dep_cens_status <- ifelse(event_type == 1, 1, 0)
-pilot_df_ss$time[event_type != 0] <- pilot_df_ss$time[event_type != 0] * 0.7
-
-# Run the sample size search
-dc_ss_results <- DC.ss.analytical(
-  pilot_data = pilot_df_ss,
-  time_var = "time",
-  status_var = "status",
-  arm_var = "arm",
-  dep_cens_status_var = "dep_cens_status",
-  target_power = 0.80,
-  linear_terms = "age",
-  L = 15,
-  alpha = 0.05,
-  n_start = 100,
-  n_step = 50
-)
-print(dc_ss_results$results_data)
-print(dc_ss_results$results_plot)
+Note: \code{dep_cens_status_var} is accepted for API compatibility but ignored here.
 }

@@ -2,7 +2,7 @@
 % Please edit documentation in R/dependent_censoring_analytical_app.R
 \name{.estimate_dependent_censoring_params}
 \alias{.estimate_dependent_censoring_params}
-\title{Internal Helper to Estimate Dependent Censoring Model Parameters}
+\title{Internal Helper to Estimate Covariate-Dependent Censoring Model Parameters}
 \usage{
 .estimate_dependent_censoring_params(
   pilot_data,
@@ -15,11 +15,18 @@
 )
 }
 \value{
-A list containing \code{beta_effect} (the estimated treatment effect) and
-\code{se_beta_n1} (the standard error for a sample size of 1).
+A list with \code{beta_effect} (arm effect) and \code{se_beta_n1} (SE scaled to N=1).
 }
 \description{
-This internal function contains the common logic for estimating the
-treatment effect and its variance from pilot data for the dependent censoring model.
+Internal helper for estimating the treatment effect and its variance
+from pilot data under a single censoring mechanism that depends on covariates.
+
+This version uses one Cox model for censoring:
+\code{Surv(time, status==0) ~ linear_terms} (treatment excluded by default),
+builds IPCW \eqn{w_i = 1/\hat G(Y_i\mid X_i)} at \eqn{Y_i=\min(T_i,L)}, fits a weighted
+RMST regression, and computes a sandwich variance that ignores uncertainty in \eqn{\hat G}.
+}
+\note{
+\code{dep_cens_status_var} is accepted for API compatibility but ignored here.
 }
 \keyword{internal}

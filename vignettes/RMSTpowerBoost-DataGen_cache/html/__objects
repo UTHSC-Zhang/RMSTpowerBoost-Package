@@ -8,3 +8,9 @@ batch	base	m	man	out_dir	sets
 unnamed-chunk-1	cz_target
 unnamed-chunk-2	cz_explicit
 unnamed-chunk-3	cz_dep
+unnamed-chunk-4	covs	cz_dep	dat	mm	rate	rec	tmp
+ex1_lognormal	attr_tbl1	covs1	dat1	rec1
+ex2_weibull	attr_tbl2	dat2	rec2
+ex3_ph_exp1	attr_tbl3	dat3	rec3	summ3
+ex4_ph_exp_multi	attr_tbl4	dat4	rec4	summ4
+ex_formula_both_selfcontained	covs	cz_dep	dat	rec

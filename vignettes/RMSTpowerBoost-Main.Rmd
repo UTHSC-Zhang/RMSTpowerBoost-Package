@@ -646,7 +646,6 @@ dc_power_results <- DC.power.analytical(
    time_var = "time",
    status_var = "status",
    arm_var = "arm",
-   dep_cens_status_var = "status",   # kept for compatibility; ignored internally
    sample_sizes = c(100, 250, 500),
    linear_terms = "age",
    L = 120,   # 10 years
@@ -673,7 +672,6 @@ ss_dc_mgus <- DC.ss.analytical(
    time_var = "time",
    status_var = "status",
    arm_var = "arm",
-   dep_cens_status_var = "status",   # ignored; retained for API stability
    target_power = 0.80,
    linear_terms = "age",
    L = 120,

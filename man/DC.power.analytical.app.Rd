@@ -2,7 +2,7 @@
 % Please edit documentation in R/dependent_censoring_analytical_app.R
 \name{DC.power.analytical.app}
 \alias{DC.power.analytical.app}
-\title{Analyze Power for RMST Model with Dependent Censoring (Analytic)}
+\title{Analyze Power for RMST with Covariate-Dependent Censoring (Analytic)}
 \usage{
 DC.power.analytical.app(
   pilot_data,
@@ -17,14 +17,16 @@ DC.power.analytical.app(
 )
 }
 \arguments{
-\item{sample_sizes}{A numeric vector of sample sizes \emph{per arm} to calculate power for.}
+\item{sample_sizes}{Numeric vector of per-arm sample sizes for power.}
 
-\item{alpha}{The significance level (Type I error rate).}
+\item{alpha}{Two-sided Type I error (default 0.05).}
 }
 \value{
-A list containing results.
+A list: \code{results_data} (data.frame), \code{results_plot} (ggplot),
+\code{results_summary} (data.frame with pilot effect).
 }
 \description{
-Performs power analysis for an RMST model with multiple censoring causes.
+Analytic power for RMST regression when censoring depends on covariates
+(single mechanism; no competing risks). Uses IPCW and a sandwich variance.
 }
 \keyword{internal}

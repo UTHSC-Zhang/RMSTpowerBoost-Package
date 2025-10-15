@@ -2,7 +2,7 @@
 % Please edit documentation in R/dependent_censoring_analytical_app.R
 \name{DC.ss.analytical.app}
 \alias{DC.ss.analytical.app}
-\title{Find Sample Size for RMST Model with Dependent Censoring (Analytic)}
+\title{Find Sample Size for RMST with Covariate-Dependent Censoring (Analytic)}
 \usage{
 DC.ss.analytical.app(
   pilot_data,
@@ -20,20 +20,20 @@ DC.ss.analytical.app(
 )
 }
 \arguments{
-\item{target_power}{A single numeric value for the desired power.}
+\item{target_power}{Desired power.}
 
-\item{alpha}{The significance level (Type I error rate).}
+\item{alpha}{Two-sided Type I error (default 0.05).}
 
-\item{n_start}{The starting sample size \emph{per arm} for the search.}
+\item{n_start}{Starting per-arm N.}
 
-\item{n_step}{The increment in sample size at each step of the search.}
+\item{n_step}{Step size for search.}
 
-\item{max_n_per_arm}{The maximum sample size \emph{per arm} to search up to.}
+\item{max_n_per_arm}{Maximum per-arm N to search.}
 }
 \value{
-A list containing results.
+A list: \code{results_data}, \code{results_plot}, \code{results_summary}.
 }
 \description{
-Calculates the required sample size for a target power.
+Iterative per-arm N to reach target power using IPCW-based analytic variance.
 }
 \keyword{internal}
