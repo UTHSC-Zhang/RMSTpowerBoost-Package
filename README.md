@@ -1,39 +1,75 @@
 
-# RMSTpowerBoost: Power and Sample Size Calculations for RMST-Based Trials
+
+# **RMSTpowerBoost: Power and Sample Size Calculations for RMST-Based Trials**
 
 ---
 
-## Overview
+## 🔍 Overview
 
-The analysis of time-to-event data is moving beyond the proportional hazards assumption, and the Restricted Mean Survival Time (RMST) has emerged as a clinically and causally interpretable alternative to the hazard ratio. However, tools for designing studies based on modern, direct modeling approaches for the RMST have been lacking.
+As clinical trials and observational studies increasingly move beyond the restrictive **proportional hazards (PH) assumption**, researchers need flexible alternatives for analyzing time-to-event data. One such approach—**Restricted Mean Survival Time (RMST)**—has gained traction due to its clear clinical interpretation and robustness in non-PH settings.
 
-`RMSTpowerBoost` fills this critical gap by implementing a variety of advanced statistical methods for study design, allowing researchers to accurately plan trials under complex scenarios. This software suite consists of two primary components: an interactive web application for ease of use, and a comprehensive R package for flexibility and reproducibility.
+Yet, while RMST-based analysis is growing in popularity, tools for **study design and power calculation** under this framework have lagged behind.
 
-### Key Features
+**`RMSTpowerBoost` bridges that gap**—offering a powerful suite of methods to design, simulate, and plan RMST-based trials, even under complex censoring mechanisms or nonlinear treatment effects. Whether you prefer point-and-click simplicity or script-based control, `RMSTpowerBoost` has you covered.
 
-* **Multiple Model Types**: Handles various data structures and assumptions:
-    * **Non-Stratified Models (Linear & GAM)**: For single-center studies with linear or non-linear covariate effects.
-    * **Dependent Censoring Models**: Appropriate for settings with competing risks.
-    * **Stratified Models (Additive & Multiplicative)**: For multi-center trials with different treatment effect assumptions.
-* **Dual Calculation Methods**: For many models, the package offers both:
-    * A fast **analytical** approach based on asymptotic variance formulas.
-    * A robust **bootstrap** (simulation-based) approach for enhanced accuracy.
-* **Interactive Application**: Includes a user-friendly Shiny application for point-and-click analysis, making these advanced methods accessible to a broad audience.
+---
 
-## Installation
+## ✨ Key Features
 
-You can install the development version of `RMSTpowerBoost` from GitHub with:
+### ✅ Broad Model Support
+
+Design studies under a range of realistic conditions:
+
+* **Non-Stratified Models**
+
+  * *Linear*: Simple, interpretable modeling.
+  * *GAM (Generalized Additive Models)*: Flexible for nonlinear covariate effects.
+
+* **Dependent Censoring Models**
+
+  * Account for censoring that's related to baseline covariates.
+
+* **Stratified Models**
+
+  * *Additive or Multiplicative*: Ideal for multi-center trials with center-specific treatment effects.
+
+### 🧠 Dual Estimation Methods
+
+For many models, you can choose between:
+
+* **Analytical Approach**: Based on asymptotic variance formulas. Fast and efficient for large-scale simulations.
+* **Bootstrap-Based Method**: Simulation-driven, providing greater robustness, especially in smaller or complex datasets.
+
+### 🖱️ Interactive Web App
+
+No R experience? No problem. A full-featured **Shiny web application** is available, making advanced RMST-based design accessible through an intuitive graphical interface.
+
+---
+
+## 📦 Installation
+
+Install the latest development version directly from GitHub:
 
 ```r
-# install.packages("remotes")
+# If not already installed
+install.packages("remotes")
+
+# Install RMSTpowerBoost
 remotes::install_github("UTHSC-Zhang/RMSTpowerBoost-package")
 ```
 
-## Interactive Shiny Application
+---
 
-For users who prefer a graphical user interface, an interactive Shiny application is available. The app provides a point-and-click interface to all the package's functionalities.
+## 🌐 Try the Shiny App
 
-You can access the application directly in your web browser by following this link: [**Launch Web App**](https://arnab96.shinyapps.io/uthsc-app/)
+Explore the tool without writing a single line of code:
 
+👉 [**Launch the Interactive Web App**](https://arnab96.shinyapps.io/uthsc-app/)
 
+Perfect for teaching, preliminary analyses, or rapid prototyping.
 
+---
+
+If you need to design a study using RMST, whether for a randomized trial, observational cohort, or simulation study, `RMSTpowerBoost` delivers both flexibility and precision—helping you move confidently beyond the hazard ratio.
+
+---
