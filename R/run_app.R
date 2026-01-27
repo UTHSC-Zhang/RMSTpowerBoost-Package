@@ -30,7 +30,10 @@
 run_app <- function() {
    library(RMSTpowerBoost)
    # Get the path to the Shiny app directory within the installed package
-   app_dir <- system.file("shiny_app", package = "RMSTpowerBoost")
+   app_dir <- Sys.getenv("RMSTPOWERBOOST_APP_DIR", unset = NA_character_)
+   if (is.na(app_dir)) {
+      app_dir <- system.file("shiny_app", package = "RMSTpowerBoost")
+   }
    # Check if the directory exists
    if (app_dir == "") {
       stop(

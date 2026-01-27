@@ -4,7 +4,6 @@
 .Ruserdata
 /doc/
 /Meta/
-docs
 *.Rprofile
 vignettes/RMSTSS-DataGen_cache
 vignettes/RMSTSS-Main_cache

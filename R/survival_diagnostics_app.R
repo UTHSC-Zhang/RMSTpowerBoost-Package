@@ -44,8 +44,15 @@
   # --- 2. Generate Kaplan-Meier Plot ---
   surv_formula <- as.formula(paste("Surv(", time_var, ",", status_var, ") ~", arm_var))
   # Calculate fit using the specified alpha for the confidence level
-  fit <- survival::survfit(surv_formula, data = df, conf.level = 1 - alpha)
-  fit_fortified <- ggplot2::fortify(fit)
+  fit <- survival::survfit(surv_formula, data = df, conf.int = 1 - alpha)
+  fit_summary <- summary(fit)
+  fit_fortified <- data.frame(
+    time = fit_summary$time,
+    surv = fit_summary$surv,
+    lower = fit_summary$lower,
+    upper = fit_summary$upper,
+    strata = if (!is.null(fit_summary$strata)) as.character(fit_summary$strata) else "All"
+  )
   
   # Updated plotting logic for clarity
   km_plot <- ggplot2::ggplot(fit_fortified, ggplot2::aes(x = .data$time, y = .data$surv)) +
