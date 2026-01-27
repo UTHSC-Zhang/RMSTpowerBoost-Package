@@ -111,7 +111,7 @@ test_that("generate_recipe_sets handles vary grid, templates, and formats", {
 
   grid <- recipe_grid(rec, list(n = c(10, 11)))
   expect_true(length(grid) == 2)
-  expect_true(all(vapply(grid, function(x) x$n, integer(1)) %in% c(10, 11)))
+  expect_true(all(vapply(grid, function(x) x$n, numeric(1)) %in% c(10, 11)))
 })
 
 test_that("simulation runners cover app helpers with smooth terms", {
