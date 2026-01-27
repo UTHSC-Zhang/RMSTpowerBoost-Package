@@ -1,6 +1,6 @@
 
 
-# **RMSTpowerBoost: Power and Sample Size Calculations for RMST-Based Trials**
+# **RMSTpowerBoost: Power and Sample Size Calculations for RMST-Based Trials** [![codecov](https://codecov.io/gh/UTHSC-Zhang/RMSTpowerBoost-Package/graph/badge.svg?token=QAULEZA1SZ)](https://codecov.io/gh/UTHSC-Zhang/RMSTpowerBoost-Package)
 
 ---
 
@@ -58,6 +58,10 @@ install.packages("remotes")
 remotes::install_github("UTHSC-Zhang/RMSTpowerBoost-package")
 ```
 
+---
+
+## Codecov Sunburst
+[https://codecov.io/gh/UTHSC-Zhang/RMSTpowerBoost-Package/graphs/sunburst.svg?token=QAULEZA1SZ](https://codecov.io/gh/UTHSC-Zhang/RMSTpowerBoost-Package/graphs/sunburst.svg?token=QAULEZA1SZ)
 ---
 
 ## 🌐 Try the Shiny App
