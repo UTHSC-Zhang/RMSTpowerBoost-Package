@@ -61,7 +61,7 @@ remotes::install_github("UTHSC-Zhang/RMSTpowerBoost-package")
 ---
 
 ## Codecov Sunburst
-[[https://codecov.io/gh/UTHSC-Zhang/RMSTpowerBoost-Package/graphs/sunburst.svg?token=QAULEZA1SZ](https://codecov.io/gh/UTHSC-Zhang/RMSTpowerBoost-Package/graphs/sunburst.svg?token=QAULEZA1SZ)](https://codecov.io/gh/arnabaich96/RMSTpowerBoost-Package/graphs/sunburst.svg?token=5L9OGLTMU6)
+https://codecov.io/gh/arnabaich96/RMSTpowerBoost-Package/graphs/sunburst.svg?token=5L9OGLTMU6
 ---
 
 ## 🌐 Try the Shiny App
