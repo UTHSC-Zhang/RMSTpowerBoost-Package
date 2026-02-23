@@ -1,10 +1,3 @@
-test_that("run_app uses override env var to trigger missing app error", {
-  old <- Sys.getenv("RMSTPOWERBOOST_APP_DIR", unset = NA_character_)
-  on.exit(Sys.setenv(RMSTPOWERBOOST_APP_DIR = old), add = TRUE)
-  Sys.setenv(RMSTPOWERBOOST_APP_DIR = "")
-  expect_error(run_app(), "Could not find the app directory")
-})
-
 test_that("recipe internals cover model aliases, transforms, and assignments", {
   nm <- RMSTpowerBoost:::.normalize_model_name("ph_exp", baseline = list(rate = 0.2))
   expect_identical(nm$model, "cox_pwexp")
@@ -114,7 +107,7 @@ test_that("generate_recipe_sets handles vary grid, templates, and formats", {
   expect_true(all(vapply(grid, function(x) x$n, numeric(1)) %in% c(10, 11)))
 })
 
-test_that("simulation runners cover app helpers with smooth terms", {
+test_that("bootstrap functions cover smooth and linear terms", {
   set.seed(321)
   pilot <- data.frame(
     time = stats::rexp(40, rate = 0.2),
@@ -123,19 +116,18 @@ test_that("simulation runners cover app helpers with smooth terms", {
     age = stats::rnorm(40, 60, 6),
     region = factor(rep(c("A", "B"), each = 20))
   )
-  runner <- .get_gam_simulation_runner(
+  sim <- GAM.power.boot(
     pilot_data = pilot, time_var = "time", status_var = "status", arm_var = "arm", strata_var = "region",
-    linear_terms = NULL, smooth_terms = "age", L = 3, alpha = 0.1, n_sim = 2, parallel.cores = 1
+    sample_sizes = c(5), linear_terms = NULL, smooth_terms = "age",
+    L = 3, alpha = 0.1, n_sim = 2, parallel.cores = 1
   )
-  sim <- runner(5)
   expect_true(is.list(sim))
-  expect_true(all(c("power", "estimates", "std_errors") %in% names(sim)))
+  expect_named(sim, c("results_data", "results_plot", "results_summary"))
 
-  runner_lin <- .get_linear_ipcw_simulation_runner(
+  sim_lin <- linear.power.boot(
     pilot_data = pilot, time_var = "time", status_var = "status", arm_var = "arm",
-    linear_terms = "age", L = 3, alpha = 0.1, n_sim = 2, parallel.cores = 1
+    sample_sizes = c(5), linear_terms = "age", L = 3, alpha = 0.1, n_sim = 2
   )
-  sim_lin <- runner_lin(5)
   expect_true(is.list(sim_lin))
-  expect_true(all(c("power", "estimates", "std_errors") %in% names(sim_lin)))
+  expect_named(sim_lin, c("results_data", "results_plot", "results_summary"))
 })

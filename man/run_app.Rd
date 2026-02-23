@@ -4,11 +4,21 @@
 \alias{run_app}
 \title{Launch the RMSTdesign Shiny Application}
 \usage{
-run_app()
+run_app(install_missing = TRUE, repos = getOption("repos"))
+}
+\arguments{
+\item{install_missing}{Logical; if \code{TRUE}, prompt to install missing app
+dependencies.}
+
+\item{repos}{CRAN mirror(s) passed to \code{utils::install.packages()} when
+installing missing app dependencies.}
+}
+\value{
+Invisible return value from \code{shiny::runApp()}.
 }
 \description{
-A function to easily launch the interactive Shiny application bundled with
-the package.
+A helper to launch the interactive Shiny application bundled with the package.
+App-specific dependencies are installed lazily when needed.
 }
 \examples{
 \dontrun{

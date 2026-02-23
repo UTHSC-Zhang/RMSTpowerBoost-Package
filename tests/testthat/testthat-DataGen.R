@@ -1,7 +1,5 @@
 # tests/testthat/test-all-data.R
 
-context("Data generation & metadata (no L, PH naming)")
-
 test_that("AFT lognormal simulation returns valid data and attributes", {
    set.seed(1001)
    covs <- list(

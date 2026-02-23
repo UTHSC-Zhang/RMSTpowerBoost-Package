@@ -46,7 +46,8 @@ covs <- list(list(name="x", type="continuous", dist="normal", params=list(mean=0
 rec <- recipe_quick_aft(60, "aft_lognormal",
          baseline=list(mu=2.7, sigma=0.6), treat_effect=-0.2,
          covariates=covs, target_censoring=0.2)
-dir.create("checks", showWarnings = FALSE)
-man <- generate_recipe_sets(rec, vary=list(n=c(60,80)), out_dir="checks",
+out <- file.path(tempdir(), "rmst_checks")
+dir.create(out, showWarnings = FALSE, recursive = TRUE)
+man <- generate_recipe_sets(rec, vary=list(n=c(60,80)), out_dir=out,
          formats=c("csv","rds"), n_reps=1, seed_base=123)
 }

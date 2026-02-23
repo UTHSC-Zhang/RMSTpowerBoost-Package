@@ -36,8 +36,9 @@ Imports:
     future,
     future.apply,
     knitr,
+Suggests:
+    roxygen2,
     shiny,
-    scales,
     shinyjs,
     bslib,
     DT,
@@ -45,7 +46,7 @@ Imports:
     kableExtra,
     survminer,
     rmarkdown,
-Suggests:
+    mice,
     tidyr,
     yaml,
     jsonlite,

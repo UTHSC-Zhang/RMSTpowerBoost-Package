@@ -41,3 +41,8 @@ docs/
 ^renv\.lock$
 ^checks$
 ^tools$
+^coverage$
+^coverage\.html$
+^codecov\.yml$
+^lib$
+^RMSTpowerBoost-Package\.code-workspace$

@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  coverage:
+  upload-coverage:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -15,21 +15,38 @@ jobs:
       - name: Setup R
         uses: r-lib/actions/setup-r@v2
 
-      - name: Setup dependencies
+      - name: Install dependencies
         uses: r-lib/actions/setup-r-dependencies@v2
         with:
           extra-packages: |
             any::covr
-          needs: |
-            coverage
+            any::testthat
+            any::roxygen2
+          needs: check
 
-      - name: Run coverage
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-        run: Rscript -e "covr::codecov(quiet = FALSE)"
+      - name: Run tests
+        run: Rscript -e "testthat::test_local('.', reporter='summary')"
 
-      - name: Upload test results to Codecov
-        if: ${{ !cancelled() }}
-        uses: codecov/test-results-action@v1
+      - name: Generate coverage artifacts
+        run: Rscript tools/generate_coverage_artifacts.R
+
+      - name: Enforce coverage thresholds
+        run: Rscript tools/check_coverage_thresholds.R
+
+      - name: Check coverage report
+        id: coverage_file
+        run: |
+          if [ -f coverage/cobertura.xml ]; then
+            echo "found=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "found=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Upload coverage artifact to Codecov
+        if: steps.coverage_file.outputs.found == 'true'
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: coverage/cobertura.xml
+          disable_search: true
+          fail_ci_if_error: true
