@@ -31,7 +31,7 @@ Design studies under a range of realistic conditions:
 
 * **Stratified Models**
 
-  * *Additive or Multiplicative*: Ideal for multi-center trials with center-specific treatment effects.
+  * *Additive and Multiplicative*: Ideal for multi-center trials with center-specific treatment effects.
 
 ### 🧠 Dual Estimation Methods
 
