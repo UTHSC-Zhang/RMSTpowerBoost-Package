@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
 
       - name: Check coverage report
         id: coverage_file
@@ -53,3 +55,6 @@ jobs:
           files: coverage/cobertura.xml
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
+          override_commit: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
+          override_branch: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.ref || github.ref_name }}
+          override_pr: ${{ github.event_name == 'pull_request' && github.event.pull_request.number || '' }}
