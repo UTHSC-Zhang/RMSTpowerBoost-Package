@@ -4,7 +4,7 @@ if (!requireNamespace("covr", quietly = TRUE)) {
   stop("Package 'covr' is required. Install it with install.packages('covr').", call. = FALSE)
 }
 
-cov <- covr::package_coverage()
+cov <- covr::package_coverage(quiet = FALSE)
 covr::to_cobertura(cov, filename = file.path("coverage", "cobertura.xml"))
 saveRDS(cov, file = file.path("coverage", "coverage.rds"))
 

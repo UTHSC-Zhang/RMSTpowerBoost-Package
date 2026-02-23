@@ -5,7 +5,7 @@
 /doc/
 /Meta/
 *.Rprofile
-vignettes/RMSTSS-DataGen_cache
-vignettes/RMSTSS-Main_cache
-vignettes/RMSTSS-App_cache
+vignettes/RMSTpowerBoost-DataGen_cache
+vignettes/RMSTpowerBoost-Main_cache
+vignettes/RMSTpowerBoost-App_cache
 

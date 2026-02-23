@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE coverage SYSTEM "https://raw.githubusercontent.com/cobertura/cobertura/master/cobertura/src/site/htdocs/xml/coverage-04.dtd">
-<coverage line-rate="0.939826619071902" branch-rate="0" lines-covered="1843" lines-valid="1961" branches-covered="0" branches-valid="0" complexity="0" version="3.6.5" timestamp="2026-02-23 17:55:21.722522">
+<coverage line-rate="0.941356450790413" branch-rate="0" lines-covered="1846" lines-valid="1961" branches-covered="0" branches-valid="0" complexity="0" version="3.6.5" timestamp="2026-02-23 18:23:02.515685">
   <sources>
     <source>D:/OneDrive - Florida State University/MyFSU_OneDrive/R-Codes/RMSTSpowerBoost/RMSTpowerBoost-Package</source>
   </sources>
   <packages>
-    <package name="RMSTpowerBoost" line-rate="0.939826619071902" branch-rate="0" complexity="0">
+    <package name="RMSTpowerBoost" line-rate="0.941356450790413" branch-rate="0" complexity="0">
       <classes>
         <class name="additive_gam_boot.R" filename="R/additive_gam_boot.R" line-rate="0.98780487804878" branch-rate="0" complexity="0">
           <methods>
@@ -208,26 +208,26 @@
                 <line number="400" hits="6" branch="false"/>
                 <line number="401" hits="6" branch="false"/>
                 <line number="403" hits="6" branch="false"/>
-                <line number="404" hits="1" branch="false"/>
-                <line number="405" hits="1" branch="false"/>
-                <line number="406" hits="1" branch="false"/>
-                <line number="407" hits="1" branch="false"/>
+                <line number="404" hits="2" branch="false"/>
+                <line number="405" hits="2" branch="false"/>
+                <line number="406" hits="2" branch="false"/>
+                <line number="407" hits="2" branch="false"/>
                 <line number="408" hits="6" branch="false"/>
                 <line number="409" hits="6" branch="false"/>
-                <line number="410" hits="5" branch="false"/>
-                <line number="411" hits="5" branch="false"/>
-                <line number="412" hits="5" branch="false"/>
-                <line number="413" hits="5" branch="false"/>
+                <line number="410" hits="3" branch="false"/>
+                <line number="411" hits="3" branch="false"/>
+                <line number="412" hits="3" branch="false"/>
+                <line number="413" hits="3" branch="false"/>
                 <line number="414" hits="6" branch="false"/>
-                <line number="415" hits="5" branch="false"/>
+                <line number="415" hits="3" branch="false"/>
                 <line number="416" hits="6" branch="false"/>
                 <line number="417" hits="6" branch="false"/>
-                <line number="418" hits="3" branch="false"/>
-                <line number="419" hits="3" branch="false"/>
-                <line number="420" hits="3" branch="false"/>
-                <line number="421" hits="3" branch="false"/>
+                <line number="418" hits="2" branch="false"/>
+                <line number="419" hits="2" branch="false"/>
+                <line number="420" hits="2" branch="false"/>
+                <line number="421" hits="2" branch="false"/>
                 <line number="422" hits="6" branch="false"/>
-                <line number="423" hits="6" branch="false"/>
+                <line number="423" hits="4" branch="false"/>
                 <line number="424" hits="6" branch="false"/>
                 <line number="426" hits="5" branch="false"/>
                 <line number="427" hits="1" branch="false"/>
@@ -458,26 +458,26 @@
             <line number="400" hits="6" branch="false"/>
             <line number="401" hits="6" branch="false"/>
             <line number="403" hits="6" branch="false"/>
-            <line number="404" hits="1" branch="false"/>
-            <line number="405" hits="1" branch="false"/>
-            <line number="406" hits="1" branch="false"/>
-            <line number="407" hits="1" branch="false"/>
+            <line number="404" hits="2" branch="false"/>
+            <line number="405" hits="2" branch="false"/>
+            <line number="406" hits="2" branch="false"/>
+            <line number="407" hits="2" branch="false"/>
             <line number="408" hits="6" branch="false"/>
             <line number="409" hits="6" branch="false"/>
-            <line number="410" hits="5" branch="false"/>
-            <line number="411" hits="5" branch="false"/>
-            <line number="412" hits="5" branch="false"/>
-            <line number="413" hits="5" branch="false"/>
+            <line number="410" hits="3" branch="false"/>
+            <line number="411" hits="3" branch="false"/>
+            <line number="412" hits="3" branch="false"/>
+            <line number="413" hits="3" branch="false"/>
             <line number="414" hits="6" branch="false"/>
-            <line number="415" hits="5" branch="false"/>
+            <line number="415" hits="3" branch="false"/>
             <line number="416" hits="6" branch="false"/>
             <line number="417" hits="6" branch="false"/>
-            <line number="418" hits="3" branch="false"/>
-            <line number="419" hits="3" branch="false"/>
-            <line number="420" hits="3" branch="false"/>
-            <line number="421" hits="3" branch="false"/>
+            <line number="418" hits="2" branch="false"/>
+            <line number="419" hits="2" branch="false"/>
+            <line number="420" hits="2" branch="false"/>
+            <line number="421" hits="2" branch="false"/>
             <line number="422" hits="6" branch="false"/>
-            <line number="423" hits="6" branch="false"/>
+            <line number="423" hits="4" branch="false"/>
             <line number="424" hits="6" branch="false"/>
             <line number="426" hits="5" branch="false"/>
             <line number="427" hits="1" branch="false"/>
@@ -513,7 +513,7 @@
             <line number="469" hits="5" branch="false"/>
           </lines>
         </class>
-        <class name="additive_stratified_analytical.R" filename="R/additive_stratified_analytical.R" line-rate="0.932367149758454" branch-rate="0" complexity="0">
+        <class name="additive_stratified_analytical.R" filename="R/additive_stratified_analytical.R" line-rate="0.946859903381642" branch-rate="0" complexity="0">
           <methods>
             <method name="additive.power.analytical" signature="" line-rate="0.947916666666667" branch-rate="0" complexity="0">
               <lines>
@@ -615,7 +615,7 @@
                 <line number="193" hits="2" branch="false"/>
               </lines>
             </method>
-            <method name="additive.ss.analytical" signature="" line-rate="0.918918918918919" branch-rate="0" complexity="0">
+            <method name="additive.ss.analytical" signature="" line-rate="0.945945945945946" branch-rate="0" complexity="0">
               <lines>
                 <line number="264" hits="2" branch="false"/>
                 <line number="265" hits="2" branch="false"/>
@@ -704,14 +704,14 @@
                 <line number="372" hits="2" branch="false"/>
                 <line number="373" hits="2" branch="false"/>
                 <line number="375" hits="2" branch="false"/>
-                <line number="376" hits="2" branch="false"/>
-                <line number="377" hits="2" branch="false"/>
+                <line number="376" hits="1" branch="false"/>
+                <line number="377" hits="1" branch="false"/>
                 <line number="378" hits="2" branch="false"/>
-                <line number="379" hits="0" branch="false"/>
+                <line number="379" hits="2" branch="false"/>
                 <line number="380" hits="2" branch="false"/>
                 <line number="382" hits="2" branch="false"/>
-                <line number="383" hits="0" branch="false"/>
-                <line number="384" hits="0" branch="false"/>
+                <line number="383" hits="1" branch="false"/>
+                <line number="384" hits="1" branch="false"/>
                 <line number="388" hits="2" branch="false"/>
                 <line number="389" hits="2" branch="false"/>
                 <line number="390" hits="2" branch="false"/>
@@ -915,14 +915,14 @@
             <line number="372" hits="2" branch="false"/>
             <line number="373" hits="2" branch="false"/>
             <line number="375" hits="2" branch="false"/>
-            <line number="376" hits="2" branch="false"/>
-            <line number="377" hits="2" branch="false"/>
+            <line number="376" hits="1" branch="false"/>
+            <line number="377" hits="1" branch="false"/>
             <line number="378" hits="2" branch="false"/>
-            <line number="379" hits="0" branch="false"/>
+            <line number="379" hits="2" branch="false"/>
             <line number="380" hits="2" branch="false"/>
             <line number="382" hits="2" branch="false"/>
-            <line number="383" hits="0" branch="false"/>
-            <line number="384" hits="0" branch="false"/>
+            <line number="383" hits="1" branch="false"/>
+            <line number="384" hits="1" branch="false"/>
             <line number="388" hits="2" branch="false"/>
             <line number="389" hits="2" branch="false"/>
             <line number="390" hits="2" branch="false"/>

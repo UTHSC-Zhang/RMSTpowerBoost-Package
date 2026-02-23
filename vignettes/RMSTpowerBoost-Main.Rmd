@@ -17,7 +17,7 @@ vignette: >
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteIndexEntry{RMSTpowerBoost: An R-Package for Sample Size and Power Calculations for RMST-based Clinical Trials}  
-  %\VignetteDepends{RMSTpowerBoost, survival, dplyr, tidyr, knitr, ggplot2, mgcv, kableExtra, bibtex}
+  %\VignetteDepends{RMSTpowerBoost, survival, dplyr, tidyr, knitr, ggplot2, mgcv, kableExtra}
 cache: true
 ---
 
@@ -37,7 +37,7 @@ knitr::opts_chunk$set(
    table.align = "center",
    collapse = TRUE
 )
-packages = c("survival", "dplyr", "tidyr", "knitr", "ggplot2", "mgcv", "kableExtra", "bibtex")
+packages = c("survival", "dplyr", "tidyr", "knitr", "ggplot2", "mgcv", "kableExtra")
 lapply(packages, require, character.only = TRUE)
 
 library(RMSTpowerBoost)
