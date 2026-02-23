@@ -6,8 +6,8 @@ if (!requireNamespace("covr", quietly = TRUE)) {
 
 cov <- covr::package_coverage(quiet = FALSE)
 covr::to_cobertura(cov, filename = file.path("coverage", "cobertura.xml"))
-saveRDS(cov, file = file.path("coverage", "coverage.rds"))
+# saveRDS(cov, file = file.path("coverage", "coverage.rds"))
 
 message("Coverage artifacts written to ./coverage:")
 message(" - coverage/cobertura.xml")
-message(" - coverage/coverage.rds")
+# message(" - coverage/coverage.rds")
