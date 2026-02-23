@@ -17,11 +17,22 @@ jobs:
         run: |
           if [ -f coverage/cobertura.xml ]; then
             echo "found=true" >> "$GITHUB_OUTPUT"
-            echo "Coverage file found: coverage/cobertura.xml"
+            echo "Coverage file found: coverage/cobertura.xml (prebuilt artifact)"
           else
             echo "found=false" >> "$GITHUB_OUTPUT"
-            echo "coverage/cobertura.xml is missing; skipping Codecov upload."
+            echo "coverage/cobertura.xml is missing. Commit/save coverage artifacts before this workflow runs."
+            exit 1
           fi
+
+      - name: Save coverage artifacts
+        if: steps.coverage_file.outputs.found == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-artifacts
+          path: |
+            coverage/cobertura.xml
+            coverage/coverage.rds
+          if-no-files-found: error
 
       - name: Coverage diagnostics
         if: always()
