@@ -8,7 +8,7 @@
 
 As clinical trials and observational studies increasingly move beyond the restrictive **proportional hazards (PH) assumption**, researchers need flexible alternatives for analyzing time-to-event data. One such approach—**Restricted Mean Survival Time (RMST)**—has gained traction due to its clear clinical interpretation and robustness in non-PH settings.
 
-Yet, while RMST-based analysis is growing in popularity, tools for **study design and power calculation** under this framework have lagged behind.
+Yet, while RMST-based analysis is growing in popularity, tools for **study design and power calculation** within this framework have lagged behind.
 
 **`RMSTpowerBoost` bridges that gap**—offering a powerful suite of methods to design, simulate, and plan RMST-based trials, even under complex censoring mechanisms or nonlinear treatment effects. Whether you prefer point-and-click simplicity or script-based control, `RMSTpowerBoost` has you covered.
 
