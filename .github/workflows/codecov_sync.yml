@@ -114,7 +114,7 @@ jobs:
 
       - name: Upload to Codecov
         if: steps.coverage_file.outputs.found == 'true'
-        uses: codecov/codecov-action@v4
+        uses: codecov/codecov-action@v5
         with:
           files: coverage/cobertura.xml
           disable_search: true
