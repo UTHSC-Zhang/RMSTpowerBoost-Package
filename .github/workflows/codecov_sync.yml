@@ -35,10 +35,18 @@ jobs:
           echo "Directory listing:" >> "$GITHUB_STEP_SUMMARY"
           ls -la coverage >> "$GITHUB_STEP_SUMMARY" 2>&1 || echo "coverage directory not present" >> "$GITHUB_STEP_SUMMARY"
 
+      - name: Normalize Cobertura source paths
+        if: steps.coverage_file.outputs.found == 'true'
+        run: |
+          sed -i 's|<source>.*</source>|<source>.</source>|g' coverage/cobertura.xml
+          echo "Normalized cobertura <source> entries to repo-relative path."
+
       - name: Upload to Codecov
         if: steps.coverage_file.outputs.found == 'true'
         uses: codecov/codecov-action@v4
         with:
           files: coverage/cobertura.xml
+          disable_search: true
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
+          verbose: true
