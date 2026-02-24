@@ -49,8 +49,10 @@ jobs:
           tree = ET.parse(report)
           root = tree.getroot()
 
-          for src in root.findall(".//sources/source"):
-              src.text = "."
+          # Remove source roots so filenames are interpreted as repo-relative.
+          sources = root.find(".//sources")
+          if sources is not None:
+              root.remove(sources)
 
           missing = set()
           classes = root.findall(".//class")
@@ -62,6 +64,7 @@ jobs:
                   fn,
                   flags=re.IGNORECASE,
               )
+              fn = fn.lstrip("./")
               cls.set("filename", fn)
               if fn and not os.path.exists(fn):
                   missing.add(fn)
@@ -103,6 +106,7 @@ jobs:
         with:
           files: coverage/cobertura.xml
           disable_search: true
+          disable_file_fixes: true
           token: ${{ secrets.CODECOV_TOKEN }}
           fail_ci_if_error: true
           verbose: true
