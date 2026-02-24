@@ -11,6 +11,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Check coverage report
         id: coverage_file
@@ -35,11 +37,65 @@ jobs:
           echo "Directory listing:" >> "$GITHUB_STEP_SUMMARY"
           ls -la coverage >> "$GITHUB_STEP_SUMMARY" 2>&1 || echo "coverage directory not present" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Normalize Cobertura source paths
+      - name: Normalize Cobertura paths
         if: steps.coverage_file.outputs.found == 'true'
         run: |
-          sed -i 's|<source>.*</source>|<source>.</source>|g' coverage/cobertura.xml
-          echo "Normalized cobertura <source> entries to repo-relative path."
+          python3 - <<'PY'
+          import os
+          import re
+          import xml.etree.ElementTree as ET
+
+          report = "coverage/cobertura.xml"
+          tree = ET.parse(report)
+          root = tree.getroot()
+
+          for src in root.findall(".//sources/source"):
+              src.text = "."
+
+          missing = set()
+          classes = root.findall(".//class")
+          for cls in classes:
+              fn = (cls.get("filename") or "").replace("\\", "/")
+              fn = re.sub(
+                  r"^[A-Za-z]:/.*/RMSTpowerBoost-Package/",
+                  "",
+                  fn,
+                  flags=re.IGNORECASE,
+              )
+              cls.set("filename", fn)
+              if fn and not os.path.exists(fn):
+                  missing.add(fn)
+
+          tree.write(report, encoding="utf-8", xml_declaration=True)
+          print(f"classes={len(classes)}")
+          print(f"missing_files={len(missing)}")
+          for item in sorted(missing):
+              print(f"missing:{item}")
+          PY
+
+      - name: Coverage mapping diagnostics
+        if: steps.coverage_file.outputs.found == 'true'
+        run: |
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Post-normalization XML preview:" >> "$GITHUB_STEP_SUMMARY"
+          head -n 40 coverage/cobertura.xml >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Cobertura filenames not found in repo:" >> "$GITHUB_STEP_SUMMARY"
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import os
+          import xml.etree.ElementTree as ET
+          root = ET.parse("coverage/cobertura.xml").getroot()
+          missing = sorted({
+              (c.get("filename") or "").replace("\\", "/")
+              for c in root.findall(".//class")
+              if (c.get("filename") or "") and not os.path.exists((c.get("filename") or "").replace("\\", "/"))
+          })
+          if not missing:
+              print("- none")
+          else:
+              for m in missing:
+                  print(f"- {m}")
+          PY
 
       - name: Upload to Codecov
         if: steps.coverage_file.outputs.found == 'true'
