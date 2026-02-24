@@ -10,7 +10,7 @@ As clinical trials and observational studies increasingly move beyond the restri
 
 Yet, while RMST-based analysis is growing in popularity, tools for **study design and power calculation** within this framework have lagged behind.
 
-**`RMSTpowerBoost` bridges that gap**—offering a powerful suite of methods to design, simulate, and plan RMST-based trials, even under complex censoring mechanisms or nonlinear treatment effects. Whether you prefer point-and-click simplicity or script-based control, `RMSTpowerBoost` has you covered.
+**`RMSTpowerBoost` bridges that gap**—offering a powerful suite of methods to design, simulate, and plan RMST-based trials, even under complex censoring mechanisms or nonlinear treatment effects. Whether you prefer point-and-click simplicity or script-based control, `RMSTpowerBoost` has you covered. 
 
 ---
 
