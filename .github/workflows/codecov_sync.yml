@@ -43,6 +43,7 @@ jobs:
           python3 - <<'PY'
           import os
           import re
+          import sys
           import xml.etree.ElementTree as ET
 
           report = "coverage/cobertura.xml"
@@ -56,6 +57,10 @@ jobs:
 
           missing = set()
           classes = root.findall(".//class")
+          if not classes:
+              print("ERROR: No <class> entries found in cobertura.xml after normalization.")
+              sys.exit(1)
+
           for cls in classes:
               fn = (cls.get("filename") or "").replace("\\", "/")
               fn = re.sub(
@@ -74,6 +79,9 @@ jobs:
           print(f"missing_files={len(missing)}")
           for item in sorted(missing):
               print(f"missing:{item}")
+          if missing:
+              print("ERROR: Cobertura contains filenames that do not exist in the repository.")
+              sys.exit(1)
           PY
 
       - name: Coverage mapping diagnostics
