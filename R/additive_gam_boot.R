@@ -87,6 +87,7 @@ GAM.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var
 
    # --- Prepare data ---
    core_vars <- c(time_var, status_var, arm_var, strata_var)
+   
    all_vars <- c(core_vars, linear_terms, smooth_terms)
    pilot_data <- pilot_data[stats::complete.cases(pilot_data[, all_vars]), ]
 
