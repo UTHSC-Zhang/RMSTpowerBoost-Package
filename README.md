@@ -1,6 +1,6 @@
 
 
-# **RMSTpowerBoost: Power and Sample Size Calculations for RMST-Based Trials** [![codecov](https://codecov.io/gh/UTHSC-Zhang/RMSTpowerBoost-Package/graph/badge.svg?token=MK7AIUQHBC)](https://codecov.io/gh/UTHSC-Zhang/RMSTpowerBoost-Package)
+# **RMSTpowerBoost: Power and Sample Size Calculations for RMST-Based Trials** 
 
 ---
 
