@@ -46,7 +46,7 @@ jobs:
           Rscript tools/check_coverage_thresholds.R
 
       - name: Create pull request
-        uses: peter-evans/create-pull-request@v6
+        uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ secrets.PACKAGE_REPO_TOKEN }}
           commit-message: "sync: update app payload from RMSTpowerBoost-App"
