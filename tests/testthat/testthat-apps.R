@@ -195,3 +195,100 @@ test_that("ensure_app_dependencies skips install when none missing", {
     .package = "RMSTpowerBoost"
   )
 })
+
+test_that(".app_dependency_packages exposes the canonical app dependency list", {
+  deps <- RMSTpowerBoost:::.app_dependency_packages()
+  expect_type(deps, "character")
+  expect_true(length(deps) > 0)
+  expect_true(all(c("shiny", "shinyjs", "bslib", "DT", "plotly", "rmarkdown", "mice") %in% deps))
+  expect_identical(anyDuplicated(deps), 0L)
+})
+
+test_that(".get_missing_app_dependencies returns a character vector consistent with requireNamespace", {
+  res <- RMSTpowerBoost:::.get_missing_app_dependencies()
+  expect_type(res, "character")
+  deps <- RMSTpowerBoost:::.app_dependency_packages()
+  expect_true(all(res %in% deps))
+  expected_missing <- deps[!vapply(deps, requireNamespace, logical(1), quietly = TRUE)]
+  expect_setequal(res, expected_missing)
+})
+
+test_that(".install_command_for builds an install.packages call from the supplied vector", {
+  cmd <- RMSTpowerBoost:::.install_command_for(c("shiny", "mice"))
+  expect_match(cmd, "^install\\.packages\\(c\\(")
+  expect_match(cmd, "shiny")
+  expect_match(cmd, "mice")
+})
+
+test_that(".prompt_install_app_dependencies returns FALSE in non-interactive sessions", {
+  expect_false(RMSTpowerBoost:::.prompt_install_app_dependencies(c("shiny", "mice")))
+})
+
+test_that(".prompt_install_app_dependencies honors the user's menu selection when interactive", {
+  utils_ns <- asNamespace("utils")
+  orig_menu <- get("menu", envir = utils_ns)
+  unlockBinding("menu", utils_ns)
+  on.exit({
+    assign("menu", orig_menu, envir = utils_ns)
+    lockBinding("menu", utils_ns)
+  }, add = TRUE)
+
+  assign("menu", function(choices, title = NULL) 1L, envir = utils_ns)
+  testthat::with_mocked_bindings(
+    {
+      expect_true(RMSTpowerBoost:::.prompt_install_app_dependencies(c("shiny")))
+    },
+    interactive = function() TRUE,
+    .package = "base"
+  )
+
+  assign("menu", function(choices, title = NULL) 2L, envir = utils_ns)
+  testthat::with_mocked_bindings(
+    {
+      expect_false(RMSTpowerBoost:::.prompt_install_app_dependencies(c("shiny")))
+    },
+    interactive = function() TRUE,
+    .package = "base"
+  )
+})
+
+test_that(".install_app_dependencies forwards its arguments to utils::install.packages", {
+  captured <- list()
+  testthat::with_mocked_bindings(
+    {
+      RMSTpowerBoost:::.install_app_dependencies(c("pkgA", "pkgB"), repos = "http://example.test")
+      expect_identical(captured$pkgs, c("pkgA", "pkgB"))
+      expect_identical(captured$repos, "http://example.test")
+    },
+    install.packages = function(pkgs, repos) {
+      captured$pkgs <<- pkgs
+      captured$repos <<- repos
+      invisible(NULL)
+    },
+    .package = "utils"
+  )
+})
+
+test_that("ensure_app_dependencies errors when install_missing = FALSE and packages are missing", {
+  expect_error(
+    testthat::with_mocked_bindings(
+      RMSTpowerBoost:::.ensure_app_dependencies(install_missing = FALSE),
+      .get_missing_app_dependencies = function() c("shiny", "mice"),
+      .package = "RMSTpowerBoost"
+    ),
+    "Missing app dependencies"
+  )
+})
+
+test_that("ensure_app_dependencies errors when packages remain missing after install", {
+  expect_error(
+    testthat::with_mocked_bindings(
+      RMSTpowerBoost:::.ensure_app_dependencies(install_missing = TRUE),
+      .get_missing_app_dependencies = function() c("shiny", "mice"),
+      .prompt_install_app_dependencies = function(missing) TRUE,
+      .install_app_dependencies = function(missing, repos) invisible(TRUE),
+      .package = "RMSTpowerBoost"
+    ),
+    "still missing after install"
+  )
+})

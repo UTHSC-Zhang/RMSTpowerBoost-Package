@@ -122,7 +122,6 @@ GAM.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var
       }, FUN.VALUE = numeric(1))
       return(n * rmst_full - (n - 1) * rmst_loo)
    }
-
    group_label <- if(is_stratified) "/stratum" else "/arm"
    cat("--- Calculating Power (Method: Additive GAM for RMST) ---\n")
    message("Model: pseudo_obs ~ ", model_rhs)
