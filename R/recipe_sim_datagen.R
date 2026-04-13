@@ -5,7 +5,8 @@
 #' Validate a simulation recipe (list-only schema)
 #'
 #' Checks/normalizes the simulation recipe and fills reasonable defaults.
-#' This function does **not** use or require any analysis horizon (L/tau).
+#' This function does not use or require an analysis horizon; specify \code{L}
+#' later in downstream analysis functions.
 #'
 #' @param recipe A named list defining n, covariates, treatment (optional),
 #'   event_time (model, baseline, effects, optional frailty), and censoring.
@@ -468,7 +469,7 @@ simulate_from_recipe <- function(recipe, seed = NULL) {
   out
 }
 
-#' Quick AFT recipe builder (list-only, no L/tau)
+#' Quick AFT recipe builder for list-based simulation recipes
 #'
 #' @param n Sample size.
 #' @param model One of \code{"aft_lognormal"} or \code{"aft_weibull"}.

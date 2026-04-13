@@ -15,7 +15,8 @@ A validated recipe list.
 }
 \description{
 Checks/normalizes the simulation recipe and fills reasonable defaults.
-This function does \strong{not} use or require any analysis horizon (L/tau).
+This function does not use or require an analysis horizon; specify \code{L}
+later in downstream analysis functions.
 }
 \examples{
 r <- recipe_quick_aft(

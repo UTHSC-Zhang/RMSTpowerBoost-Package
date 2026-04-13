@@ -74,7 +74,7 @@
    invisible(TRUE)
 }
 
-#' Launch the RMSTdesign Shiny Application
+#' Launch the RMSTpowerBoost Shiny Application
 #'
 #' @description
 #' A helper to launch the interactive Shiny application bundled with the package.

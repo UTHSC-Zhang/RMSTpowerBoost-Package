@@ -8,7 +8,7 @@ output:
     fig_caption: true
     code_folding: show
     df_print: paged
-    highlight: tango
+    highlight: null
     self_contained: true
 vignette: >
   %\VignetteEngine{knitr::rmarkdown}
@@ -96,7 +96,7 @@ Choose one `assignment`:
 | ----------------- | ------------------------------------ | ------------------------------------------------------------------------------------- |
 | `"randomization"` | `allocation = "a:b"`                 | Bernoulli with probability (p_1 = a/(a+b)).                                           |
 | `"stratified"`    | `allocation`, `stratify_by = c(...)` | Same allocation **within** each stratum defined by listed **categorical** covariates. |
-| `"logistic_ps"`   | `ps_model = list(formula, beta)`     | Treatment probability is (\mathrm{logit}^{-1}(\eta)) from user model.                 |
+| `"logistic_ps"`   | `ps_model = list(formula, beta)`     | Treatment probability is `plogis(eta)` from the user-specified model.                 |
 
 **Examples**
 
@@ -128,17 +128,17 @@ tr_ps <- list(
 
 # Event-time engines
 
-Let (Z) be treatment (0/1), (X) be covariates, and (\eta) be the **linear predictor** (defined in `effects`, below). Supported engines and baseline parameterizations:
+Let `Z` be treatment (0/1), `X` be covariates, and `eta` be the **linear predictor** (defined in `effects`, below). Supported engines and baseline parameterizations:
 
 | Model (user-facing) | `model` value       | Baseline parameters                       | Notes                                                                            |
 | ------------------- | ------------------- | ----------------------------------------- | -------------------------------------------------------------------------------- |
-| AFT Lognormal       | `"aft_lognormal"`   | `mu`, `sigma`                             | (\log T = \mu + \eta + \sigma \varepsilon), (\varepsilon \sim \mathcal{N}(0,1)). |
-| AFT Weibull         | `"aft_weibull"`     | `shape`, `scale`                          | (S_0(t) = \exp(-(t/\lambda)^k)); AFT shift via (\eta).                           |
-| AFT Log-Logistic    | `"aft_loglogistic"` | `shape`, `scale`                          | (T = \lambda \exp(\eta),(U/(1-U))^{1/k}).                                        |
-| PH Exponential      | `"ph_pwexp"`        | `rates = c(\lambda)`, `cuts = numeric(0)` | Piecewise-Exp with a **single** segment is exponential.                          |
-| PH Weibull          | `"ph_weibull"`      | `shape`, `scale`                          | Proportional hazards with Weibull baseline.                                      |
-| PH Gompertz         | `"ph_gompertz"`     | `rate`, `gamma`                           | Hazard (h(t) = a, \exp(bt)).                                                     |
-| PH Piecewise Exp    | `"ph_pwexp"`        | `rates = c(r1,r2,...)`, `cuts = c(...)`   | Rate in segment (s) is (r_s \exp(\eta)).                                         |
+| AFT Lognormal       | `"aft_lognormal"`   | `mu`, `sigma`                             | `log(T) = mu + eta + sigma * epsilon`, with `epsilon ~ N(0, 1)`.                 |
+| AFT Weibull         | `"aft_weibull"`     | `shape`, `scale`                          | Baseline survival `S0(t) = exp(-(t/scale)^shape)` with an AFT shift via `eta`.   |
+| AFT Log-Logistic    | `"aft_loglogistic"` | `shape`, `scale`                          | Log-logistic AFT model with `T = scale * exp(eta) * (U/(1-U))^(1/shape)`.        |
+| PH Exponential      | `"ph_pwexp"`        | `rates = c(rate)`, `cuts = numeric(0)`    | Piecewise exponential with a **single** segment is exponential.                  |
+| PH Weibull          | `"ph_weibull"`      | `shape`, `scale`                          | Proportional hazards with a Weibull baseline.                                    |
+| PH Gompertz         | `"ph_gompertz"`     | `rate`, `gamma`                           | Hazard `h(t) = rate * exp(gamma * t)`.                                           |
+| PH Piecewise Exp    | `"ph_pwexp"`        | `rates = c(r1,r2,...)`, `cuts = c(...)`   | Segment-specific hazard is `r_s * exp(eta)`.                                     |
 
 **Effects and linear predictor**
 
@@ -163,10 +163,10 @@ We assume a **single censoring mechanism** that may depend on observed covariate
 
 | Mode               | Fields                                                                                                                                                            | Semantics                                                                                                                                                                                       |
 | ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `"target_overall"` | `target`, `admin_time`                                                                                                                                            | Finds an exponential random-censoring rate so overall censoring fraction ≈ `target`, with an administrative floor at `admin_time` (if provided).                                                |
+| `"target_overall"` | `target`, `admin_time`                                                                                                                                            | Finds an exponential random-censoring rate so the overall censoring fraction is approximately `target`, with an administrative floor at `admin_time` (if provided).                              |
 | `"explicit"`       | Any of: `administrative = list(time=...)`; `random = list(dist="exponential", params=list(rate=...))`; `dependent = list(formula="~ ...", base=..., beta=c(...))` | Compose administrative, random, and **covariate-dependent** censoring directly. The `dependent` block defines a covariate-dependent **log-rate** model; it does **not** denote competing risks. |
 
-> **Note.** No cause-specific or competing-risk censoring is generated here; the simulator’s “dependent” option is strictly **covariate-dependent** censoring under a single mechanism.
+> **Note.** No cause-specific or competing-risk censoring is generated here; the simulator's `dependent` option is strictly **covariate-dependent** censoring under a single mechanism.
 
 ## Examples
 
@@ -193,10 +193,10 @@ cz_explicit <- list(
 ### Explicit **covariate-dependent** censoring
 
 The dependent block uses a **log-rate** model:
-[
-\log \lambda_{c}(X) = \text{log}(b) + X^\top \beta ,
-]
-where (b>0) is the *baseline rate*. Implementation uses `base` as a **rate**, and `beta` on the **log-rate** scale. When `base` is supplied, the **formula must not include an intercept**.
+$$
+\log \lambda_c(X) = \log(b) + X^\top \beta,
+$$
+where `b > 0` is the *baseline rate*. Implementation uses `base` as a **rate**, and `beta` on the **log-rate** scale. When `base` is supplied, the **formula must not include an intercept**.
 
 ```{r cz_dep_rate, eval=TRUE}
 cz_dep <- list(
@@ -558,4 +558,4 @@ str(sets[[1]]$meta)
 
 Set `seed` in the recipe or pass `seed=` to `simulate_from_recipe()`.
 
-> **Assumptions.** The censoring hazard depends on observed covariates via a user-specified single mechanism. There are no competing risks. Datasets contain only `time`, `status`, treatment, and covariates—no dependent-censoring indicators.
+> **Assumptions.** The censoring hazard depends on observed covariates via a user-specified single mechanism. There are no competing risks. Datasets contain only `time`, `status`, treatment, and covariates - no dependent-censoring indicators.

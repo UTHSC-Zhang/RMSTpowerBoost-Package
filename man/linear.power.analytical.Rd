@@ -46,8 +46,9 @@ asymptotic variance estimator for the linear RMST model.
 This function implements the analytic power calculation for the direct linear
 regression model of the Restricted Mean Survival Time (RMST) proposed by Tian et al. (2014).
 The core of the method is a weighted linear model of the form
-\deqn{E[Y_i|Z_i] = \beta_0 + \beta_1 Z_i}
-where \eqn{Y_i = \min(T_i, \L)} is the event time truncated at \eqn{\L}.
+\deqn{E[Y_i \mid A_i, \mathbf{Z}_i] = \alpha + \tau A_i + \mathbf{Z}_i^\top \boldsymbol{\gamma}}
+where \eqn{Y_i = \min(T_i, L)} is the event time truncated at \eqn{L}, \eqn{A_i} is the
+treatment indicator, and \eqn{\tau} is the treatment effect of interest.
 
 To handle right-censoring, the method uses Inverse Probability of Censoring
 Weighting (IPCW). The weight for an uncensored individual \code{i} is the inverse
@@ -55,7 +56,7 @@ of the probability of remaining uncensored until their event time, \eqn{w_i = \d
 where \eqn{\hat{G}(t) = P(C > t)} is the Kaplan-Meier estimate of the censoring distribution.
 
 Power is calculated analytically based on the asymptotic properties of the
-coefficient estimators. The variance of the treatment effect estimator, \eqn{\hat{\beta}}, is derived from a
+coefficient estimators. The variance of the treatment effect estimator, \eqn{\hat{\tau}}, is derived from a
 robust sandwich variance estimator of the form \eqn{A^{-1}B(A^{-1})'}. In this implementation,
 \code{A} is the scaled information matrix \eqn{(X'WX)/n}, and \code{B} is the empirical second moment of the
 influence functions, \eqn{(\sum \epsilon_i \epsilon_i')/n}, where \eqn{\epsilon_i} is the influence curve

@@ -2,7 +2,7 @@
 % Please edit documentation in R/recipe_sim_datagen.R
 \name{recipe_quick_aft}
 \alias{recipe_quick_aft}
-\title{Quick AFT recipe builder (list-only, no L/tau)}
+\title{Quick AFT recipe builder for list-based simulation recipes}
 \usage{
 recipe_quick_aft(
   n,
@@ -36,7 +36,7 @@ recipe_quick_aft(
 A recipe list suitable for \code{\link{simulate_from_recipe}}.
 }
 \description{
-Quick AFT recipe builder (list-only, no L/tau)
+Quick AFT recipe builder for list-based simulation recipes
 }
 \examples{
 covs <- list(list(name="x", type="continuous", dist="normal", params=list(mean=0, sd=1)))

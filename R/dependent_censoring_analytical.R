@@ -2,7 +2,7 @@
 
 #' @title Analyze Power for RMST Model with Covariate-Dependent Censoring (Analytic)
 #' @description Performs power analysis for an RMST model when the censoring mechanism
-#'   depends on observed covariates. Competing risks are not modeled here.
+#'   depends on observed covariates.
 #'
 #' @details
 #' This function assumes a single censoring process whose hazard depends on covariates

@@ -36,7 +36,8 @@
 #' Builds a grid of scenarios from a base recipe and a named list of variations,
 #' simulates one or more replicates per scenario, and writes the datasets to files
 #' in a target folder as \code{.txt} (tab), \code{.csv}, \code{.rds}, and/or \code{.RData}.
-#' A manifest is written as \code{manifest.rds}. No YAML and **no L/tau**.
+#' A manifest is written as \code{manifest.rds}. The recipe specification does not
+#' include an analysis horizon; specify \code{L} later in downstream analysis functions.
 #'
 #' @param base_recipe A recipe list (use \code{validate_recipe()} if needed).
 #' @param vary Named list; keys are dotted paths inside the recipe (e.g., \code{"n"},
