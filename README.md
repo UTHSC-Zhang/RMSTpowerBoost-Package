@@ -22,10 +22,6 @@ install.packages("remotes")
 remotes::install_github("UTHSC-Zhang/RMSTpowerBoost-Package")
 ```
 
-## Codecov Sunburst
-
-![Codecov Sunburst](https://codecov.io/gh/arnabaich96/RMSTpowerBoost-Package/graphs/sunburst.svg?token=5L9OGLTMU6)
-
 ## Shiny App
 
 Interactive web application:
