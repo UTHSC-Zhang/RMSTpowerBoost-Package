@@ -27,10 +27,9 @@ An object of class \code{"summary.rmst_ss"}.
 A \code{ggplot2} object, invisibly.
 }
 \description{
-Displays model metadata and the computed sample-size table returned by
-\code{\link[=rmst.ss]{rmst.ss()}}.
+Prints the model metadata and sample-size table returned by \code{\link[=rmst.ss]{rmst.ss()}}.
 
-Builds a structured summary object for reporting and downstream printing.
+Returns a summary object for printing and further inspection.
 
-Prints and returns the \code{ggplot2} object stored in the analysis result.
+Prints and returns the stored \code{ggplot2} object.
 }

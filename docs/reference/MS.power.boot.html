@@ -138,8 +138,7 @@ is a mandatory argument.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="va">pilot_df_strat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">pilot_df_strat</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span> time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="fl">120</span>, <span class="fl">0.15</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span> status <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="fl">120</span>, <span class="fl">1</span>, <span class="fl">0.6</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span> arm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">1</span>, each <span class="op">=</span> <span class="fl">60</span><span class="op">)</span>,</span></span>
@@ -154,8 +153,18 @@ is a mandatory argument.</p>
 <span class="r-in"><span> L <span class="op">=</span> <span class="fl">10</span>,</span></span>
 <span class="r-in"><span> n_sim <span class="op">=</span> <span class="fl">100</span> <span class="co"># Low n_sim for example</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Model: log(pseudo_obs) ~ region + region:arm</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> --- Calculating Power (Method: Multiplicative Stratified RMST Model) ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Simulating for n = 50/stratum...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Simulating for n = 75/stratum...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Total simulation time: 73.77 seconds</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> --- Simulation Summary ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> No valid estimates were generated to create a summary.</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">power_results</span><span class="op">$</span><span class="va">results_data</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N_per_Stratum Power</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1            50     0</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2            75     0</span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

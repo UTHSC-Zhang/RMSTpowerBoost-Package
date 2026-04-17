@@ -145,11 +145,9 @@ using a flexible, semiparametric additive model for the RMST.</p>
 </dl></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>This function iteratively searches for the sample size required to
-achieve a <code>target_power</code>. At each step, it runs a full bootstrap simulation
-(as described in <code>GAM.power.boot</code>) to estimate the power for the
-current sample size. The search proceeds until the target power is met or
-other stopping criteria are satisfied.</p>
+    <p>This function increases the sample size step by step until the estimated
+power reaches <code>target_power</code> or a stopping rule is met. At each step it runs
+the same bootstrap procedure described in <code>GAM.power.boot</code>.</p>
     </div>
     <div class="section level2">
     <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>
@@ -158,8 +156,7 @@ other stopping criteria are satisfied.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="va">pilot_df_effect</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">pilot_df_effect</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="fl">50</span>, <span class="fl">0.1</span><span class="op">)</span>, <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="fl">50</span>, <span class="fl">0.04</span><span class="op">)</span><span class="op">)</span>, <span class="co"># Effect</span></span></span>
 <span class="r-in"><span>  status <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">1</span>, <span class="fl">0.9</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  arm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">1</span>, each <span class="op">=</span> <span class="fl">50</span><span class="op">)</span></span></span>
@@ -178,9 +175,30 @@ other stopping criteria are satisfied.</p>
 <span class="r-in"><span>  patience <span class="op">=</span> <span class="fl">2</span>,</span></span>
 <span class="r-in"><span>  parallel.cores <span class="op">=</span> <span class="fl">2</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> --- Searching for Sample Size (Method: Additive GAM for RMST) ---</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Model: pseudo_obs ~ arm</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 100/arm, Calculating Power... Power = 0.97</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Success: Target power reached at N = 100/arm.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Total simulation time: 27.09 seconds</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> --- Simulation Summary ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Table: Estimated Treatment Effect (RMST Difference)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |Statistic            |     Value|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |:--------------------|---------:|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |Mean RMST Difference | 3.0782888|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |Mean Standard Error  | 0.7594263|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |95% CI Lower         | 1.4525190|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |95% CI Upper         | 4.7040586|</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">ss_results</span><span class="op">$</span><span class="va">results_data</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Target_Power Required_N_per_Group</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1          0.8                  100</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">ss_results</span><span class="op">$</span><span class="va">results_plot</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> `geom_line()`: Each group consists of only one observation.</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Do you need to adjust the <span style="color: #00BB00;">group</span> aesthetic?</span>
+<span class="r-plt img"><img src="GAM.ss.boot-1.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

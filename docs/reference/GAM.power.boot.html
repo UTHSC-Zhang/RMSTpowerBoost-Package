@@ -125,16 +125,14 @@ semiparametric additive model for the RMST based on pseudo-observations.</p>
 </dl></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>This function estimates power via a bootstrap simulation. It generates
-<code>n_sim</code> bootstrap samples from the pilot data (resampling within strata if
-a <code>strata_var</code> is provided). In each simulation, it performs these steps:</p><ol><li><p>Calculates jackknife pseudo-observations for the RMST for each subject.</p></li>
-<li><p>Fits a semiparametric additive model, typically a Generalized Additive Model
-using <code><a href="https://rdrr.io/pkg/mgcv/man/gam.html" class="external-link">mgcv::gam</a></code>, to these pseudo-observations. The model formula can
-include linear terms, non-linear smooth terms (<code>s()</code>), and interactions.</p></li>
-<li><p>Extracts the p-value for the treatment effect from the model summary.</p></li>
-</ol><p>The final power is the proportion of simulations where the p-value is less
-than the significance level <code>alpha</code>. This pseudo-observation approach is an
-alternative to IPCW for direct RMST modeling.</p>
+    <p>This function estimates power by bootstrap resampling the pilot data,
+computing RMST pseudo-observations, fitting a semiparametric additive model,
+and recording whether the treatment effect is significant. If <code>strata_var</code>
+is supplied, resampling is carried out within strata. The model formula can
+include linear terms, non-linear smooth terms (<code>s()</code>), and interactions.</p>
+<p>Power is estimated as the proportion of simulations with a treatment-effect
+p-value below <code>alpha</code>. This pseudo-observation approach models RMST directly
+without using the IPCW estimating equations used elsewhere in the package.</p>
     </div>
     <div class="section level2">
     <h2 id="note">Note<a class="anchor" aria-label="anchor" href="#note"></a></h2>
@@ -144,8 +142,7 @@ should be <code>1</code> for treatment, <code>0</code> for control.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="va">pilot_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">pilot_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">0.08</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  status <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">1</span>, <span class="fl">0.7</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  arm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">1</span>, each <span class="op">=</span> <span class="fl">50</span><span class="op">)</span>,</span></span>
@@ -165,9 +162,29 @@ should be <code>1</code> for treatment, <code>0</code> for control.</p>
 <span class="r-in"><span>  n_sim <span class="op">=</span> <span class="fl">100</span>, <span class="co"># Use more sims in practice, e.g., 1000</span></span></span>
 <span class="r-in"><span>  parallel.cores <span class="op">=</span> <span class="fl">2</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> --- Calculating Power (Method: Additive GAM for RMST) ---</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Model: pseudo_obs ~ arm + age</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Simulating for n = 100 /arm ...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Simulating for n = 150 /arm ...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Total simulation time: 57.21 seconds</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> --- Simulation Summary ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Table: Estimated Treatment Effect (RMST Difference)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |Statistic            |      Value|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |:--------------------|----------:|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |Mean RMST Difference |  0.2837699|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |Mean Standard Error  |  0.6255794|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |95% CI Lower         | -1.0747207|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |95% CI Upper         |  1.6422605|</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">power_results</span><span class="op">$</span><span class="va">results_data</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N_per_Group Power</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1         100  0.08</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2         150  0.08</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">power_results</span><span class="op">$</span><span class="va">results_plot</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-plt img"><img src="GAM.power.boot-1.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

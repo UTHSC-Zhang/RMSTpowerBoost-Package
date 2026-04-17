@@ -55,12 +55,10 @@ Calculates the required sample size for a target power using the analytic
 (approximate) method from Wang et al. (2019).
 }
 \details{
-This function performs an iterative search for the sample size required to
-achieve a specified \code{target_power}. It uses the same underlying theory and
-log-linear approximation as \code{MS.power.analytical}. It performs a one-time
-estimation of the log-RMST ratio and its asymptotic variance from the pilot data,
-then uses these parameters in an analytic formula to efficiently find the
-required sample size.
+This function estimates the log-RMST ratio and its asymptotic variance once
+from the pilot data, then increases the per-stratum sample size until the
+target power is reached or the search limit is hit. It uses the same
+log-linear approximation as \code{MS.power.analytical}.
 }
 \examples{
 set.seed(456)

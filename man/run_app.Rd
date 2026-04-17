@@ -17,9 +17,11 @@ installing missing app dependencies.}
 Invisible return value from \code{shiny::runApp()}.
 }
 \description{
-A helper to launch the interactive Shiny application bundled with the package.
-App-specific dependencies are installed lazily when needed.
+Launches the Shiny application bundled with the package.
+App-specific dependencies are installed only when they are needed.
 }
 \examples{
-  RMSTpowerBoost::run_app()
+\dontshow{if (interactive()) withAutoprint(\{ # examplesIf}
+RMSTpowerBoost::run_app()
+\dontshow{\}) # examplesIf}
 }

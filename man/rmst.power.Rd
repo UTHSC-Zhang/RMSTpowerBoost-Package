@@ -54,8 +54,7 @@ An object of class \code{c("rmst_power", "list")} with elements
 \code{model_output}, and \code{.meta}.
 }
 \description{
-A high-level wrapper that routes to the appropriate underlying power function
-based on the formula, strata, and model type arguments.
+Routes a formula-based call to the matching RMST power routine.
 }
 \examples{
 r <- rmst.power(Surv(time, status) ~ age,

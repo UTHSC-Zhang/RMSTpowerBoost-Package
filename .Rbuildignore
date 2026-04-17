@@ -15,6 +15,7 @@
 # Other top-level files
 ^LICENSE\.md$
 ^README\.Rmd$
+^pkgdown$
 
 
 # The renv subdirectory

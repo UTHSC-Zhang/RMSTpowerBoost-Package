@@ -61,35 +61,28 @@
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p>The design and analysis of clinical trials with time-to-event
-endpoints often rely on hazard-based methods such as the proportional
-hazards (PH) model and use the hazard ratio (HR) as the primary estimand
-of treatment effect. However, the HR can be difficult to interpret
-clinically, especially when treatment effects vary over time. Moreover,
-the key assumption underlying most hazard-based methods - proportional
-hazards - is often tenuous or violated in practice.</p>
-<p>As an alternative, the <strong>Restricted Mean Survival Time
-(RMST)</strong> provides a direct summary of average event-free time up
-to a pre-specified follow-up point,
+<p>Clinical trials with time-to-event endpoints often rely on
+hazard-based methods such as the proportional hazards (PH) model and the
+hazard ratio (HR). The HR can be hard to interpret when treatment
+effects vary over time, and the proportional hazards assumption is often
+doubtful in practice.</p>
+<p>The <strong>Restricted Mean Survival Time (RMST)</strong> is the
+expected event-free time up to a pre-specified follow-up point,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math><span class="citation">(<a href="#ref-royston2013">Royston and Parmar
 2013</a>; <a href="#ref-uno2014"><span class="nocase">Uno et al.</span>
-2014</a>)</span>. This yields an interpretable treatment contrast, for
-example, an average gain of several months of survival over a clinically
-relevant horizon.</p>
-<p>Modern statistical methods also model the RMST directly as a function
-of baseline covariates rather than estimating it only from a survival
-curve or hazard model. This direct approach, based on work using Inverse
-Probability of Censoring Weighting (IPCW) <span class="citation">(<a href="#ref-tian2014">Tian et al. 2014</a>)</span>, has been extended to
-accommodate stratification in multi-center studies <span class="citation">(<a href="#ref-wang2019">Wang et al. 2019</a>; <a href="#ref-zhang2024">Zhang and Schaubel 2024</a>)</span> and
+2014</a>)</span>. It yields a treatment contrast on the time scale, such
+as an average gain of several months over a clinically relevant
+horizon.</p>
+<p>Recent work models RMST directly as a function of baseline covariates
+instead of estimating it only from a survival curve or hazard model.
+Methods based on Inverse Probability of Censoring Weighting (IPCW) <span class="citation">(<a href="#ref-tian2014">Tian et al. 2014</a>)</span>
+now cover stratified studies <span class="citation">(<a href="#ref-wang2019">Wang et al. 2019</a>; <a href="#ref-zhang2024">Zhang and Schaubel 2024</a>)</span> and
 covariate-dependent censoring <span class="citation">(<a href="#ref-wang2018">Wang and Schaubel 2018</a>)</span>.</p>
-<p>However, most software tools for these advanced methods focus on
-analyzing existing data, not designing new studies. This has left trial
-statisticians to write custom code for the crucial task of calculating
-sample size and power.</p>
-<p>The <code>RMSTpowerBoost</code> package addresses this design problem
-by providing tools for <strong>power and sample size
-calculations</strong> based on direct RMST methodologies from the recent
-literature. The package implements several key approaches:</p>
+<p>Most available software emphasizes estimation from existing data
+rather than study design. As a result, trial statisticians often need
+custom code for sample size and power calculations.</p>
+<p><code>RMSTpowerBoost</code> implements direct RMST methods for
+<strong>power and sample size calculations</strong>:</p>
 <ul>
 <li>
 <strong>Linear IPCW Models</strong>: A direct regression model for
@@ -111,8 +104,8 @@ covariate effects.</li>
 the package offers a choice between a fast <code>analytical</code>
 calculation and a simulation-based <code>boot</code> method.</li>
 </ul>
-<p>This vignette summarizes the theory and application of each of these
-function groups.</p>
+<p>This vignette outlines the main model families and shows how to use
+them.</p>
 <hr>
 </div>
 <div class="section level2">
@@ -131,7 +124,7 @@ and treatment indicator
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">t</mi></mrow><mi>i</mi></msub><annotation encoding="application/x-tex">\mathrm{Trt}_i</annotation></semantics></math>,
 the conditional RMST is modeled as</p>
 <p><math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>𝔼</mi><mo stretchy="false" form="prefix">[</mo><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo>,</mo><mi>L</mi><mo stretchy="false" form="postfix">)</mo><mo>∣</mo><msub><mi>Z</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">]</mo><mspace width="0.278em"></mspace><mo>=</mo><mspace width="0.278em"></mspace><msub><mi>β</mi><mn>0</mn></msub><mo>+</mo><msub><mi>β</mi><mtext mathvariant="normal">effect</mtext></msub><mspace width="0.167em"></mspace><msub><mrow><mi mathvariant="normal">T</mi><mi mathvariant="normal">r</mi><mi mathvariant="normal">t</mi></mrow><mi>i</mi></msub><mo>+</mo><msubsup><mi>β</mi><mn>2</mn><mi>⊤</mi></msubsup><msub><mi>Z</mi><mi>i</mi></msub><mo>,</mo></mrow><annotation encoding="application/x-tex">
-\mathbb{E}[\min(T_i, L)\mid Z_i] \;=\; 
+\mathbb{E}[\min(T_i, L)\mid Z_i] \;=\;
 \beta_0 + \beta_{\text{effect}}\,\mathrm{Trt}_i + \beta_2^{\top} Z_i,
 </annotation></semantics></math></p>
 <p>where
@@ -146,15 +139,15 @@ therefore defines the <strong>effect size</strong> used throughout the
 analytical power and sample size functions in
 <code>RMSTpowerBoost</code>.</p>
 <div class="section level3">
-<h3 id="the-analytic-method--analytical-functions">The Analytic Method (<code>.analytical</code> functions)<a class="anchor" aria-label="anchor" href="#the-analytic-method--analytical-functions"></a>
+<h3 id="the-analytic-method">The Analytic Method<a class="anchor" aria-label="anchor" href="#the-analytic-method"></a>
 </h3>
-<p>The analytical functions are fast because they use a direct
-mathematical formula to calculate power. This makes them useful for
-exploring different scenarios. The process is:</p>
+<p>The analytical functions estimate power from a closed-form
+expression, so they are useful for rapid scenario exploration. The
+process is:</p>
 <ol style="list-style-type: decimal">
 <li>
 <strong>One-Time Estimation</strong>: The function first analyzes
-the provided <code>pilot_data</code> to estimate two key parameters:
+the provided reference data to estimate two key parameters:
 <ul>
 <li>The <strong>treatment effect size</strong> (e.g., the difference in
 RMST or the log-RMST ratio).</li>
@@ -180,7 +173,7 @@ is the treatment effect.</li>
 <li>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>σ</mi><mi>N</mi></msub><mo>=</mo><mfrac><msub><mi>σ</mi><mn>1</mn></msub><msqrt><mi>N</mi></msqrt></mfrac></mrow><annotation encoding="application/x-tex">\sigma_N = \frac{\sigma_1}{\sqrt{N}}</annotation></semantics></math>
 is the standard error of the effect for the target sample size
-<code>N</code>, which is scaled from the pilot data’s variance.</li>
+<code>N</code>, which is scaled from the reference data’s variance.</li>
 <li>
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>z</mi><mrow><mn>1</mn><mo>−</mo><mi>α</mi><mi>/</mi><mn>2</mn></mrow></msub><annotation encoding="application/x-tex">z_{1-\alpha/2}</annotation></semantics></math>
 is the critical value from the standard normal distribution (e.g., 1.96
@@ -190,16 +183,15 @@ for an alpha of 0.05).</li>
 </ol>
 </div>
 <div class="section level3">
-<h3 id="the-bootstrap-method--boot-functions">The Bootstrap Method (<code>.boot</code> functions)<a class="anchor" aria-label="anchor" href="#the-bootstrap-method--boot-functions"></a>
+<h3 id="the-bootstrap-method">The Bootstrap Method<a class="anchor" aria-label="anchor" href="#the-bootstrap-method"></a>
 </h3>
-<p>The bootstrap functions provide a simulation-based alternative that
-relies less on closed-form analytic approximations. This is a trade-off,
-as they are much more computationally intensive. The process is:</p>
+<p>The bootstrap functions estimate power empirically and therefore
+require more computation. The process is:</p>
 <ol style="list-style-type: decimal">
 <li>
 <strong>Resample</strong>: The function simulates a “future trial”
 of a given <code>sample_size</code> by resampling with replacement from
-the <code>pilot_data</code>.</li>
+the reference data.</li>
 <li>
 <strong>Fit Model</strong>: On this new bootstrap sample, it
 performs the full analysis (e.g., calculating weights or
@@ -221,11 +213,10 @@ significance level <code>alpha</code>.
 </ol>
 </div>
 <div class="section level3">
-<h3 id="the-sample-size-search-algorithm--ss-functions">The Sample Size Search Algorithm (<code>.ss</code> functions)<a class="anchor" aria-label="anchor" href="#the-sample-size-search-algorithm--ss-functions"></a>
+<h3 id="the-sample-size-search-algorithm">The Sample Size Search Algorithm<a class="anchor" aria-label="anchor" href="#the-sample-size-search-algorithm"></a>
 </h3>
-<p>All functions ending in <code>.ss</code> (for sample size) use the
-same iterative search algorithm to find the <code>N</code> required to
-achieve a <code>target_power</code>:</p>
+<p><code><a href="../reference/rmst.ss.html">rmst.ss()</a></code> uses an iterative search algorithm to find the
+<code>N</code> required to achieve a <code>target_power</code>:</p>
 <ol style="list-style-type: decimal">
 <li>
 <strong>Start</strong>: The search begins with a sample size of
@@ -246,19 +237,37 @@ process.</li>
 </li>
 <li>
 <strong>Stopping Rules</strong>: The search terminates if the sample
-size exceeds <code>max_n_per_arm</code> or, for bootstrap methods, if
-the power fails to improve for a set number of <code>patience</code>
-steps.</li>
+size exceeds <code>max_n</code> or, for bootstrap methods, if the power
+fails to improve for a set number of <code>patience</code> steps.</li>
 </ol>
 </div>
 <div class="section level3">
-<h3 id="available-functions-a-quick-guide">Available Functions: A Quick Guide<a class="anchor" aria-label="anchor" href="#available-functions-a-quick-guide"></a>
+<h3 id="the-unified-interface">The Unified Interface<a class="anchor" aria-label="anchor" href="#the-unified-interface"></a>
 </h3>
-<p>The package uses a consistent naming convention to help you select
-the correct function. The names are combinations of the
-<code>[Model Type]</code>, the <code>[Goal - power or ss]</code>, and
-the <code>[Method - analytical or boot]</code>. The table below provides
-a summary of the available functions for each model.</p>
+<p><code>RMSTpowerBoost</code> exposes all models through two top-level
+functions that use a familiar <code>Surv()</code>-based formula
+interface:</p>
+<table class="table">
+<colgroup>
+<col width="50%">
+<col width="50%">
+</colgroup>
+<thead><tr class="header">
+<th align="left">Function</th>
+<th align="left">Purpose</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td align="left"><code>rmst.power(Surv(time, status) ~ covariates, data, arm, sample_sizes, L, ...)</code></td>
+<td align="left">Power curve over a vector of sample sizes</td>
+</tr>
+<tr class="even">
+<td align="left"><code>rmst.ss(Surv(time, status) ~ covariates, data, arm, target_power, L, ...)</code></td>
+<td align="left">Minimum sample size to reach a power target</td>
+</tr>
+</tbody>
+</table>
+<p>Key arguments that control model selection:</p>
 <table class="table">
 <colgroup>
 <col width="33%">
@@ -266,66 +275,58 @@ a summary of the available functions for each model.</p>
 <col width="33%">
 </colgroup>
 <thead><tr class="header">
-<th align="left">Model Type</th>
-<th align="left">Analytic Functions</th>
-<th align="left">Bootstrap Functions</th>
+<th align="left">Argument</th>
+<th align="left">Values</th>
+<th align="left">Effect</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
-<td align="left"><strong>Linear IPCW</strong></td>
+<td align="left"><code>type</code></td>
 <td align="left">
-<code>linear.power.analytical</code>
-<br><code>linear.ss.analytical</code>
+<code>"analytical"</code> (default) /
+<code>"boot"</code>
 </td>
-<td align="left">
-<code>linear.power.boot</code>
-<br><code>linear.ss.boot</code>
-</td>
+<td align="left">Analytic vs. bootstrap method</td>
 </tr>
 <tr class="even">
-<td align="left"><strong>Additive Stratified</strong></td>
-<td align="left">
-<code>additive.power.analytical</code>
-<br><code>additive.ss.analytical</code>
+<td align="left"><code>strata</code></td>
+<td align="left">column name / <code>~col</code> /
+<code>NULL</code>
 </td>
-<td align="left"><em>Not applicable</em></td>
+<td align="left">Activates stratified model</td>
 </tr>
 <tr class="odd">
-<td align="left"><strong>Multiplicative Stratified</strong></td>
+<td align="left"><code>strata_type</code></td>
 <td align="left">
-<code>MS.power.analytical</code>
-<br><code>MS.ss.analytical</code>
+<code>"additive"</code> /
+<code>"multiplicative"</code>
 </td>
-<td align="left">
-<code>MS.power.boot</code>
-<br><code>MS.ss.boot</code>
-</td>
+<td align="left">Stratified model type</td>
 </tr>
 <tr class="even">
-<td align="left"><strong>Semiparametric GAM</strong></td>
-<td align="left"><em>Not applicable</em></td>
+<td align="left"><code>dep_cens</code></td>
 <td align="left">
-<code>GAM.power.boot</code>
-<br><code>GAM.ss.boot</code>
+<code>TRUE</code> / <code>FALSE</code>
 </td>
+<td align="left">Dependent-censoring model</td>
 </tr>
 <tr class="odd">
-<td align="left"><strong>Dependent Censoring</strong></td>
+<td align="left">Smooth terms</td>
 <td align="left">
-<code>DC.power.analytical</code>
-<br><code>DC.ss.analytical</code>
-</td>
-<td align="left"><em>Not applicable</em></td>
+<code>s(var)</code> in formula</td>
+<td align="left">Activates GAM (forces <code>type = "boot"</code>)</td>
 </tr>
 </tbody>
 </table>
+<p>The underlying model-specific functions remain exported for direct
+use when needed.</p>
 </div>
 <div class="section level3">
 <h3 id="selecting-an-appropriate-model">Selecting an Appropriate Model<a class="anchor" aria-label="anchor" href="#selecting-an-appropriate-model"></a>
 </h3>
-<p>Model selection depends on the assumptions made about the data
-structure and the design of the study. The following table summarizes
-recommended modeling strategies under various analytical scenarios:</p>
+<p>Model choice depends on the study design and the assumptions you are
+willing to make. The table below summarizes typical settings for each
+approach:</p>
 <table class="table">
 <colgroup>
 <col width="11%">
@@ -335,45 +336,42 @@ recommended modeling strategies under various analytical scenarios:</p>
 <thead><tr class="header">
 <th align="left">Model</th>
 <th align="left">Key Assumption / Scenario</th>
-<th align="left">Recommended Use Case</th>
+<th align="left">Use when</th>
 </tr></thead>
 <tbody>
 <tr class="odd">
 <td align="left"><strong>Linear IPCW</strong></td>
 <td align="left">Assumes a linear relationship between covariates and
 RMST.</td>
-<td align="left">Suitable for baseline analyses where there is no strong
-evidence of non-linear effects or complex stratification.</td>
+<td align="left">there is no strong evidence of non-linear effects or
+complex stratification.</td>
 </tr>
 <tr class="even">
 <td align="left"><strong>Additive Stratified</strong></td>
 <td align="left">Assumes the treatment adds a constant amount of
 survival time across strata.</td>
-<td align="left">Appropriate for multi-center trials where the treatment
-effect is expected to be uniform (e.g., a fixed increase in survival
-time across centers).</td>
+<td align="left">treatment effects are expected to be comparable across
+centers or other strata.</td>
 </tr>
 <tr class="odd">
 <td align="left"><strong>Multiplicative Stratified</strong></td>
 <td align="left">Assumes the treatment multiplies survival time
 proportionally across strata.</td>
-<td align="left">Preferred in multi-center trials where the treatment is
-expected to produce proportional gains relative to baseline survival
-across different centers.</td>
+<td align="left">treatment effects are better expressed as relative
+changes in RMST across strata.</td>
 </tr>
 <tr class="even">
 <td align="left"><strong>Semiparametric GAM</strong></td>
 <td align="left">Allows for non-linear covariate effects on RMST.</td>
-<td align="left">Useful when variables (e.g., age, biomarker levels) are
-believed to have complex, non-linear associations with the outcome.</td>
+<td align="left">covariates such as age or biomarkers are likely to have
+non-linear associations with the outcome.</td>
 </tr>
 <tr class="odd">
 <td align="left"><strong>Dependent Censoring</strong></td>
 <td align="left">Accounts for covariate-dependent censoring under a
 single censoring mechanism.</td>
-<td align="left">Recommended when censoring depends on measured
-covariates and the competing-risks setting is not being modeled
-explicitly.</td>
+<td align="left">censoring depends on measured covariates and competing
+risks are not being modeled explicitly.</td>
 </tr>
 </tbody>
 </table>
@@ -422,7 +420,7 @@ estimate power for a trial comparing standard vs. test chemotherapy
 (<code>trt</code>), adjusting for the Karnofsky performance score
 (<code>karno</code>).</p>
 <div class="section level4">
-<h4 id="power-calculation---linear-power-analytical">Power Calculation - <a href="../reference/linear.power.analytical.html"><code>linear.power.analytical</code></a><a class="anchor" aria-label="anchor" href="#power-calculation---linear-power-analytical"></a>
+<h4 id="power-calculation">Power Calculation<a class="anchor" aria-label="anchor" href="#power-calculation"></a>
 </h4>
 <p>First, let’s inspect the prepared <code>veteran</code> dataset.</p>
 <pre><code>  trt celltype time status karno diagtime age prior arm
@@ -434,18 +432,16 @@ estimate power for a trial comparing standard vs. test chemotherapy
 6   1 squamous   10      1    20        5  49     0   0</code></pre>
 <p>Now, we calculate the power for a range of sample sizes using a
 truncation time of 9 months (270 days).</p>
-<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>power_results_vet <span class="ot">&lt;-</span> <span class="fu">linear.power.analytical</span>(</span>
-<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  <span class="at">pilot_data =</span> vet,</span>
-<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="at">time_var =</span> <span class="st">"time"</span>,</span>
-<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  <span class="at">status_var =</span> <span class="st">"status"</span>,</span>
-<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  <span class="at">arm_var =</span> <span class="st">"arm"</span>,</span>
-<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  <span class="at">linear_terms =</span> <span class="st">"karno"</span>,</span>
-<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>  <span class="at">sample_sizes =</span> <span class="fu">c</span>(<span class="dv">100</span>, <span class="dv">150</span>, <span class="dv">200</span>, <span class="dv">250</span>),</span>
-<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a>  <span class="at">L =</span> <span class="dv">270</span></span>
-<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a>)</span>
-<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="sc">---</span> Estimating parameters from pilot data <span class="cf">for</span> analytic calculation... <span class="sc">---</span></span>
-<span id="cb2-11"><a href="#cb2-11" tabindex="-1"></a><span class="sc">---</span> Calculating asymptotic variance... <span class="sc">---</span></span>
-<span id="cb2-12"><a href="#cb2-12" tabindex="-1"></a><span class="sc">---</span> Calculating power <span class="cf">for</span> specified sample sizes... <span class="sc">---</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>power_results_vet <span class="ot">&lt;-</span> <span class="fu">rmst.power</span>(</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  <span class="fu">Surv</span>(time, status) <span class="sc">~</span> karno,</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>  <span class="at">data         =</span> vet,</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  <span class="at">arm          =</span> <span class="st">"arm"</span>,</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>  <span class="at">sample_sizes =</span> <span class="fu">c</span>(<span class="dv">100</span>, <span class="dv">150</span>, <span class="dv">200</span>, <span class="dv">250</span>),</span>
+<span id="cb2-6"><a href="#cb2-6" tabindex="-1"></a>  <span class="at">L            =</span> <span class="dv">270</span></span>
+<span id="cb2-7"><a href="#cb2-7" tabindex="-1"></a>)</span>
+<span id="cb2-8"><a href="#cb2-8" tabindex="-1"></a><span class="sc">---</span> Estimating parameters from pilot data <span class="cf">for</span> analytic calculation... <span class="sc">---</span></span>
+<span id="cb2-9"><a href="#cb2-9" tabindex="-1"></a><span class="sc">---</span> Calculating asymptotic variance... <span class="sc">---</span></span>
+<span id="cb2-10"><a href="#cb2-10" tabindex="-1"></a><span class="sc">---</span> Calculating power <span class="cf">for</span> specified sample sizes... <span class="sc">---</span></span></code></pre></div>
 <p>The results are returned as a data frame and a <code>ggplot</code>
 object.</p>
 <table class="table table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;">
@@ -497,50 +493,48 @@ Power
 </table>
 </div>
 <div class="section level4">
-<h4 id="sample-size-calculation---linear-ss-analytical">Sample Size Calculation - <a href="../reference/linear.ss.analytical.html"><code>linear.ss.analytical</code></a><a class="anchor" aria-label="anchor" href="#sample-size-calculation---linear-ss-analytical"></a>
+<h4 id="sample-size-calculation">Sample Size Calculation<a class="anchor" aria-label="anchor" href="#sample-size-calculation"></a>
 </h4>
 <p>We can also use the analytical method to find the required sample
 size to achieve a target power for a truncation time of one year (365
 days).</p>
-<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>ss_results_vet <span class="ot">&lt;-</span> <span class="fu">linear.ss.analytical</span>(</span>
-<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  <span class="at">pilot_data =</span> vet,</span>
-<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="at">time_var =</span> <span class="st">"time"</span>,</span>
-<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="at">status_var =</span> <span class="st">"status"</span>,</span>
-<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="at">arm_var =</span> <span class="st">"arm"</span>,</span>
-<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>  <span class="at">target_power =</span> <span class="fl">0.40</span>,</span>
-<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>  <span class="at">linear_terms =</span> <span class="st">"karno"</span>,</span>
-<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>  <span class="at">L =</span> <span class="dv">365</span>,</span>
-<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a>  <span class="at">n_start =</span> <span class="dv">1000</span>, <span class="at">n_step =</span> <span class="dv">250</span>, <span class="at">max_n_per_arm =</span> <span class="dv">5000</span></span>
-<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a>)</span>
-<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a><span class="sc">---</span> Estimating parameters from pilot data <span class="cf">for</span> analytic search... <span class="sc">---</span></span>
-<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a><span class="sc">---</span> Searching <span class="cf">for</span> Sample <span class="fu">Size</span> (Method<span class="sc">:</span> Analytic) <span class="sc">---</span></span>
-<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1000</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.128</span></span>
-<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1250</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.15</span></span>
-<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1500</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.171</span></span>
-<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1750</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.192</span></span>
-<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">2000</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.214</span></span>
-<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">2250</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.235</span></span>
-<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">2500</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.256</span></span>
-<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">2750</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.277</span></span>
-<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">3000</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.297</span></span>
-<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">3250</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.318</span></span>
-<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">3500</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.338</span></span>
-<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">3750</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.358</span></span>
-<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">4000</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.378</span></span>
-<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">4250</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.397</span></span>
-<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">4500</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.417</span></span>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>ss_results_vet <span class="ot">&lt;-</span> <span class="fu">rmst.ss</span>(</span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a>  <span class="fu">Surv</span>(time, status) <span class="sc">~</span> karno,</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a>  <span class="at">data         =</span> vet,</span>
+<span id="cb3-4"><a href="#cb3-4" tabindex="-1"></a>  <span class="at">arm          =</span> <span class="st">"arm"</span>,</span>
+<span id="cb3-5"><a href="#cb3-5" tabindex="-1"></a>  <span class="at">target_power =</span> <span class="fl">0.40</span>,</span>
+<span id="cb3-6"><a href="#cb3-6" tabindex="-1"></a>  <span class="at">L            =</span> <span class="dv">365</span>,</span>
+<span id="cb3-7"><a href="#cb3-7" tabindex="-1"></a>  <span class="at">n_start =</span> <span class="dv">1000</span>, <span class="at">n_step =</span> <span class="dv">250</span>, <span class="at">max_n =</span> <span class="dv">5000</span></span>
+<span id="cb3-8"><a href="#cb3-8" tabindex="-1"></a>)</span>
+<span id="cb3-9"><a href="#cb3-9" tabindex="-1"></a><span class="sc">---</span> Estimating parameters from pilot data <span class="cf">for</span> analytic search... <span class="sc">---</span></span>
+<span id="cb3-10"><a href="#cb3-10" tabindex="-1"></a><span class="sc">---</span> Searching <span class="cf">for</span> Sample <span class="fu">Size</span> (Method<span class="sc">:</span> Analytic) <span class="sc">---</span></span>
+<span id="cb3-11"><a href="#cb3-11" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1000</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.128</span></span>
+<span id="cb3-12"><a href="#cb3-12" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1250</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.15</span></span>
+<span id="cb3-13"><a href="#cb3-13" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1500</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.171</span></span>
+<span id="cb3-14"><a href="#cb3-14" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1750</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.192</span></span>
+<span id="cb3-15"><a href="#cb3-15" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">2000</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.214</span></span>
+<span id="cb3-16"><a href="#cb3-16" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">2250</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.235</span></span>
+<span id="cb3-17"><a href="#cb3-17" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">2500</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.256</span></span>
+<span id="cb3-18"><a href="#cb3-18" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">2750</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.277</span></span>
+<span id="cb3-19"><a href="#cb3-19" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">3000</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.297</span></span>
+<span id="cb3-20"><a href="#cb3-20" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">3250</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.318</span></span>
+<span id="cb3-21"><a href="#cb3-21" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">3500</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.338</span></span>
+<span id="cb3-22"><a href="#cb3-22" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">3750</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.358</span></span>
+<span id="cb3-23"><a href="#cb3-23" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">4000</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.378</span></span>
+<span id="cb3-24"><a href="#cb3-24" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">4250</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.397</span></span>
+<span id="cb3-25"><a href="#cb3-25" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">4500</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.417</span></span>
+<span id="cb3-26"><a href="#cb3-26" tabindex="-1"></a></span>
+<span id="cb3-27"><a href="#cb3-27" tabindex="-1"></a><span class="sc">---</span> Calculation Summary <span class="sc">---</span></span>
 <span id="cb3-28"><a href="#cb3-28" tabindex="-1"></a></span>
-<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a><span class="sc">---</span> Calculation Summary <span class="sc">---</span></span>
-<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a></span>
+<span id="cb3-29"><a href="#cb3-29" tabindex="-1"></a></span>
+<span id="cb3-30"><a href="#cb3-30" tabindex="-1"></a>Table<span class="sc">:</span> Required Sample Size</span>
 <span id="cb3-31"><a href="#cb3-31" tabindex="-1"></a></span>
-<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a>Table<span class="sc">:</span> Required Sample Size</span>
-<span id="cb3-33"><a href="#cb3-33" tabindex="-1"></a></span>
-<span id="cb3-34"><a href="#cb3-34" tabindex="-1"></a><span class="sc">|</span> Target_Power<span class="sc">|</span> Required_N_per_Arm<span class="sc">|</span></span>
-<span id="cb3-35"><a href="#cb3-35" tabindex="-1"></a><span class="er">|</span><span class="sc">------------</span><span class="er">:|</span><span class="sc">------------------</span><span class="er">:|</span></span>
-<span id="cb3-36"><a href="#cb3-36" tabindex="-1"></a><span class="er">|</span>          <span class="fl">0.4</span><span class="sc">|</span>               <span class="dv">4500</span><span class="sc">|</span></span></code></pre></div>
+<span id="cb3-32"><a href="#cb3-32" tabindex="-1"></a><span class="sc">|</span> Target_Power<span class="sc">|</span> Required_N_per_Arm<span class="sc">|</span></span>
+<span id="cb3-33"><a href="#cb3-33" tabindex="-1"></a><span class="er">|</span><span class="sc">------------</span><span class="er">:|</span><span class="sc">------------------</span><span class="er">:|</span></span>
+<span id="cb3-34"><a href="#cb3-34" tabindex="-1"></a><span class="er">|</span>          <span class="fl">0.4</span><span class="sc">|</span>               <span class="dv">4500</span><span class="sc">|</span></span></code></pre></div>
 <table class="table table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <caption>
-Estimated Effect from Pilot Data
+Estimated Effect from Reference Data
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -570,86 +564,81 @@ Assumed RMST Difference (from pilot)
 <div class="section level3">
 <h3 id="bootstrap-methods">Bootstrap Methods<a class="anchor" aria-label="anchor" href="#bootstrap-methods"></a>
 </h3>
-<p>The <code>.boot</code> suffix in function names indicates a
-bootstrap, or simulation-based, approach. This method repeatedly
-resamples from the pilot data, fits the model on each sample, and
-calculates power as the proportion of simulations where the treatment
-effect is significant. While computationally intensive, it relies less
-on closed-form large-sample approximations.</p>
+<p>Passing <code>type = "boot"</code> to <code><a href="../reference/rmst.power.html">rmst.power()</a></code> or
+<code><a href="../reference/rmst.ss.html">rmst.ss()</a></code> switches to a simulation-based approach. This
+method repeatedly resamples from the reference data, fits the model on
+each sample, and calculates power as the proportion of simulations where
+the treatment effect is significant. While computationally intensive, it
+relies less on closed-form large-sample approximations.</p>
 <div class="section level4">
-<h4 id="power-and-sample-size-calculation--boot">Power and Sample Size Calculation (<code>.boot</code>)<a class="anchor" aria-label="anchor" href="#power-and-sample-size-calculation--boot"></a>
+<h4 id="power-and-sample-size-calculation-bootstrap">Power and Sample Size Calculation (bootstrap)<a class="anchor" aria-label="anchor" href="#power-and-sample-size-calculation-bootstrap"></a>
 </h4>
-<p>Here is how you would call the bootstrap functions for power for the
+<p>Here is how you would call the bootstrap method for power for the
 linear model. The following examples use the same <code>veteran</code>
 dataset, but with a smaller number of simulations for demonstration
 purposes. In practice, a larger number of simulations (e.g., 1,000 or
 more) is recommended to ensure stable results.</p>
-<p>First we calculate the power for a range of sample sizes. The <a href="../reference/linear.power.boot.html"><code>linear.power.boot</code></a>
-function takes the pilot data and returns a data frame with the
-estimated power for each sample size.</p>
-<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>power_boot_vet <span class="ot">&lt;-</span> <span class="fu">linear.power.boot</span>(</span>
-<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="at">pilot_data =</span> vet,</span>
-<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="at">time_var =</span> <span class="st">"time"</span>,</span>
-<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">status_var =</span> <span class="st">"status"</span>,</span>
-<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="at">arm_var =</span> <span class="st">"arm"</span>,</span>
-<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="at">linear_terms =</span> <span class="st">"karno"</span>,</span>
-<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="at">sample_sizes =</span> <span class="fu">c</span>(<span class="dv">150</span>, <span class="dv">200</span>, <span class="dv">250</span>),</span>
-<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  <span class="at">L =</span> <span class="dv">365</span>,</span>
-<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>  <span class="at">n_sim =</span> <span class="dv">50</span> </span>
-<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a>)</span>
-<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a><span class="sc">---</span> Calculating <span class="fu">Power</span> (Method<span class="sc">:</span> Linear RMST with IPCW) <span class="sc">---</span></span>
-<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>Simulating <span class="cf">for</span> n <span class="ot">=</span> <span class="dv">150</span> per arm...</span>
-<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a>Simulating <span class="cf">for</span> n <span class="ot">=</span> <span class="dv">200</span> per arm...</span>
-<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a>Simulating <span class="cf">for</span> n <span class="ot">=</span> <span class="dv">250</span> per arm...</span>
-<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a></span>
-<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a><span class="sc">---</span> Simulation Summary <span class="sc">---</span></span>
+<p>First we calculate the power for a range of sample sizes.</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a>power_boot_vet <span class="ot">&lt;-</span> <span class="fu">rmst.power</span>(</span>
+<span id="cb4-2"><a href="#cb4-2" tabindex="-1"></a>  <span class="fu">Surv</span>(time, status) <span class="sc">~</span> karno,</span>
+<span id="cb4-3"><a href="#cb4-3" tabindex="-1"></a>  <span class="at">data         =</span> vet,</span>
+<span id="cb4-4"><a href="#cb4-4" tabindex="-1"></a>  <span class="at">arm          =</span> <span class="st">"arm"</span>,</span>
+<span id="cb4-5"><a href="#cb4-5" tabindex="-1"></a>  <span class="at">sample_sizes =</span> <span class="fu">c</span>(<span class="dv">150</span>, <span class="dv">200</span>, <span class="dv">250</span>),</span>
+<span id="cb4-6"><a href="#cb4-6" tabindex="-1"></a>  <span class="at">L            =</span> <span class="dv">365</span>,</span>
+<span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>  <span class="at">type         =</span> <span class="st">"boot"</span>,</span>
+<span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>  <span class="at">n_sim        =</span> <span class="dv">50</span></span>
+<span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>)</span>
+<span id="cb4-10"><a href="#cb4-10" tabindex="-1"></a><span class="sc">---</span> Calculating <span class="fu">Power</span> (Method<span class="sc">:</span> Linear RMST with IPCW) <span class="sc">---</span></span>
+<span id="cb4-11"><a href="#cb4-11" tabindex="-1"></a>Simulating <span class="cf">for</span> n <span class="ot">=</span> <span class="dv">150</span> per arm...</span>
+<span id="cb4-12"><a href="#cb4-12" tabindex="-1"></a>Simulating <span class="cf">for</span> n <span class="ot">=</span> <span class="dv">200</span> per arm...</span>
+<span id="cb4-13"><a href="#cb4-13" tabindex="-1"></a>Simulating <span class="cf">for</span> n <span class="ot">=</span> <span class="dv">250</span> per arm...</span>
+<span id="cb4-14"><a href="#cb4-14" tabindex="-1"></a></span>
+<span id="cb4-15"><a href="#cb4-15" tabindex="-1"></a><span class="sc">---</span> Simulation Summary <span class="sc">---</span></span>
+<span id="cb4-16"><a href="#cb4-16" tabindex="-1"></a></span>
 <span id="cb4-17"><a href="#cb4-17" tabindex="-1"></a></span>
-<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a></span>
-<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a>Table<span class="sc">:</span> Estimated Treatment <span class="fu">Effect</span> (RMST Difference)</span>
-<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a></span>
-<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a><span class="sc">|</span>Statistic            <span class="sc">|</span>      Value<span class="sc">|</span></span>
-<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a><span class="er">|:</span><span class="sc">--------------------</span><span class="er">|</span><span class="sc">----------</span><span class="er">:|</span></span>
-<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a><span class="er">|</span>Mean RMST Difference <span class="sc">|</span>  <span class="sc">-</span><span class="fl">3.366849</span><span class="sc">|</span></span>
-<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a><span class="er">|</span>Mean Standard Error  <span class="sc">|</span>   <span class="fl">9.092000</span><span class="sc">|</span></span>
-<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a><span class="er">|</span><span class="dv">95</span>% CI Lower         <span class="sc">|</span> <span class="sc">-</span><span class="fl">21.050205</span><span class="sc">|</span></span>
-<span id="cb4-26"><a href="#cb4-26" tabindex="-1"></a><span class="er">|</span><span class="dv">95</span>% CI Upper         <span class="sc">|</span>  <span class="fl">14.316506</span><span class="sc">|</span></span></code></pre></div>
+<span id="cb4-18"><a href="#cb4-18" tabindex="-1"></a>Table<span class="sc">:</span> Estimated Treatment <span class="fu">Effect</span> (RMST Difference)</span>
+<span id="cb4-19"><a href="#cb4-19" tabindex="-1"></a></span>
+<span id="cb4-20"><a href="#cb4-20" tabindex="-1"></a><span class="sc">|</span>Statistic            <span class="sc">|</span>      Value<span class="sc">|</span></span>
+<span id="cb4-21"><a href="#cb4-21" tabindex="-1"></a><span class="er">|:</span><span class="sc">--------------------</span><span class="er">|</span><span class="sc">----------</span><span class="er">:|</span></span>
+<span id="cb4-22"><a href="#cb4-22" tabindex="-1"></a><span class="er">|</span>Mean RMST Difference <span class="sc">|</span>  <span class="sc">-</span><span class="fl">3.366849</span><span class="sc">|</span></span>
+<span id="cb4-23"><a href="#cb4-23" tabindex="-1"></a><span class="er">|</span>Mean Standard Error  <span class="sc">|</span>   <span class="fl">9.092000</span><span class="sc">|</span></span>
+<span id="cb4-24"><a href="#cb4-24" tabindex="-1"></a><span class="er">|</span><span class="dv">95</span>% CI Lower         <span class="sc">|</span> <span class="sc">-</span><span class="fl">21.050205</span><span class="sc">|</span></span>
+<span id="cb4-25"><a href="#cb4-25" tabindex="-1"></a><span class="er">|</span><span class="dv">95</span>% CI Upper         <span class="sc">|</span>  <span class="fl">14.316506</span><span class="sc">|</span></span></code></pre></div>
 <p><img src="RMSTpowerBoost-Main_files/figure-html/unnamed-chunk-1-1.png" alt="" width="672" style="display: block; margin: auto;"></p>
-<p>Here is how you would call the bootstrap function for sample size
-calculation. We will use the function <a href="../reference/linear.ss.boot.html"><code>linear.ss.boot</code></a>
-to find the sample size needed to achieve a target power of 0.5,
-truncating at 180 days (6 months).</p>
-<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>ss_boot_vet <span class="ot">&lt;-</span> <span class="fu">linear.ss.boot</span>(</span>
-<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="at">pilot_data =</span> vet,</span>
-<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="at">time_var =</span> <span class="st">"time"</span>,</span>
-<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="at">status_var =</span> <span class="st">"status"</span>,</span>
-<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  <span class="at">arm_var =</span> <span class="st">"arm"</span>,</span>
-<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  <span class="at">target_power =</span> <span class="fl">0.5</span>,</span>
-<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>  <span class="at">linear_terms =</span> <span class="st">"karno"</span>,</span>
-<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>  <span class="at">L =</span> <span class="dv">180</span>,</span>
-<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>  <span class="at">n_sim =</span> <span class="dv">100</span>, </span>
-<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>  <span class="at">patience =</span> <span class="dv">5</span></span>
-<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a>)</span>
-<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a><span class="sc">---</span> Searching <span class="cf">for</span> Sample <span class="fu">Size</span> (Method<span class="sc">:</span> Linear RMST with IPCW) <span class="sc">---</span></span>
-<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a></span>
-<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a><span class="sc">---</span> Searching <span class="cf">for</span> N <span class="cf">for</span> <span class="dv">50</span>% Power <span class="sc">---</span></span>
-<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">50</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.27</span></span>
-<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">75</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.22</span></span>
-<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">100</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.4</span></span>
-<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">125</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.44</span></span>
-<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">150</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.41</span></span>
-<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">175</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.51</span></span>
-<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a></span>
-<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a><span class="sc">---</span> Simulation Summary <span class="sc">---</span></span>
+<p>Here is how you would call the bootstrap method for sample size
+calculation, targeting 50% power and truncating at 180 days (6
+months).</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a>ss_boot_vet <span class="ot">&lt;-</span> <span class="fu">rmst.ss</span>(</span>
+<span id="cb5-2"><a href="#cb5-2" tabindex="-1"></a>  <span class="fu">Surv</span>(time, status) <span class="sc">~</span> karno,</span>
+<span id="cb5-3"><a href="#cb5-3" tabindex="-1"></a>  <span class="at">data         =</span> vet,</span>
+<span id="cb5-4"><a href="#cb5-4" tabindex="-1"></a>  <span class="at">arm          =</span> <span class="st">"arm"</span>,</span>
+<span id="cb5-5"><a href="#cb5-5" tabindex="-1"></a>  <span class="at">target_power =</span> <span class="fl">0.5</span>,</span>
+<span id="cb5-6"><a href="#cb5-6" tabindex="-1"></a>  <span class="at">L            =</span> <span class="dv">180</span>,</span>
+<span id="cb5-7"><a href="#cb5-7" tabindex="-1"></a>  <span class="at">type         =</span> <span class="st">"boot"</span>,</span>
+<span id="cb5-8"><a href="#cb5-8" tabindex="-1"></a>  <span class="at">n_sim        =</span> <span class="dv">100</span>,</span>
+<span id="cb5-9"><a href="#cb5-9" tabindex="-1"></a>  <span class="at">patience     =</span> <span class="dv">5</span></span>
+<span id="cb5-10"><a href="#cb5-10" tabindex="-1"></a>)</span>
+<span id="cb5-11"><a href="#cb5-11" tabindex="-1"></a><span class="sc">---</span> Searching <span class="cf">for</span> Sample <span class="fu">Size</span> (Method<span class="sc">:</span> Linear RMST with IPCW) <span class="sc">---</span></span>
+<span id="cb5-12"><a href="#cb5-12" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" tabindex="-1"></a><span class="sc">---</span> Searching <span class="cf">for</span> N <span class="cf">for</span> <span class="dv">50</span>% Power <span class="sc">---</span></span>
+<span id="cb5-14"><a href="#cb5-14" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">50</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.27</span></span>
+<span id="cb5-15"><a href="#cb5-15" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">75</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.22</span></span>
+<span id="cb5-16"><a href="#cb5-16" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">100</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.4</span></span>
+<span id="cb5-17"><a href="#cb5-17" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">125</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.44</span></span>
+<span id="cb5-18"><a href="#cb5-18" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">150</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.41</span></span>
+<span id="cb5-19"><a href="#cb5-19" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">175</span><span class="sc">/</span>arm, Calculated Power <span class="ot">=</span> <span class="fl">0.51</span></span>
+<span id="cb5-20"><a href="#cb5-20" tabindex="-1"></a></span>
+<span id="cb5-21"><a href="#cb5-21" tabindex="-1"></a><span class="sc">---</span> Simulation Summary <span class="sc">---</span></span>
+<span id="cb5-22"><a href="#cb5-22" tabindex="-1"></a></span>
 <span id="cb5-23"><a href="#cb5-23" tabindex="-1"></a></span>
-<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a></span>
-<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a>Table<span class="sc">:</span> Estimated Treatment <span class="fu">Effect</span> (RMST Difference)</span>
-<span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a></span>
-<span id="cb5-27"><a href="#cb5-27" tabindex="-1"></a><span class="sc">|</span>Statistic            <span class="sc">|</span>       Value<span class="sc">|</span></span>
-<span id="cb5-28"><a href="#cb5-28" tabindex="-1"></a><span class="er">|:</span><span class="sc">--------------------</span><span class="er">|</span><span class="sc">-----------</span><span class="er">:|</span></span>
-<span id="cb5-29"><a href="#cb5-29" tabindex="-1"></a><span class="er">|</span>Mean RMST Difference <span class="sc">|</span> <span class="sc">-</span><span class="fl">11.3968671</span><span class="sc">|</span></span>
-<span id="cb5-30"><a href="#cb5-30" tabindex="-1"></a><span class="er">|</span>Mean Standard Error  <span class="sc">|</span>   <span class="fl">5.8217038</span><span class="sc">|</span></span>
-<span id="cb5-31"><a href="#cb5-31" tabindex="-1"></a><span class="er">|</span><span class="dv">95</span>% CI Lower         <span class="sc">|</span> <span class="sc">-</span><span class="fl">22.6513793</span><span class="sc">|</span></span>
-<span id="cb5-32"><a href="#cb5-32" tabindex="-1"></a><span class="er">|</span><span class="dv">95</span>% CI Upper         <span class="sc">|</span>  <span class="sc">-</span><span class="fl">0.1423548</span><span class="sc">|</span></span></code></pre></div>
+<span id="cb5-24"><a href="#cb5-24" tabindex="-1"></a>Table<span class="sc">:</span> Estimated Treatment <span class="fu">Effect</span> (RMST Difference)</span>
+<span id="cb5-25"><a href="#cb5-25" tabindex="-1"></a></span>
+<span id="cb5-26"><a href="#cb5-26" tabindex="-1"></a><span class="sc">|</span>Statistic            <span class="sc">|</span>       Value<span class="sc">|</span></span>
+<span id="cb5-27"><a href="#cb5-27" tabindex="-1"></a><span class="er">|:</span><span class="sc">--------------------</span><span class="er">|</span><span class="sc">-----------</span><span class="er">:|</span></span>
+<span id="cb5-28"><a href="#cb5-28" tabindex="-1"></a><span class="er">|</span>Mean RMST Difference <span class="sc">|</span> <span class="sc">-</span><span class="fl">11.3968671</span><span class="sc">|</span></span>
+<span id="cb5-29"><a href="#cb5-29" tabindex="-1"></a><span class="er">|</span>Mean Standard Error  <span class="sc">|</span>   <span class="fl">5.8217038</span><span class="sc">|</span></span>
+<span id="cb5-30"><a href="#cb5-30" tabindex="-1"></a><span class="er">|</span><span class="dv">95</span>% CI Lower         <span class="sc">|</span> <span class="sc">-</span><span class="fl">22.6513793</span><span class="sc">|</span></span>
+<span id="cb5-31"><a href="#cb5-31" tabindex="-1"></a><span class="er">|</span><span class="dv">95</span>% CI Upper         <span class="sc">|</span>  <span class="sc">-</span><span class="fl">0.1423548</span><span class="sc">|</span></span></code></pre></div>
 <p><img src="RMSTpowerBoost-Main_files/figure-html/unnamed-chunk-3-1.png" alt="" width="672" style="display: block; margin: auto;"></p>
 <hr>
 </div>
@@ -658,12 +647,12 @@ truncating at 180 days (6 months).</p>
 <div class="section level2">
 <h2 class="tabset" id="additive-stratified-models">Additive Stratified Models<a class="anchor" aria-label="anchor" href="#additive-stratified-models"></a>
 </h2>
-<p>In multi-center clinical trials, it is often necessary to stratify
-the analysis by a categorical variable with many levels, such as the
-clinical center or a discretized biomarker. Estimating a separate
-parameter for each stratum can be inefficient, particularly when the
-number of strata is large. The additive stratified model addresses this
-setting by conditioning out the stratum-specific effects.</p>
+<p>In multi-center clinical trials, the analysis is often stratified by
+a categorical variable with many levels, such as clinical center or a
+discretized biomarker. Estimating a separate parameter for each stratum
+can be inefficient when the number of strata is large. The additive
+stratified model removes the stratum-specific effects through
+conditioning.</p>
 <div class="section level3">
 <h3 id="theory-and-model-1">Theory and Model<a class="anchor" aria-label="anchor" href="#theory-and-model-1"></a>
 </h3>
@@ -675,23 +664,20 @@ This model assumes that the effect of the covariates
 (which includes the treatment arm) is <strong>additive</strong> and
 constant across all strata
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>j</mi><annotation encoding="application/x-tex">j</annotation></semantics></math>.
-Crucially, it allows each stratum to have its own unique baseline RMST,
-denoted by
+Each stratum has its own baseline RMST, denoted by
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>μ</mi><mrow><mn>0</mn><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">\mu_{0j}</annotation></semantics></math>.</p>
-<p>The estimation of the common treatment effect,
+<p>The common treatment effect,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>,
-is achieved efficiently through a <strong>stratum-centering</strong>
-approach applied to IPCW-weighted data. This method avoids the direct
-estimation of the numerous
+is estimated with a <strong>stratum-centering</strong> approach applied
+to IPCW-weighted data. This avoids direct estimation of the many
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>μ</mi><mrow><mn>0</mn><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">\mu_{0j}</annotation></semantics></math>
-parameters, making it computationally efficient even with a large number
-of strata.</p>
+parameters.</p>
 </div>
 <div class="section level3">
 <h3 id="analytical-methods-1">Analytical Methods<a class="anchor" aria-label="anchor" href="#analytical-methods-1"></a>
 </h3>
 <div class="section level4">
-<h4 id="sample-size-calculation---additive-ss-analytical">Sample Size Calculation - <a href="../reference/additive.ss.analytical.html"><code>additive.ss.analytical</code></a><a class="anchor" aria-label="anchor" href="#sample-size-calculation---additive-ss-analytical"></a>
+<h4 id="sample-size-calculation-1">Sample Size Calculation<a class="anchor" aria-label="anchor" href="#sample-size-calculation-1"></a>
 </h4>
 <p><strong>Scenario</strong>: We use the <code>colon</code> dataset to
 design a trial stratified by the extent of local disease
@@ -707,49 +693,52 @@ sample size per stratum to achieve 60% power. Let’s inspect the prepared
 11 1767      1 Lev+5FU      3   1      3</code></pre>
 <p>Now, we run the sample size search for 60% power, truncating at 5
 years (1825 days).</p>
-<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>ss_results_colon <span class="ot">&lt;-</span> <span class="fu">additive.ss.analytical</span>(</span>
-<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="at">pilot_data =</span> colon_death,</span>
-<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="at">time_var =</span> <span class="st">"time"</span>, <span class="at">status_var =</span> <span class="st">"status"</span>, <span class="at">arm_var =</span> <span class="st">"arm"</span>, <span class="at">strata_var =</span> <span class="st">"strata"</span>,</span>
-<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="at">target_power =</span> <span class="fl">0.60</span>,</span>
-<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="at">L =</span> <span class="dv">1825</span>,</span>
-<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  <span class="at">n_start =</span> <span class="dv">100</span>, <span class="at">n_step =</span> <span class="dv">100</span>, <span class="at">max_n_per_arm =</span> <span class="dv">10000</span></span>
-<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>)</span>
-<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a><span class="sc">---</span> Estimating parameters from pilot data <span class="cf">for</span> analytic search... <span class="sc">---</span></span>
-<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a><span class="sc">---</span> Searching <span class="cf">for</span> Sample <span class="fu">Size</span> (Method<span class="sc">:</span> Additive Analytic) <span class="sc">---</span></span>
-<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">100</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.069</span></span>
-<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">200</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.099</span></span>
-<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">300</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.128</span></span>
-<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">400</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.157</span></span>
-<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">500</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.186</span></span>
-<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">600</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.214</span></span>
-<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">700</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.243</span></span>
-<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">800</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.271</span></span>
-<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">900</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.299</span></span>
-<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1000</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.326</span></span>
-<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1100</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.353</span></span>
-<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1200</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.379</span></span>
-<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1300</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.405</span></span>
-<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1400</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.431</span></span>
-<span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1500</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.455</span></span>
-<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1600</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.479</span></span>
-<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1700</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.503</span></span>
-<span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1800</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.526</span></span>
-<span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1900</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.548</span></span>
-<span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">2000</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.569</span></span>
-<span id="cb7-30"><a href="#cb7-30" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">2100</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.59</span></span>
-<span id="cb7-31"><a href="#cb7-31" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">2200</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.609</span></span>
-<span id="cb7-32"><a href="#cb7-32" tabindex="-1"></a></span>
-<span id="cb7-33"><a href="#cb7-33" tabindex="-1"></a><span class="sc">---</span> Calculation Summary <span class="sc">---</span></span>
-<span id="cb7-34"><a href="#cb7-34" tabindex="-1"></a></span>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>ss_results_colon <span class="ot">&lt;-</span> <span class="fu">rmst.ss</span>(</span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a>  <span class="fu">Surv</span>(time, status) <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>  <span class="at">data         =</span> colon_death,</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a>  <span class="at">arm          =</span> <span class="st">"arm"</span>,</span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a>  <span class="at">strata       =</span> <span class="st">"strata"</span>,</span>
+<span id="cb7-6"><a href="#cb7-6" tabindex="-1"></a>  <span class="at">strata_type  =</span> <span class="st">"additive"</span>,</span>
+<span id="cb7-7"><a href="#cb7-7" tabindex="-1"></a>  <span class="at">target_power =</span> <span class="fl">0.60</span>,</span>
+<span id="cb7-8"><a href="#cb7-8" tabindex="-1"></a>  <span class="at">L            =</span> <span class="dv">1825</span>,</span>
+<span id="cb7-9"><a href="#cb7-9" tabindex="-1"></a>  <span class="at">n_start =</span> <span class="dv">100</span>, <span class="at">n_step =</span> <span class="dv">100</span>, <span class="at">max_n =</span> <span class="dv">10000</span></span>
+<span id="cb7-10"><a href="#cb7-10" tabindex="-1"></a>)</span>
+<span id="cb7-11"><a href="#cb7-11" tabindex="-1"></a><span class="sc">---</span> Estimating parameters from pilot data <span class="cf">for</span> analytic search... <span class="sc">---</span></span>
+<span id="cb7-12"><a href="#cb7-12" tabindex="-1"></a><span class="sc">---</span> Searching <span class="cf">for</span> Sample <span class="fu">Size</span> (Method<span class="sc">:</span> Additive Analytic) <span class="sc">---</span></span>
+<span id="cb7-13"><a href="#cb7-13" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">100</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.069</span></span>
+<span id="cb7-14"><a href="#cb7-14" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">200</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.099</span></span>
+<span id="cb7-15"><a href="#cb7-15" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">300</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.128</span></span>
+<span id="cb7-16"><a href="#cb7-16" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">400</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.157</span></span>
+<span id="cb7-17"><a href="#cb7-17" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">500</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.186</span></span>
+<span id="cb7-18"><a href="#cb7-18" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">600</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.214</span></span>
+<span id="cb7-19"><a href="#cb7-19" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">700</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.243</span></span>
+<span id="cb7-20"><a href="#cb7-20" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">800</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.271</span></span>
+<span id="cb7-21"><a href="#cb7-21" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">900</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.299</span></span>
+<span id="cb7-22"><a href="#cb7-22" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1000</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.326</span></span>
+<span id="cb7-23"><a href="#cb7-23" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1100</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.353</span></span>
+<span id="cb7-24"><a href="#cb7-24" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1200</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.379</span></span>
+<span id="cb7-25"><a href="#cb7-25" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1300</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.405</span></span>
+<span id="cb7-26"><a href="#cb7-26" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1400</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.431</span></span>
+<span id="cb7-27"><a href="#cb7-27" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1500</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.455</span></span>
+<span id="cb7-28"><a href="#cb7-28" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1600</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.479</span></span>
+<span id="cb7-29"><a href="#cb7-29" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1700</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.503</span></span>
+<span id="cb7-30"><a href="#cb7-30" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1800</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.526</span></span>
+<span id="cb7-31"><a href="#cb7-31" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">1900</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.548</span></span>
+<span id="cb7-32"><a href="#cb7-32" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">2000</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.569</span></span>
+<span id="cb7-33"><a href="#cb7-33" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">2100</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.59</span></span>
+<span id="cb7-34"><a href="#cb7-34" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">2200</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.609</span></span>
 <span id="cb7-35"><a href="#cb7-35" tabindex="-1"></a></span>
-<span id="cb7-36"><a href="#cb7-36" tabindex="-1"></a>Table<span class="sc">:</span> Required Sample Size</span>
+<span id="cb7-36"><a href="#cb7-36" tabindex="-1"></a><span class="sc">---</span> Calculation Summary <span class="sc">---</span></span>
 <span id="cb7-37"><a href="#cb7-37" tabindex="-1"></a></span>
-<span id="cb7-38"><a href="#cb7-38" tabindex="-1"></a><span class="sc">|</span> Target_Power<span class="sc">|</span> Required_N_per_Stratum<span class="sc">|</span></span>
-<span id="cb7-39"><a href="#cb7-39" tabindex="-1"></a><span class="er">|</span><span class="sc">------------</span><span class="er">:|</span><span class="sc">----------------------</span><span class="er">:|</span></span>
-<span id="cb7-40"><a href="#cb7-40" tabindex="-1"></a><span class="er">|</span>          <span class="fl">0.6</span><span class="sc">|</span>                   <span class="dv">2200</span><span class="sc">|</span></span></code></pre></div>
+<span id="cb7-38"><a href="#cb7-38" tabindex="-1"></a></span>
+<span id="cb7-39"><a href="#cb7-39" tabindex="-1"></a>Table<span class="sc">:</span> Required Sample Size</span>
+<span id="cb7-40"><a href="#cb7-40" tabindex="-1"></a></span>
+<span id="cb7-41"><a href="#cb7-41" tabindex="-1"></a><span class="sc">|</span> Target_Power<span class="sc">|</span> Required_N_per_Stratum<span class="sc">|</span></span>
+<span id="cb7-42"><a href="#cb7-42" tabindex="-1"></a><span class="er">|</span><span class="sc">------------</span><span class="er">:|</span><span class="sc">----------------------</span><span class="er">:|</span></span>
+<span id="cb7-43"><a href="#cb7-43" tabindex="-1"></a><span class="er">|</span>          <span class="fl">0.6</span><span class="sc">|</span>                   <span class="dv">2200</span><span class="sc">|</span></span></code></pre></div>
 <table class="table table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <caption>
-Estimated Effect from Pilot Data
+Estimated Effect from Reference Data
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -776,19 +765,19 @@ Assumed RMST Difference (from pilot)
 <p><img src="RMSTpowerBoost-Main_files/figure-html/colon_ss_table-1.png" alt="" width="672" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level4">
-<h4 id="power-calculation---additive-power-analytical">Power Calculation - <a href="../reference/additive.power.analytical.html"><code>additive.power.analytical</code></a><a class="anchor" aria-label="anchor" href="#power-calculation---additive-power-analytical"></a>
+<h4 id="power-calculation-1">Power Calculation<a class="anchor" aria-label="anchor" href="#power-calculation-1"></a>
 </h4>
-<p>This function calculates the power for a given set of sample sizes in
-a stratified additive model. We will use the <code>colon</code> dataset
-again for this example.</p>
-<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>power_results_colon <span class="ot">&lt;-</span> <span class="fu">additive.power.analytical</span>(</span>
-<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  <span class="at">pilot_data =</span> colon_death,</span>
-<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="at">time_var =</span> <span class="st">"time"</span>,</span>
-<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  <span class="at">status_var =</span> <span class="st">"status"</span>,</span>
-<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="at">arm_var =</span> <span class="st">"arm"</span>,</span>
-<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>  <span class="at">strata_var =</span> <span class="st">"strata"</span>,</span>
+<p>This example calculates the power for a given set of sample sizes in
+a stratified additive model using the same <code>colon</code>
+dataset.</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>power_results_colon <span class="ot">&lt;-</span> <span class="fu">rmst.power</span>(</span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a>  <span class="fu">Surv</span>(time, status) <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>  <span class="at">data         =</span> colon_death,</span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>  <span class="at">arm          =</span> <span class="st">"arm"</span>,</span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>  <span class="at">strata       =</span> <span class="st">"strata"</span>,</span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>  <span class="at">strata_type  =</span> <span class="st">"additive"</span>,</span>
 <span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a>  <span class="at">sample_sizes =</span> <span class="fu">c</span>(<span class="dv">1000</span>, <span class="dv">3000</span>, <span class="dv">5000</span>),</span>
-<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>  <span class="at">L =</span> <span class="dv">1825</span> <span class="co"># 5 years</span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a>  <span class="at">L            =</span> <span class="dv">1825</span></span>
 <span id="cb8-9"><a href="#cb8-9" tabindex="-1"></a>)</span>
 <span id="cb8-10"><a href="#cb8-10" tabindex="-1"></a><span class="sc">---</span> Estimating parameters from pilot data... <span class="sc">---</span></span>
 <span id="cb8-11"><a href="#cb8-11" tabindex="-1"></a><span class="sc">---</span> Estimating additive effect via stratum<span class="sc">-</span>centering... <span class="sc">---</span></span>
@@ -841,10 +830,9 @@ Power
 <div class="section level2">
 <h2 class="tabset" id="multiplicative-stratified-models">Multiplicative Stratified Models<a class="anchor" aria-label="anchor" href="#multiplicative-stratified-models"></a>
 </h2>
-<p>As an alternative to the additive model, the multiplicative model may
-be preferred if the treatment is expected to have a relative, or
-proportional, effect on the RMST, for example, increasing or decreasing
-survival time by a certain percentage.</p>
+<p>Use the multiplicative model when treatment is expected to act on the
+RMST scale through a relative effect, such as a percentage increase or
+decrease in survival time.</p>
 <div class="section level3">
 <h3 id="theory-and-model-2">Theory and Model<a class="anchor" aria-label="anchor" href="#theory-and-model-2"></a>
 </h3>
@@ -857,30 +845,31 @@ have a <strong>multiplicative</strong> effect on the baseline
 stratum-specific RMST,
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>μ</mi><mrow><mn>0</mn><mi>j</mi></mrow></msub><annotation encoding="application/x-tex">\mu_{0j}</annotation></semantics></math>.
 This structure is equivalent to a linear model on the log-RMST.</p>
-<p>While the formal estimation of
+<p>Formal estimation of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>β</mi><annotation encoding="application/x-tex">\beta</annotation></semantics></math>
-requires a complex iterative solver, this package uses a practical and
-computationally efficient approximation. It fits a weighted log-linear
-model (<code>lm(log(Y_rmst) ~ ...)</code>) to the data, which provides
-an approximate estimate of the effect size (the log-RMST ratio) and its
-variance.</p>
+requires an iterative solver. This package instead fits a weighted
+log-linear model (<code>lm(log(Y_rmst) ~ ...)</code>) to approximate the
+log-RMST ratio and its variance.</p>
 </div>
 <div class="section level3">
 <h3 id="analytical-methods-2">Analytical Methods<a class="anchor" aria-label="anchor" href="#analytical-methods-2"></a>
 </h3>
 <div class="section level4">
-<h4 id="power-calculation---ms-power-analytical">Power Calculation - <a href="../reference/MS.power.analytical.html"><code>MS.power.analytical</code></a><a class="anchor" aria-label="anchor" href="#power-calculation---ms-power-analytical"></a>
+<h4 id="power-calculation-2">Power Calculation<a class="anchor" aria-label="anchor" href="#power-calculation-2"></a>
 </h4>
 <p>This function calculates the power for various sample sizes using the
 analytical method for the multiplicative stratified model.</p>
-<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>power_ms_analytical <span class="ot">&lt;-</span> <span class="fu">MS.power.analytical</span>(</span>
-<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>   <span class="at">pilot_data =</span> colon_death,</span>
-<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>   <span class="at">time_var =</span> <span class="st">"time"</span>, <span class="at">status_var =</span> <span class="st">"status"</span>, <span class="at">arm_var =</span> <span class="st">"arm"</span>, <span class="at">strata_var =</span> <span class="st">"strata"</span>,</span>
-<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>   <span class="at">sample_sizes =</span> <span class="fu">c</span>(<span class="dv">300</span>, <span class="dv">400</span>, <span class="dv">500</span>),</span>
-<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>   <span class="at">L =</span> <span class="dv">1825</span></span>
-<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>)</span>
-<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a><span class="sc">---</span> Estimating parameters from pilot <span class="fu">data</span> (log<span class="sc">-</span>linear approximation)... <span class="sc">---</span></span>
-<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a><span class="sc">---</span> Calculating power <span class="cf">for</span> specified sample sizes... <span class="sc">---</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>power_ms_analytical <span class="ot">&lt;-</span> <span class="fu">rmst.power</span>(</span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a>  <span class="fu">Surv</span>(time, status) <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a>  <span class="at">data         =</span> colon_death,</span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a>  <span class="at">arm          =</span> <span class="st">"arm"</span>,</span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a>  <span class="at">strata       =</span> <span class="st">"strata"</span>,</span>
+<span id="cb9-6"><a href="#cb9-6" tabindex="-1"></a>  <span class="at">strata_type  =</span> <span class="st">"multiplicative"</span>,</span>
+<span id="cb9-7"><a href="#cb9-7" tabindex="-1"></a>  <span class="at">sample_sizes =</span> <span class="fu">c</span>(<span class="dv">300</span>, <span class="dv">400</span>, <span class="dv">500</span>),</span>
+<span id="cb9-8"><a href="#cb9-8" tabindex="-1"></a>  <span class="at">L            =</span> <span class="dv">1825</span></span>
+<span id="cb9-9"><a href="#cb9-9" tabindex="-1"></a>)</span>
+<span id="cb9-10"><a href="#cb9-10" tabindex="-1"></a><span class="sc">---</span> Estimating parameters from pilot <span class="fu">data</span> (log<span class="sc">-</span>linear approximation)... <span class="sc">---</span></span>
+<span id="cb9-11"><a href="#cb9-11" tabindex="-1"></a><span class="sc">---</span> Calculating power <span class="cf">for</span> specified sample sizes... <span class="sc">---</span></span></code></pre></div>
 <table class="table table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <caption>
 Power for Multiplicative Stratified Model
@@ -922,39 +911,45 @@ Power
 </table>
 </div>
 <div class="section level4">
-<h4 id="sample-size-calculation---ms-ss-analytical">Sample Size Calculation - <a href="../reference/MS.ss.analytical.html"><code>MS.ss.analytical</code></a><a class="anchor" aria-label="anchor" href="#sample-size-calculation---ms-ss-analytical"></a>
+<h4 id="sample-size-calculation-2">Sample Size Calculation<a class="anchor" aria-label="anchor" href="#sample-size-calculation-2"></a>
 </h4>
-<p>The following example demonstrates the sample size calculation using
-the same model.</p>
-<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>ms_ss_results_colon <span class="ot">&lt;-</span> <span class="fu">MS.ss.analytical</span>(</span>
-<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>   <span class="at">pilot_data =</span> colon_death, <span class="at">time_var =</span> <span class="st">"time"</span>, <span class="at">status_var =</span> <span class="st">"status"</span>, <span class="at">arm_var =</span> <span class="st">"arm"</span>, <span class="at">strata_var =</span> <span class="st">"strata"</span>,</span>
-<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>   <span class="at">target_power =</span> <span class="fl">0.6</span>,<span class="at">L =</span> <span class="dv">1825</span>)</span>
-<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a><span class="sc">---</span> Estimating parameters from pilot <span class="fu">data</span> (log<span class="sc">-</span>linear approximation)... <span class="sc">---</span></span>
-<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a><span class="sc">---</span> Searching <span class="cf">for</span> Sample <span class="fu">Size</span> (Method<span class="sc">:</span> Analytic<span class="sc">/</span>Approximation) <span class="sc">---</span></span>
-<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">50</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.124</span></span>
-<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">75</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.165</span></span>
-<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">100</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.206</span></span>
-<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">125</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.247</span></span>
-<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">150</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.287</span></span>
-<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">175</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.326</span></span>
-<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">200</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.364</span></span>
-<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">225</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.402</span></span>
-<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">250</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.438</span></span>
-<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">275</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.473</span></span>
-<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">300</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.506</span></span>
-<span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">325</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.538</span></span>
-<span id="cb10-18"><a href="#cb10-18" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">350</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.569</span></span>
-<span id="cb10-19"><a href="#cb10-19" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">375</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.598</span></span>
-<span id="cb10-20"><a href="#cb10-20" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">400</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.626</span></span>
-<span id="cb10-21"><a href="#cb10-21" tabindex="-1"></a></span>
-<span id="cb10-22"><a href="#cb10-22" tabindex="-1"></a><span class="sc">---</span> Calculation Summary <span class="sc">---</span></span>
-<span id="cb10-23"><a href="#cb10-23" tabindex="-1"></a></span>
-<span id="cb10-24"><a href="#cb10-24" tabindex="-1"></a></span>
-<span id="cb10-25"><a href="#cb10-25" tabindex="-1"></a>Table<span class="sc">:</span> Required Sample Size</span>
-<span id="cb10-26"><a href="#cb10-26" tabindex="-1"></a></span>
-<span id="cb10-27"><a href="#cb10-27" tabindex="-1"></a><span class="sc">|</span> Target_Power<span class="sc">|</span> Required_N_per_Stratum<span class="sc">|</span></span>
-<span id="cb10-28"><a href="#cb10-28" tabindex="-1"></a><span class="er">|</span><span class="sc">------------</span><span class="er">:|</span><span class="sc">----------------------</span><span class="er">:|</span></span>
-<span id="cb10-29"><a href="#cb10-29" tabindex="-1"></a><span class="er">|</span>          <span class="fl">0.6</span><span class="sc">|</span>                    <span class="dv">400</span><span class="sc">|</span></span></code></pre></div>
+<p>The following example demonstrates the sample size calculation for
+the multiplicative model.</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a>ms_ss_results_colon <span class="ot">&lt;-</span> <span class="fu">rmst.ss</span>(</span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a>  <span class="fu">Surv</span>(time, status) <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a>  <span class="at">data         =</span> colon_death,</span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>  <span class="at">arm          =</span> <span class="st">"arm"</span>,</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>  <span class="at">strata       =</span> <span class="st">"strata"</span>,</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a>  <span class="at">strata_type  =</span> <span class="st">"multiplicative"</span>,</span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>  <span class="at">target_power =</span> <span class="fl">0.6</span>,</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>  <span class="at">L            =</span> <span class="dv">1825</span></span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>)</span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a><span class="sc">---</span> Estimating parameters from pilot <span class="fu">data</span> (log<span class="sc">-</span>linear approximation)... <span class="sc">---</span></span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a><span class="sc">---</span> Searching <span class="cf">for</span> Sample <span class="fu">Size</span> (Method<span class="sc">:</span> Analytic<span class="sc">/</span>Approximation) <span class="sc">---</span></span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">50</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.124</span></span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">75</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.165</span></span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">100</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.206</span></span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">125</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.247</span></span>
+<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">150</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.287</span></span>
+<span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">175</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.326</span></span>
+<span id="cb10-18"><a href="#cb10-18" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">200</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.364</span></span>
+<span id="cb10-19"><a href="#cb10-19" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">225</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.402</span></span>
+<span id="cb10-20"><a href="#cb10-20" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">250</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.438</span></span>
+<span id="cb10-21"><a href="#cb10-21" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">275</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.473</span></span>
+<span id="cb10-22"><a href="#cb10-22" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">300</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.506</span></span>
+<span id="cb10-23"><a href="#cb10-23" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">325</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.538</span></span>
+<span id="cb10-24"><a href="#cb10-24" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">350</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.569</span></span>
+<span id="cb10-25"><a href="#cb10-25" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">375</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.598</span></span>
+<span id="cb10-26"><a href="#cb10-26" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">400</span><span class="sc">/</span>stratum, Calculated Power <span class="ot">=</span> <span class="fl">0.626</span></span>
+<span id="cb10-27"><a href="#cb10-27" tabindex="-1"></a></span>
+<span id="cb10-28"><a href="#cb10-28" tabindex="-1"></a><span class="sc">---</span> Calculation Summary <span class="sc">---</span></span>
+<span id="cb10-29"><a href="#cb10-29" tabindex="-1"></a></span>
+<span id="cb10-30"><a href="#cb10-30" tabindex="-1"></a></span>
+<span id="cb10-31"><a href="#cb10-31" tabindex="-1"></a>Table<span class="sc">:</span> Required Sample Size</span>
+<span id="cb10-32"><a href="#cb10-32" tabindex="-1"></a></span>
+<span id="cb10-33"><a href="#cb10-33" tabindex="-1"></a><span class="sc">|</span> Target_Power<span class="sc">|</span> Required_N_per_Stratum<span class="sc">|</span></span>
+<span id="cb10-34"><a href="#cb10-34" tabindex="-1"></a><span class="er">|</span><span class="sc">------------</span><span class="er">:|</span><span class="sc">----------------------</span><span class="er">:|</span></span>
+<span id="cb10-35"><a href="#cb10-35" tabindex="-1"></a><span class="er">|</span>          <span class="fl">0.6</span><span class="sc">|</span>                    <span class="dv">400</span><span class="sc">|</span></span></code></pre></div>
 <table class="table table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <caption>
 Sample Size for Multiplicative Stratified Model
@@ -983,38 +978,38 @@ Assumed log(RMST Ratio) (from pilot)
 <h3 id="bootstrap-methods-1">Bootstrap Methods<a class="anchor" aria-label="anchor" href="#bootstrap-methods-1"></a>
 </h3>
 <p>The bootstrap approach provides a simulation-based analysis for the
-multiplicative model.</p>
+multiplicative model. Pass <code>type = "boot"</code> together with
+<code>strata_type = "multiplicative"</code>.</p>
 <div class="section level4">
-<h4 id="power-calculation---ms-power-boot">Power Calculation - <a href="../reference/MS.power.boot.html"><code>MS.power.boot</code></a><a class="anchor" aria-label="anchor" href="#power-calculation---ms-power-boot"></a>
+<h4 id="power-calculation-bootstrap">Power Calculation (bootstrap)<a class="anchor" aria-label="anchor" href="#power-calculation-bootstrap"></a>
 </h4>
-<p>The following code demonstrates how to call the
-<code>MS.power.boot</code> function.</p>
-<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>power_ms_boot <span class="ot">&lt;-</span> <span class="fu">MS.power.boot</span>(</span>
-<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>   <span class="at">pilot_data =</span> colon_death,</span>
-<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>   <span class="at">time_var =</span> <span class="st">"time"</span>,</span>
-<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>   <span class="at">status_var =</span> <span class="st">"status"</span>,</span>
-<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>   <span class="at">arm_var =</span> <span class="st">"arm"</span>,</span>
-<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>   <span class="at">strata_var =</span> <span class="st">"strata"</span>,</span>
-<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>   <span class="at">sample_sizes =</span> <span class="fu">c</span>(<span class="dv">100</span>, <span class="dv">300</span>, <span class="dv">500</span>),</span>
-<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>   <span class="at">L =</span> <span class="dv">1825</span>,</span>
-<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>   <span class="at">n_sim =</span> <span class="dv">30</span>,</span>
-<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a>   <span class="at">parallel.cores =</span> <span class="dv">1</span></span>
-<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a>)</span>
-<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a><span class="sc">---</span> Calculating <span class="fu">Power</span> (Method<span class="sc">:</span> Multiplicative Stratified RMST Model) <span class="sc">---</span></span>
-<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a>Simulating <span class="cf">for</span> n <span class="ot">=</span> <span class="dv">100</span><span class="sc">/</span>stratum...</span>
-<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a>Simulating <span class="cf">for</span> n <span class="ot">=</span> <span class="dv">300</span><span class="sc">/</span>stratum...</span>
-<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a>Simulating <span class="cf">for</span> n <span class="ot">=</span> <span class="dv">500</span><span class="sc">/</span>stratum...</span>
-<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a></span>
-<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a><span class="sc">---</span> Simulation Summary <span class="sc">---</span></span>
-<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a></span>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>power_ms_boot <span class="ot">&lt;-</span> <span class="fu">rmst.power</span>(</span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a>  <span class="fu">Surv</span>(time, status) <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  <span class="at">data           =</span> colon_death,</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  <span class="at">arm            =</span> <span class="st">"arm"</span>,</span>
+<span id="cb11-5"><a href="#cb11-5" tabindex="-1"></a>  <span class="at">strata         =</span> <span class="st">"strata"</span>,</span>
+<span id="cb11-6"><a href="#cb11-6" tabindex="-1"></a>  <span class="at">strata_type    =</span> <span class="st">"multiplicative"</span>,</span>
+<span id="cb11-7"><a href="#cb11-7" tabindex="-1"></a>  <span class="at">sample_sizes   =</span> <span class="fu">c</span>(<span class="dv">100</span>, <span class="dv">300</span>, <span class="dv">500</span>),</span>
+<span id="cb11-8"><a href="#cb11-8" tabindex="-1"></a>  <span class="at">L              =</span> <span class="dv">1825</span>,</span>
+<span id="cb11-9"><a href="#cb11-9" tabindex="-1"></a>  <span class="at">type           =</span> <span class="st">"boot"</span>,</span>
+<span id="cb11-10"><a href="#cb11-10" tabindex="-1"></a>  <span class="at">n_sim          =</span> <span class="dv">30</span>,</span>
+<span id="cb11-11"><a href="#cb11-11" tabindex="-1"></a>  <span class="at">parallel.cores =</span> <span class="dv">1</span></span>
+<span id="cb11-12"><a href="#cb11-12" tabindex="-1"></a>)</span>
+<span id="cb11-13"><a href="#cb11-13" tabindex="-1"></a><span class="sc">---</span> Calculating <span class="fu">Power</span> (Method<span class="sc">:</span> Multiplicative Stratified RMST Model) <span class="sc">---</span></span>
+<span id="cb11-14"><a href="#cb11-14" tabindex="-1"></a>Simulating <span class="cf">for</span> n <span class="ot">=</span> <span class="dv">100</span><span class="sc">/</span>stratum...</span>
+<span id="cb11-15"><a href="#cb11-15" tabindex="-1"></a>Simulating <span class="cf">for</span> n <span class="ot">=</span> <span class="dv">300</span><span class="sc">/</span>stratum...</span>
+<span id="cb11-16"><a href="#cb11-16" tabindex="-1"></a>Simulating <span class="cf">for</span> n <span class="ot">=</span> <span class="dv">500</span><span class="sc">/</span>stratum...</span>
+<span id="cb11-17"><a href="#cb11-17" tabindex="-1"></a></span>
+<span id="cb11-18"><a href="#cb11-18" tabindex="-1"></a><span class="sc">---</span> Simulation Summary <span class="sc">---</span></span>
 <span id="cb11-19"><a href="#cb11-19" tabindex="-1"></a></span>
-<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a>Table<span class="sc">:</span> Estimated Treatment <span class="fu">Effect</span> (RMST Ratio)</span>
-<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a></span>
-<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a><span class="sc">|</span>      <span class="er">|</span>Statistic       <span class="sc">|</span>     Value<span class="sc">|</span></span>
-<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a><span class="er">|:</span><span class="sc">-----</span><span class="er">|:</span><span class="sc">---------------</span><span class="er">|</span><span class="sc">---------</span><span class="er">:|</span></span>
-<span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a><span class="er">|</span>      <span class="er">|</span>Mean RMST Ratio <span class="sc">|</span> <span class="fl">1.0077347</span><span class="sc">|</span></span>
-<span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a><span class="er">|</span><span class="fl">2.5</span><span class="sc">%  |95%</span> CI Lower    <span class="sc">|</span> <span class="fl">0.9565007</span><span class="sc">|</span></span>
-<span id="cb11-26"><a href="#cb11-26" tabindex="-1"></a><span class="er">|</span><span class="fl">97.5</span><span class="sc">% |95%</span> CI Upper    <span class="sc">|</span> <span class="fl">1.0564916</span><span class="sc">|</span></span></code></pre></div>
+<span id="cb11-20"><a href="#cb11-20" tabindex="-1"></a></span>
+<span id="cb11-21"><a href="#cb11-21" tabindex="-1"></a>Table<span class="sc">:</span> Estimated Treatment <span class="fu">Effect</span> (RMST Ratio)</span>
+<span id="cb11-22"><a href="#cb11-22" tabindex="-1"></a></span>
+<span id="cb11-23"><a href="#cb11-23" tabindex="-1"></a><span class="sc">|</span>      <span class="er">|</span>Statistic       <span class="sc">|</span>     Value<span class="sc">|</span></span>
+<span id="cb11-24"><a href="#cb11-24" tabindex="-1"></a><span class="er">|:</span><span class="sc">-----</span><span class="er">|:</span><span class="sc">---------------</span><span class="er">|</span><span class="sc">---------</span><span class="er">:|</span></span>
+<span id="cb11-25"><a href="#cb11-25" tabindex="-1"></a><span class="er">|</span>      <span class="er">|</span>Mean RMST Ratio <span class="sc">|</span> <span class="fl">1.0077347</span><span class="sc">|</span></span>
+<span id="cb11-26"><a href="#cb11-26" tabindex="-1"></a><span class="er">|</span><span class="fl">2.5</span><span class="sc">%  |95%</span> CI Lower    <span class="sc">|</span> <span class="fl">0.9565007</span><span class="sc">|</span></span>
+<span id="cb11-27"><a href="#cb11-27" tabindex="-1"></a><span class="er">|</span><span class="fl">97.5</span><span class="sc">% |95%</span> CI Upper    <span class="sc">|</span> <span class="fl">1.0564916</span><span class="sc">|</span></span></code></pre></div>
 <table class="table table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <caption>
 Power for Multiplicative Stratified Model (Bootstrap)
@@ -1067,42 +1062,41 @@ Mean RMST Ratio
 <p><img src="RMSTpowerBoost-Main_files/figure-html/unnamed-chunk-6-1.png" alt="" width="672" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level4">
-<h4 id="sample-size-calculation---ms-ss-boot">Sample Size Calculation - <a href="../reference/MS.ss.boot.html"><code>MS.ss.boot</code></a><a class="anchor" aria-label="anchor" href="#sample-size-calculation---ms-ss-boot"></a>
+<h4 id="sample-size-calculation-bootstrap">Sample Size Calculation (bootstrap)<a class="anchor" aria-label="anchor" href="#sample-size-calculation-bootstrap"></a>
 </h4>
-<p>Similarly, the sample size can be calculated using bootstrap
-simulation.</p>
-<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>ss_ms_boot <span class="ot">&lt;-</span> <span class="fu">MS.ss.boot</span>(</span>
-<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>   <span class="at">pilot_data =</span> colon_death,</span>
-<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>   <span class="at">time_var =</span> <span class="st">"time"</span>,</span>
-<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>   <span class="at">status_var =</span> <span class="st">"status"</span>,</span>
-<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>   <span class="at">arm_var =</span> <span class="st">"arm"</span>,</span>
-<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>   <span class="at">strata_var =</span> <span class="st">"strata"</span>, </span>
-<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>   <span class="at">target_power =</span> <span class="fl">0.75</span>,</span>
-<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a>   <span class="at">L =</span> <span class="dv">1825</span>,</span>
-<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a>   <span class="at">n_sim =</span> <span class="dv">30</span>,</span>
-<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a>   <span class="at">n_start =</span> <span class="dv">100</span>,</span>
-<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a>   <span class="at">n_step =</span> <span class="dv">50</span>,</span>
-<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a>   <span class="at">patience =</span> <span class="dv">4</span>,</span>
-<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a>   <span class="at">parallel.cores =</span> <span class="dv">1</span></span>
-<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a>)</span>
-<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a><span class="sc">---</span> Searching <span class="cf">for</span> Sample <span class="fu">Size</span> (Method<span class="sc">:</span> Multiplicative Stratified RMST Model) <span class="sc">---</span></span>
-<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">100</span><span class="sc">/</span>stratum, Calculating Power... Power <span class="ot">=</span> <span class="fl">0.433</span></span>
-<span id="cb12-17"><a href="#cb12-17" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">150</span><span class="sc">/</span>stratum, Calculating Power... Power <span class="ot">=</span> <span class="fl">0.733</span></span>
-<span id="cb12-18"><a href="#cb12-18" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">200</span><span class="sc">/</span>stratum, Calculating Power... Power <span class="ot">=</span> <span class="fl">0.6</span></span>
-<span id="cb12-19"><a href="#cb12-19" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">250</span><span class="sc">/</span>stratum, Calculating Power... Power <span class="ot">=</span> <span class="fl">0.6</span></span>
-<span id="cb12-20"><a href="#cb12-20" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">300</span><span class="sc">/</span>stratum, Calculating Power... Power <span class="ot">=</span> <span class="fl">0.733</span></span>
-<span id="cb12-21"><a href="#cb12-21" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">350</span><span class="sc">/</span>stratum, Calculating Power... Power <span class="ot">=</span> <span class="fl">0.8</span></span>
-<span id="cb12-22"><a href="#cb12-22" tabindex="-1"></a></span>
-<span id="cb12-23"><a href="#cb12-23" tabindex="-1"></a><span class="sc">---</span> Simulation Summary <span class="sc">---</span></span>
-<span id="cb12-24"><a href="#cb12-24" tabindex="-1"></a></span>
+<div class="sourceCode" id="cb12"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" tabindex="-1"></a>ss_ms_boot <span class="ot">&lt;-</span> <span class="fu">rmst.ss</span>(</span>
+<span id="cb12-2"><a href="#cb12-2" tabindex="-1"></a>  <span class="fu">Surv</span>(time, status) <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb12-3"><a href="#cb12-3" tabindex="-1"></a>  <span class="at">data           =</span> colon_death,</span>
+<span id="cb12-4"><a href="#cb12-4" tabindex="-1"></a>  <span class="at">arm            =</span> <span class="st">"arm"</span>,</span>
+<span id="cb12-5"><a href="#cb12-5" tabindex="-1"></a>  <span class="at">strata         =</span> <span class="st">"strata"</span>,</span>
+<span id="cb12-6"><a href="#cb12-6" tabindex="-1"></a>  <span class="at">strata_type    =</span> <span class="st">"multiplicative"</span>,</span>
+<span id="cb12-7"><a href="#cb12-7" tabindex="-1"></a>  <span class="at">target_power   =</span> <span class="fl">0.75</span>,</span>
+<span id="cb12-8"><a href="#cb12-8" tabindex="-1"></a>  <span class="at">L              =</span> <span class="dv">1825</span>,</span>
+<span id="cb12-9"><a href="#cb12-9" tabindex="-1"></a>  <span class="at">type           =</span> <span class="st">"boot"</span>,</span>
+<span id="cb12-10"><a href="#cb12-10" tabindex="-1"></a>  <span class="at">n_sim          =</span> <span class="dv">30</span>,</span>
+<span id="cb12-11"><a href="#cb12-11" tabindex="-1"></a>  <span class="at">n_start        =</span> <span class="dv">100</span>,</span>
+<span id="cb12-12"><a href="#cb12-12" tabindex="-1"></a>  <span class="at">n_step         =</span> <span class="dv">50</span>,</span>
+<span id="cb12-13"><a href="#cb12-13" tabindex="-1"></a>  <span class="at">patience       =</span> <span class="dv">4</span>,</span>
+<span id="cb12-14"><a href="#cb12-14" tabindex="-1"></a>  <span class="at">parallel.cores =</span> <span class="dv">1</span></span>
+<span id="cb12-15"><a href="#cb12-15" tabindex="-1"></a>)</span>
+<span id="cb12-16"><a href="#cb12-16" tabindex="-1"></a><span class="sc">---</span> Searching <span class="cf">for</span> Sample <span class="fu">Size</span> (Method<span class="sc">:</span> Multiplicative Stratified RMST Model) <span class="sc">---</span></span>
+<span id="cb12-17"><a href="#cb12-17" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">100</span><span class="sc">/</span>stratum, Calculating Power... Power <span class="ot">=</span> <span class="fl">0.433</span></span>
+<span id="cb12-18"><a href="#cb12-18" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">150</span><span class="sc">/</span>stratum, Calculating Power... Power <span class="ot">=</span> <span class="fl">0.733</span></span>
+<span id="cb12-19"><a href="#cb12-19" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">200</span><span class="sc">/</span>stratum, Calculating Power... Power <span class="ot">=</span> <span class="fl">0.6</span></span>
+<span id="cb12-20"><a href="#cb12-20" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">250</span><span class="sc">/</span>stratum, Calculating Power... Power <span class="ot">=</span> <span class="fl">0.6</span></span>
+<span id="cb12-21"><a href="#cb12-21" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">300</span><span class="sc">/</span>stratum, Calculating Power... Power <span class="ot">=</span> <span class="fl">0.733</span></span>
+<span id="cb12-22"><a href="#cb12-22" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">350</span><span class="sc">/</span>stratum, Calculating Power... Power <span class="ot">=</span> <span class="fl">0.8</span></span>
+<span id="cb12-23"><a href="#cb12-23" tabindex="-1"></a></span>
+<span id="cb12-24"><a href="#cb12-24" tabindex="-1"></a><span class="sc">---</span> Simulation Summary <span class="sc">---</span></span>
 <span id="cb12-25"><a href="#cb12-25" tabindex="-1"></a></span>
-<span id="cb12-26"><a href="#cb12-26" tabindex="-1"></a>Table<span class="sc">:</span> Estimated Treatment <span class="fu">Effect</span> (RMST Ratio)</span>
-<span id="cb12-27"><a href="#cb12-27" tabindex="-1"></a></span>
-<span id="cb12-28"><a href="#cb12-28" tabindex="-1"></a><span class="sc">|</span>      <span class="er">|</span>Statistic       <span class="sc">|</span>     Value<span class="sc">|</span></span>
-<span id="cb12-29"><a href="#cb12-29" tabindex="-1"></a><span class="er">|:</span><span class="sc">-----</span><span class="er">|:</span><span class="sc">---------------</span><span class="er">|</span><span class="sc">---------</span><span class="er">:|</span></span>
-<span id="cb12-30"><a href="#cb12-30" tabindex="-1"></a><span class="er">|</span>      <span class="er">|</span>Mean RMST Ratio <span class="sc">|</span> <span class="fl">1.0081233</span><span class="sc">|</span></span>
-<span id="cb12-31"><a href="#cb12-31" tabindex="-1"></a><span class="er">|</span><span class="fl">2.5</span><span class="sc">%  |95%</span> CI Lower    <span class="sc">|</span> <span class="fl">0.9484436</span><span class="sc">|</span></span>
-<span id="cb12-32"><a href="#cb12-32" tabindex="-1"></a><span class="er">|</span><span class="fl">97.5</span><span class="sc">% |95%</span> CI Upper    <span class="sc">|</span> <span class="fl">1.0621978</span><span class="sc">|</span></span></code></pre></div>
+<span id="cb12-26"><a href="#cb12-26" tabindex="-1"></a></span>
+<span id="cb12-27"><a href="#cb12-27" tabindex="-1"></a>Table<span class="sc">:</span> Estimated Treatment <span class="fu">Effect</span> (RMST Ratio)</span>
+<span id="cb12-28"><a href="#cb12-28" tabindex="-1"></a></span>
+<span id="cb12-29"><a href="#cb12-29" tabindex="-1"></a><span class="sc">|</span>      <span class="er">|</span>Statistic       <span class="sc">|</span>     Value<span class="sc">|</span></span>
+<span id="cb12-30"><a href="#cb12-30" tabindex="-1"></a><span class="er">|:</span><span class="sc">-----</span><span class="er">|:</span><span class="sc">---------------</span><span class="er">|</span><span class="sc">---------</span><span class="er">:|</span></span>
+<span id="cb12-31"><a href="#cb12-31" tabindex="-1"></a><span class="er">|</span>      <span class="er">|</span>Mean RMST Ratio <span class="sc">|</span> <span class="fl">1.0081233</span><span class="sc">|</span></span>
+<span id="cb12-32"><a href="#cb12-32" tabindex="-1"></a><span class="er">|</span><span class="fl">2.5</span><span class="sc">%  |95%</span> CI Lower    <span class="sc">|</span> <span class="fl">0.9484436</span><span class="sc">|</span></span>
+<span id="cb12-33"><a href="#cb12-33" tabindex="-1"></a><span class="er">|</span><span class="fl">97.5</span><span class="sc">% |95%</span> CI Upper    <span class="sc">|</span> <span class="fl">1.0621978</span><span class="sc">|</span></span></code></pre></div>
 <table class="table table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <caption>
 Sample Size for Multiplicative Stratified Model (Bootstrap)
@@ -1160,10 +1154,8 @@ Mean RMST Ratio
 <h2 class="tabset" id="semiparametric-gam-models">Semiparametric GAM Models<a class="anchor" aria-label="anchor" href="#semiparametric-gam-models"></a>
 </h2>
 <p>When a covariate is expected to have a non-linear effect on the
-outcome (for example, the effect of age or a biomarker), standard linear
-models may be misspecified. Generalized Additive Models (GAMs) provide a
-flexible solution by modeling such relationships with smooth
-functions.</p>
+outcome, standard linear models may be misspecified. Generalized
+Additive Models (GAMs) handle this by fitting smooth functions.</p>
 <div class="section level3">
 <h3 id="theory-and-model-3">Theory and Model<a class="anchor" aria-label="anchor" href="#theory-and-model-3"></a>
 </h3>
@@ -1187,7 +1179,7 @@ are the non-linear <strong>smooth functions</strong> (splines) that the
 GAM estimates from the data.</p></li>
 </ol>
 <div class="section level4">
-<h4 id="power-calculation-formula-gam-power-boot">Power Calculation Formula (<code>GAM.power.boot</code>)<a class="anchor" aria-label="anchor" href="#power-calculation-formula-gam-power-boot"></a>
+<h4 id="power-calculation-formula">Power Calculation Formula<a class="anchor" aria-label="anchor" href="#power-calculation-formula"></a>
 </h4>
 <p>Because this is a bootstrap method, power is not calculated from a
 direct formula but is instead estimated empirically from the
@@ -1211,8 +1203,11 @@ otherwise.</p></li>
 <div class="section level3">
 <h3 id="bootstrap-methods-2">Bootstrap Methods<a class="anchor" aria-label="anchor" href="#bootstrap-methods-2"></a>
 </h3>
+<p>Wrap smooth covariates in <code>s()</code> in the formula — this
+automatically routes to the GAM bootstrap engine regardless of the
+<code>type</code> argument.</p>
 <div class="section level4">
-<h4 id="power-calculation---gam-power-boot">Power Calculation - <a href="../reference/GAM.power.boot.html"><code>GAM.power.boot</code></a><a class="anchor" aria-label="anchor" href="#power-calculation---gam-power-boot"></a>
+<h4 id="power-calculation-3">Power Calculation<a class="anchor" aria-label="anchor" href="#power-calculation-3"></a>
 </h4>
 <p><strong>Scenario</strong>: We use the <code>gbsg</code> (German
 Breast Cancer Study Group) dataset, suspecting that the progesterone
@@ -1226,69 +1221,68 @@ recurrence-free survival. Here is a look at the prepared
 4  769  45    0   25     3     1   0  4      0     177      0   1
 5  130  65    1   30     2     5   0 36      1    1855      0   1
 6 1642  48    0   52     2    11   0  0      0     842      1   1</code></pre>
-<p>The following code shows how to calculate power.</p>
-<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>power_gam <span class="ot">&lt;-</span> <span class="fu">GAM.power.boot</span>(</span>
-<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>   <span class="at">pilot_data =</span> gbsg_prepared,</span>
-<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>   <span class="at">time_var =</span> <span class="st">"rfstime"</span>,</span>
-<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>   <span class="at">status_var =</span> <span class="st">"status"</span>,</span>
-<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>   <span class="at">arm_var =</span> <span class="st">"arm"</span>,</span>
-<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>   <span class="at">smooth_terms =</span> <span class="st">"pgr"</span>, <span class="co"># Model pgr with a smooth term</span></span>
-<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>   <span class="at">sample_sizes =</span> <span class="fu">c</span>(<span class="dv">50</span>, <span class="dv">200</span>, <span class="dv">400</span>),</span>
-<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>   <span class="at">L =</span> <span class="dv">2825</span>, <span class="co"># 5 years</span></span>
-<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a>   <span class="at">n_sim =</span> <span class="dv">50</span>,</span>
-<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a>   <span class="at">parallel.cores =</span> <span class="dv">1</span></span>
-<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a>)</span>
-<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a><span class="sc">---</span> Calculating <span class="fu">Power</span> (Method<span class="sc">:</span> Additive GAM <span class="cf">for</span> RMST) <span class="sc">---</span></span>
-<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a>Simulating <span class="cf">for</span> n <span class="ot">=</span> <span class="dv">50</span> <span class="sc">/</span>arm ...</span>
-<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a>Simulating <span class="cf">for</span> n <span class="ot">=</span> <span class="dv">200</span> <span class="sc">/</span>arm ...</span>
-<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a>Simulating <span class="cf">for</span> n <span class="ot">=</span> <span class="dv">400</span> <span class="sc">/</span>arm ...</span>
+<p>The following code shows how to calculate power. Wrapping
+<code>pgr</code> in <code>s()</code> signals a smooth non-linear
+effect.</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>power_gam <span class="ot">&lt;-</span> <span class="fu">rmst.power</span>(</span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a>  <span class="fu">Surv</span>(rfstime, status) <span class="sc">~</span> <span class="fu">s</span>(pgr),</span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>  <span class="at">data           =</span> gbsg_prepared,</span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>  <span class="at">arm            =</span> <span class="st">"arm"</span>,</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>  <span class="at">sample_sizes   =</span> <span class="fu">c</span>(<span class="dv">50</span>, <span class="dv">200</span>, <span class="dv">400</span>),</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a>  <span class="at">L              =</span> <span class="dv">2825</span>,</span>
+<span id="cb14-7"><a href="#cb14-7" tabindex="-1"></a>  <span class="at">n_sim          =</span> <span class="dv">50</span>,</span>
+<span id="cb14-8"><a href="#cb14-8" tabindex="-1"></a>  <span class="at">parallel.cores =</span> <span class="dv">1</span></span>
+<span id="cb14-9"><a href="#cb14-9" tabindex="-1"></a>)</span>
+<span id="cb14-10"><a href="#cb14-10" tabindex="-1"></a><span class="sc">---</span> Calculating <span class="fu">Power</span> (Method<span class="sc">:</span> Additive GAM <span class="cf">for</span> RMST) <span class="sc">---</span></span>
+<span id="cb14-11"><a href="#cb14-11" tabindex="-1"></a>Simulating <span class="cf">for</span> n <span class="ot">=</span> <span class="dv">50</span> <span class="sc">/</span>arm ...</span>
+<span id="cb14-12"><a href="#cb14-12" tabindex="-1"></a>Simulating <span class="cf">for</span> n <span class="ot">=</span> <span class="dv">200</span> <span class="sc">/</span>arm ...</span>
+<span id="cb14-13"><a href="#cb14-13" tabindex="-1"></a>Simulating <span class="cf">for</span> n <span class="ot">=</span> <span class="dv">400</span> <span class="sc">/</span>arm ...</span>
+<span id="cb14-14"><a href="#cb14-14" tabindex="-1"></a></span>
+<span id="cb14-15"><a href="#cb14-15" tabindex="-1"></a><span class="sc">---</span> Simulation Summary <span class="sc">---</span></span>
 <span id="cb14-16"><a href="#cb14-16" tabindex="-1"></a></span>
-<span id="cb14-17"><a href="#cb14-17" tabindex="-1"></a><span class="sc">---</span> Simulation Summary <span class="sc">---</span></span>
-<span id="cb14-18"><a href="#cb14-18" tabindex="-1"></a></span>
+<span id="cb14-17"><a href="#cb14-17" tabindex="-1"></a></span>
+<span id="cb14-18"><a href="#cb14-18" tabindex="-1"></a>Table<span class="sc">:</span> Estimated Treatment <span class="fu">Effect</span> (RMST Difference)</span>
 <span id="cb14-19"><a href="#cb14-19" tabindex="-1"></a></span>
-<span id="cb14-20"><a href="#cb14-20" tabindex="-1"></a>Table<span class="sc">:</span> Estimated Treatment <span class="fu">Effect</span> (RMST Difference)</span>
-<span id="cb14-21"><a href="#cb14-21" tabindex="-1"></a></span>
-<span id="cb14-22"><a href="#cb14-22" tabindex="-1"></a><span class="sc">|</span>Statistic            <span class="sc">|</span>     Value<span class="sc">|</span></span>
-<span id="cb14-23"><a href="#cb14-23" tabindex="-1"></a><span class="er">|:</span><span class="sc">--------------------</span><span class="er">|</span><span class="sc">---------</span><span class="er">:|</span></span>
-<span id="cb14-24"><a href="#cb14-24" tabindex="-1"></a><span class="er">|</span>Mean RMST Difference <span class="sc">|</span> <span class="fl">861.63937</span><span class="sc">|</span></span>
-<span id="cb14-25"><a href="#cb14-25" tabindex="-1"></a><span class="er">|</span>Mean Standard Error  <span class="sc">|</span>  <span class="fl">30.11951</span><span class="sc">|</span></span>
-<span id="cb14-26"><a href="#cb14-26" tabindex="-1"></a><span class="er">|</span><span class="dv">95</span>% CI Lower         <span class="sc">|</span> <span class="fl">801.70580</span><span class="sc">|</span></span>
-<span id="cb14-27"><a href="#cb14-27" tabindex="-1"></a><span class="er">|</span><span class="dv">95</span>% CI Upper         <span class="sc">|</span> <span class="fl">921.57293</span><span class="sc">|</span></span>
-<span id="cb14-28"><a href="#cb14-28" tabindex="-1"></a></span>
-<span id="cb14-29"><a href="#cb14-29" tabindex="-1"></a><span class="fu">print</span>(power_gam<span class="sc">$</span>results_plot)</span></code></pre></div>
+<span id="cb14-20"><a href="#cb14-20" tabindex="-1"></a><span class="sc">|</span>Statistic            <span class="sc">|</span>     Value<span class="sc">|</span></span>
+<span id="cb14-21"><a href="#cb14-21" tabindex="-1"></a><span class="er">|:</span><span class="sc">--------------------</span><span class="er">|</span><span class="sc">---------</span><span class="er">:|</span></span>
+<span id="cb14-22"><a href="#cb14-22" tabindex="-1"></a><span class="er">|</span>Mean RMST Difference <span class="sc">|</span> <span class="fl">861.63937</span><span class="sc">|</span></span>
+<span id="cb14-23"><a href="#cb14-23" tabindex="-1"></a><span class="er">|</span>Mean Standard Error  <span class="sc">|</span>  <span class="fl">30.11951</span><span class="sc">|</span></span>
+<span id="cb14-24"><a href="#cb14-24" tabindex="-1"></a><span class="er">|</span><span class="dv">95</span>% CI Lower         <span class="sc">|</span> <span class="fl">801.70580</span><span class="sc">|</span></span>
+<span id="cb14-25"><a href="#cb14-25" tabindex="-1"></a><span class="er">|</span><span class="dv">95</span>% CI Upper         <span class="sc">|</span> <span class="fl">921.57293</span><span class="sc">|</span></span>
+<span id="cb14-26"><a href="#cb14-26" tabindex="-1"></a></span>
+<span id="cb14-27"><a href="#cb14-27" tabindex="-1"></a><span class="fu">print</span>(power_gam<span class="sc">$</span>results_plot)</span></code></pre></div>
 <p><img src="RMSTpowerBoost-Main_files/figure-html/gbsg_power_calc-1.png" alt="" width="672" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level4">
-<h4 id="sample-size-calculation---gam-ss-boot">Sample Size Calculation - <a href="../reference/GAM.ss.boot.html"><code>GAM.ss.boot</code></a><a class="anchor" aria-label="anchor" href="#sample-size-calculation---gam-ss-boot"></a>
+<h4 id="sample-size-calculation-3">Sample Size Calculation<a class="anchor" aria-label="anchor" href="#sample-size-calculation-3"></a>
 </h4>
 <p><strong>Scenario</strong>: We want to find the sample size needed to
 achieve 95% power for detecting an effect of <code>pgr</code> on
 recurrence-free survival.</p>
-<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>ss_gam <span class="ot">&lt;-</span> <span class="fu">GAM.ss.boot</span>(</span>
-<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>   <span class="at">pilot_data =</span> gbsg_prepared,</span>
-<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>   <span class="at">time_var =</span> <span class="st">"rfstime"</span>,</span>
-<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>   <span class="at">status_var =</span> <span class="st">"status"</span>,</span>
-<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a>   <span class="at">arm_var =</span> <span class="st">"arm"</span>,</span>
-<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a>   <span class="at">target_power =</span> <span class="fl">0.95</span>,</span>
-<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a>   <span class="at">L =</span> <span class="dv">182</span>, </span>
-<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a>   <span class="at">n_sim =</span> <span class="dv">50</span>,</span>
-<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a>   <span class="at">patience =</span> <span class="dv">5</span>,</span>
-<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a>   <span class="at">parallel.cores =</span> <span class="dv">1</span></span>
-<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a>)</span>
-<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a><span class="sc">---</span> Searching <span class="cf">for</span> Sample <span class="fu">Size</span> (Method<span class="sc">:</span> Additive GAM <span class="cf">for</span> RMST) <span class="sc">---</span></span>
-<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">50</span><span class="sc">/</span>arm, Calculating Power... Power <span class="ot">=</span> <span class="dv">1</span></span>
-<span id="cb15-14"><a href="#cb15-14" tabindex="-1"></a></span>
-<span id="cb15-15"><a href="#cb15-15" tabindex="-1"></a><span class="sc">---</span> Simulation Summary <span class="sc">---</span></span>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>ss_gam <span class="ot">&lt;-</span> <span class="fu">rmst.ss</span>(</span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a>  <span class="fu">Surv</span>(rfstime, status) <span class="sc">~</span> <span class="fu">s</span>(pgr),</span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>  <span class="at">data           =</span> gbsg_prepared,</span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>  <span class="at">arm            =</span> <span class="st">"arm"</span>,</span>
+<span id="cb15-5"><a href="#cb15-5" tabindex="-1"></a>  <span class="at">target_power   =</span> <span class="fl">0.95</span>,</span>
+<span id="cb15-6"><a href="#cb15-6" tabindex="-1"></a>  <span class="at">L              =</span> <span class="dv">182</span>,</span>
+<span id="cb15-7"><a href="#cb15-7" tabindex="-1"></a>  <span class="at">n_sim          =</span> <span class="dv">50</span>,</span>
+<span id="cb15-8"><a href="#cb15-8" tabindex="-1"></a>  <span class="at">patience       =</span> <span class="dv">5</span>,</span>
+<span id="cb15-9"><a href="#cb15-9" tabindex="-1"></a>  <span class="at">parallel.cores =</span> <span class="dv">1</span></span>
+<span id="cb15-10"><a href="#cb15-10" tabindex="-1"></a>)</span>
+<span id="cb15-11"><a href="#cb15-11" tabindex="-1"></a><span class="sc">---</span> Searching <span class="cf">for</span> Sample <span class="fu">Size</span> (Method<span class="sc">:</span> Additive GAM <span class="cf">for</span> RMST) <span class="sc">---</span></span>
+<span id="cb15-12"><a href="#cb15-12" tabindex="-1"></a>  N <span class="ot">=</span> <span class="dv">50</span><span class="sc">/</span>arm, Calculating Power... Power <span class="ot">=</span> <span class="dv">1</span></span>
+<span id="cb15-13"><a href="#cb15-13" tabindex="-1"></a></span>
+<span id="cb15-14"><a href="#cb15-14" tabindex="-1"></a><span class="sc">---</span> Simulation Summary <span class="sc">---</span></span>
+<span id="cb15-15"><a href="#cb15-15" tabindex="-1"></a></span>
 <span id="cb15-16"><a href="#cb15-16" tabindex="-1"></a></span>
-<span id="cb15-17"><a href="#cb15-17" tabindex="-1"></a></span>
-<span id="cb15-18"><a href="#cb15-18" tabindex="-1"></a>Table<span class="sc">:</span> Estimated Treatment <span class="fu">Effect</span> (RMST Difference)</span>
-<span id="cb15-19"><a href="#cb15-19" tabindex="-1"></a></span>
-<span id="cb15-20"><a href="#cb15-20" tabindex="-1"></a><span class="sc">|</span>Statistic            <span class="sc">|</span>     Value<span class="sc">|</span></span>
-<span id="cb15-21"><a href="#cb15-21" tabindex="-1"></a><span class="er">|:</span><span class="sc">--------------------</span><span class="er">|</span><span class="sc">---------</span><span class="er">:|</span></span>
-<span id="cb15-22"><a href="#cb15-22" tabindex="-1"></a><span class="er">|</span>Mean RMST Difference <span class="sc">|</span> <span class="fl">90.790843</span><span class="sc">|</span></span>
-<span id="cb15-23"><a href="#cb15-23" tabindex="-1"></a><span class="er">|</span>Mean Standard Error  <span class="sc">|</span>  <span class="fl">0.193595</span><span class="sc">|</span></span>
-<span id="cb15-24"><a href="#cb15-24" tabindex="-1"></a><span class="er">|</span><span class="dv">95</span>% CI Lower         <span class="sc">|</span> <span class="fl">90.111979</span><span class="sc">|</span></span>
-<span id="cb15-25"><a href="#cb15-25" tabindex="-1"></a><span class="er">|</span><span class="dv">95</span>% CI Upper         <span class="sc">|</span> <span class="fl">91.469708</span><span class="sc">|</span></span></code></pre></div>
+<span id="cb15-17"><a href="#cb15-17" tabindex="-1"></a>Table<span class="sc">:</span> Estimated Treatment <span class="fu">Effect</span> (RMST Difference)</span>
+<span id="cb15-18"><a href="#cb15-18" tabindex="-1"></a></span>
+<span id="cb15-19"><a href="#cb15-19" tabindex="-1"></a><span class="sc">|</span>Statistic            <span class="sc">|</span>     Value<span class="sc">|</span></span>
+<span id="cb15-20"><a href="#cb15-20" tabindex="-1"></a><span class="er">|:</span><span class="sc">--------------------</span><span class="er">|</span><span class="sc">---------</span><span class="er">:|</span></span>
+<span id="cb15-21"><a href="#cb15-21" tabindex="-1"></a><span class="er">|</span>Mean RMST Difference <span class="sc">|</span> <span class="fl">90.790843</span><span class="sc">|</span></span>
+<span id="cb15-22"><a href="#cb15-22" tabindex="-1"></a><span class="er">|</span>Mean Standard Error  <span class="sc">|</span>  <span class="fl">0.193416</span><span class="sc">|</span></span>
+<span id="cb15-23"><a href="#cb15-23" tabindex="-1"></a><span class="er">|</span><span class="dv">95</span>% CI Lower         <span class="sc">|</span> <span class="fl">90.111979</span><span class="sc">|</span></span>
+<span id="cb15-24"><a href="#cb15-24" tabindex="-1"></a><span class="er">|</span><span class="dv">95</span>% CI Upper         <span class="sc">|</span> <span class="fl">91.469708</span><span class="sc">|</span></span></code></pre></div>
 <p><img src="RMSTpowerBoost-Main_files/figure-html/unnamed-chunk-9-1.png" alt="" width="672" style="display: block; margin: auto;"></p>
 <hr>
 </div>
@@ -1300,12 +1294,12 @@ recurrence-free survival.</p>
 <p>In many observational or longitudinal studies, the probability of
 being censored may depend on measured subject characteristics such as
 age, disease stage, or biomarker level, but <strong>not</strong> on the
-unobserved event time after conditioning on those covariates.<br>
-This setting is referred to as <strong>covariate-dependent (or
-conditionally independent) censoring</strong>.<br>
-Inverse-probability-of-censoring weighting (IPCW) can account for this
-dependence under the stated model and support valid estimation of the
-restricted mean survival time (RMST).</p>
+unobserved event time after conditioning on those covariates. This
+setting is referred to as <strong>covariate-dependent (or conditionally
+independent) censoring</strong>. Inverse-probability-of-censoring
+weighting (IPCW) can account for this dependence under the stated model
+and support valid estimation of the restricted mean survival time
+(RMST).</p>
 <div class="section level3">
 <h3 id="theory-and-model-4">Theory and Model<a class="anchor" aria-label="anchor" href="#theory-and-model-4"></a>
 </h3>
@@ -1317,8 +1311,8 @@ proportional-hazards model for the censoring time:
 G(t \mid X) = \exp\{-\Lambda_C(t \mid X)\},
 </annotation></semantics></math> where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>X</mi><annotation encoding="application/x-tex">X</annotation></semantics></math>
-denotes the observed covariates (e.g., age, sex, treatment arm).<br>
-Each subject receives an inverse-probability weight
+denotes the observed covariates (e.g., age, sex, treatment arm). Each
+subject receives an inverse-probability weight
 <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><msub><mi>W</mi><mi>i</mi></msub><mo>=</mo><mfrac><mn>1</mn><mrow><mover><mi>G</mi><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">(</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>X</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow></mfrac><mo>,</mo><mspace width="2.0em"></mspace><msub><mi>Y</mi><mi>i</mi></msub><mo>=</mo><mrow><mi mathvariant="normal">min</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><msub><mi>T</mi><mi>i</mi></msub><mo>,</mo><mi>L</mi><mo stretchy="false" form="postfix">)</mo><mo>,</mo></mrow><annotation encoding="application/x-tex">
 W_i = \frac{1}{\widehat{G}(Y_i \mid X_i)},
 \qquad
@@ -1327,20 +1321,17 @@ Y_i = \min(T_i, L),
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mi>T</mi><mi>i</mi></msub><annotation encoding="application/x-tex">T_i</annotation></semantics></math>
 the event time and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>L</mi><annotation encoding="application/x-tex">L</annotation></semantics></math>
-the truncation horizon for RMST.<br>
-Weights are stabilized and truncated to prevent numerical
-instability.<br>
-The weighted regression
+the truncation horizon for RMST. Weights are stabilized and truncated to
+prevent numerical instability. The weighted regression
 <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mi>E</mi><mo stretchy="false" form="prefix">[</mo><msub><mi>Y</mi><mi>i</mi></msub><mo>∣</mo><msub><mi>A</mi><mi>i</mi></msub><mo>,</mo><msub><mi>X</mi><mi>i</mi></msub><mo stretchy="false" form="postfix">]</mo><mo>=</mo><msub><mi>β</mi><mn>0</mn></msub><mo>+</mo><msub><mi>β</mi><mi>A</mi></msub><msub><mi>A</mi><mi>i</mi></msub><mo>+</mo><msubsup><mi>X</mi><mi>i</mi><mi>⊤</mi></msubsup><msub><mi>β</mi><mi>X</mi></msub></mrow><annotation encoding="application/x-tex">
 E[Y_i \mid A_i, X_i] = \beta_0 + \beta_A A_i + X_i^\top\beta_X
 </annotation></semantics></math> is then fitted using weighted least
-squares.<br>
-The variance of
+squares. The variance of
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><msub><mover><mi>β</mi><mo accent="true">̂</mo></mover><mi>A</mi></msub><annotation encoding="application/x-tex">\hat\beta_A</annotation></semantics></math>
 is estimated with a sandwich-type estimator that treats the censoring
 model as known.</p>
 <div class="section level4">
-<h4 id="power-calculation-formula-dc-power-analytical">Power Calculation Formula (<code>DC.power.analytical</code>)<a class="anchor" aria-label="anchor" href="#power-calculation-formula-dc-power-analytical"></a>
+<h4 id="power-calculation-formula-1">Power Calculation Formula<a class="anchor" aria-label="anchor" href="#power-calculation-formula-1"></a>
 </h4>
 <p>Analytic power is computed as
 <math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mtext mathvariant="normal">Power</mtext><mo>=</mo><mi mathvariant="normal">Φ</mi><mspace width="-0.167em"></mspace><mrow><mo stretchy="true" form="prefix">(</mo><mfrac><mrow><mo stretchy="false" form="prefix">|</mo><msub><mover><mi>β</mi><mo accent="true">̂</mo></mover><mi>A</mi></msub><mo stretchy="false" form="prefix">|</mo></mrow><msub><mi>σ</mi><mi>N</mi></msub></mfrac><mo>−</mo><msub><mi>z</mi><mrow><mn>1</mn><mo>−</mo><mi>α</mi><mi>/</mi><mn>2</mn></mrow></msub><mo stretchy="true" form="postfix">)</mo></mrow><mo>,</mo><mspace width="2.0em"></mspace><msubsup><mi>σ</mi><mi>N</mi><mn>2</mn></msubsup><mo>=</mo><mfrac><mrow><mover><mrow><mi mathvariant="normal">V</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi></mrow><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">(</mo><msub><mover><mi>β</mi><mo accent="true">̂</mo></mover><mi>A</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><mi>N</mi></mfrac><mo>,</mo></mrow><annotation encoding="application/x-tex">
@@ -1353,11 +1344,10 @@ model as known.</p>
 \sigma_N^2 = \frac{\widehat{\mathrm{Var}}(\hat\beta_A)}{N},
 </annotation></semantics></math> where
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mover><mrow><mi mathvariant="normal">V</mi><mi mathvariant="normal">a</mi><mi mathvariant="normal">r</mi></mrow><mo accent="true">̂</mo></mover><mo stretchy="false" form="prefix">(</mo><msub><mover><mi>β</mi><mo accent="true">̂</mo></mover><mi>A</mi></msub><mo stretchy="false" form="postfix">)</mo></mrow><annotation encoding="application/x-tex">\widehat{\mathrm{Var}}(\hat\beta_A)</annotation></semantics></math>
-is the asymptotic variance estimated from the pilot data and
+is the asymptotic variance estimated from the reference data and
 <math display="inline" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mi>N</mi><annotation encoding="application/x-tex">N</annotation></semantics></math>
-is the total sample size.<br>
-Because the same IPCW model is used for all subjects, no cause-specific
-components appear in the variance.</p>
+is the total sample size. Because the same IPCW model is used for all
+subjects, no cause-specific components appear in the variance.</p>
 </div>
 </div>
 <div class="section level3">
@@ -1374,57 +1364,75 @@ mechanism.</p>
 5  5  90   F 1973 10.7   0.8    1.0     8     0    8     1      0   0
 6  6  90   M 1990 12.9   1.0    0.5     4     0    4     1      0   1</code></pre>
 <div class="section level4">
-<h4 id="power-calculation---dc-power-analytical">Power Calculation - <a href="../reference/DC.power.analytical.html"><code>DC.power.analytical</code></a><a class="anchor" aria-label="anchor" href="#power-calculation---dc-power-analytical"></a>
+<h4 id="power-calculation-4">Power Calculation<a class="anchor" aria-label="anchor" href="#power-calculation-4"></a>
 </h4>
-<p>This function estimates analytic power for the RMST regression under
-a single covariate-dependent censoring mechanism.</p>
+<p>Setting <code>dep_cens = TRUE</code> routes the call to the
+dependent-censoring adjusted estimator.</p>
 <div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">dc_power_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/DC.power.analytical.html">DC.power.analytical</a></span><span class="op">(</span></span>
-<span>   pilot_data <span class="op">=</span> <span class="va">mgus_prepared</span>,</span>
-<span>   time_var <span class="op">=</span> <span class="st">"time"</span>,</span>
-<span>   status_var <span class="op">=</span> <span class="st">"status"</span>,</span>
-<span>   arm_var <span class="op">=</span> <span class="st">"arm"</span>,</span>
-<span>   sample_sizes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">250</span>, <span class="fl">500</span><span class="op">)</span>,</span>
-<span>   linear_terms <span class="op">=</span> <span class="st">"age"</span>,</span>
-<span>   L <span class="op">=</span> <span class="fl">120</span>,   <span class="co"># 10 years</span></span>
-<span>   alpha <span class="op">=</span> <span class="fl">0.05</span></span>
+<code class="sourceCode R"><span><span class="va">dc_power_results</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/rmst.power.html">rmst.power</a></span><span class="op">(</span></span>
+<span>  <span class="fu">Surv</span><span class="op">(</span><span class="va">time</span>, <span class="va">status</span><span class="op">)</span> <span class="op">~</span> <span class="va">age</span>,</span>
+<span>  data         <span class="op">=</span> <span class="va">mgus_prepared</span>,</span>
+<span>  arm          <span class="op">=</span> <span class="st">"arm"</span>,</span>
+<span>  sample_sizes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">250</span>, <span class="fl">500</span><span class="op">)</span>,</span>
+<span>  L            <span class="op">=</span> <span class="fl">120</span>,</span>
+<span>  dep_cens     <span class="op">=</span> <span class="cn">TRUE</span>,</span>
+<span>  alpha        <span class="op">=</span> <span class="fl">0.05</span></span>
 <span><span class="op">)</span></span></code></pre></div>
 <table class="table table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <caption>
 Analytic Power Analysis under Covariate-Dependent Censoring
 </caption>
-<tbody><tr></tr></tbody>
+<thead><tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:left;">
+Statistic
+</th>
+<th style="text-align:right;">
+Value
+</th>
+</tr></thead>
+<tbody><tr>
+<td style="text-align:left;">
+arm
+</td>
+<td style="text-align:left;">
+Assumed RMST Difference (from pilot)
+</td>
+<td style="text-align:right;">
+-10.61349
+</td>
+</tr></tbody>
 </table>
 <p><img src="RMSTpowerBoost-Main_files/figure-html/unnamed-chunk-10-1.png" alt="" width="672" style="display: block; margin: auto;"></p>
 </div>
 <div class="section level4">
-<h4 id="sample-size-calculation---dc-ss-analytical">Sample-Size Calculation - <a href="../reference/DC.ss.analytical.html"><code>DC.ss.analytical</code></a><a class="anchor" aria-label="anchor" href="#sample-size-calculation---dc-ss-analytical"></a>
+<h4 id="sample-size-calculation-4">Sample-Size Calculation<a class="anchor" aria-label="anchor" href="#sample-size-calculation-4"></a>
 </h4>
 <p>We next estimate the per-arm sample size required to achieve 80%
 power at the same truncation time (10 years).</p>
-<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a>ss_dc_mgus <span class="ot">&lt;-</span> <span class="fu">DC.ss.analytical</span>(</span>
-<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>   <span class="at">pilot_data =</span> mgus_prepared,</span>
-<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a>   <span class="at">time_var =</span> <span class="st">"time"</span>,</span>
-<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a>   <span class="at">status_var =</span> <span class="st">"status"</span>,</span>
-<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a>   <span class="at">arm_var =</span> <span class="st">"arm"</span>,</span>
-<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a>   <span class="at">target_power =</span> <span class="fl">0.80</span>,</span>
-<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a>   <span class="at">linear_terms =</span> <span class="st">"age"</span>,</span>
-<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a>   <span class="at">L =</span> <span class="dv">120</span>,</span>
-<span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a>   <span class="at">alpha =</span> <span class="fl">0.05</span>,</span>
-<span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a>   <span class="at">n_start =</span> <span class="dv">100</span>, <span class="at">n_step =</span> <span class="dv">50</span>, <span class="at">max_n_per_arm =</span> <span class="dv">5000</span></span>
-<span id="cb18-11"><a href="#cb18-11" tabindex="-1"></a>)</span>
-<span id="cb18-12"><a href="#cb18-12" tabindex="-1"></a></span>
-<span id="cb18-13"><a href="#cb18-13" tabindex="-1"></a><span class="sc">---</span> Calculation Summary <span class="sc">---</span></span>
+<div class="sourceCode" id="cb18"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1" tabindex="-1"></a>ss_dc_mgus <span class="ot">&lt;-</span> <span class="fu">rmst.ss</span>(</span>
+<span id="cb18-2"><a href="#cb18-2" tabindex="-1"></a>  <span class="fu">Surv</span>(time, status) <span class="sc">~</span> age,</span>
+<span id="cb18-3"><a href="#cb18-3" tabindex="-1"></a>  <span class="at">data         =</span> mgus_prepared,</span>
+<span id="cb18-4"><a href="#cb18-4" tabindex="-1"></a>  <span class="at">arm          =</span> <span class="st">"arm"</span>,</span>
+<span id="cb18-5"><a href="#cb18-5" tabindex="-1"></a>  <span class="at">target_power =</span> <span class="fl">0.80</span>,</span>
+<span id="cb18-6"><a href="#cb18-6" tabindex="-1"></a>  <span class="at">L            =</span> <span class="dv">120</span>,</span>
+<span id="cb18-7"><a href="#cb18-7" tabindex="-1"></a>  <span class="at">dep_cens     =</span> <span class="cn">TRUE</span>,</span>
+<span id="cb18-8"><a href="#cb18-8" tabindex="-1"></a>  <span class="at">alpha        =</span> <span class="fl">0.05</span>,</span>
+<span id="cb18-9"><a href="#cb18-9" tabindex="-1"></a>  <span class="at">n_start =</span> <span class="dv">100</span>, <span class="at">n_step =</span> <span class="dv">50</span>, <span class="at">max_n =</span> <span class="dv">5000</span></span>
+<span id="cb18-10"><a href="#cb18-10" tabindex="-1"></a>)</span>
+<span id="cb18-11"><a href="#cb18-11" tabindex="-1"></a></span>
+<span id="cb18-12"><a href="#cb18-12" tabindex="-1"></a><span class="sc">---</span> Calculation Summary <span class="sc">---</span></span>
+<span id="cb18-13"><a href="#cb18-13" tabindex="-1"></a></span>
 <span id="cb18-14"><a href="#cb18-14" tabindex="-1"></a></span>
-<span id="cb18-15"><a href="#cb18-15" tabindex="-1"></a></span>
-<span id="cb18-16"><a href="#cb18-16" tabindex="-1"></a>Table<span class="sc">:</span> Required Sample Size</span>
-<span id="cb18-17"><a href="#cb18-17" tabindex="-1"></a></span>
-<span id="cb18-18"><a href="#cb18-18" tabindex="-1"></a><span class="sc">|</span> Target_Power<span class="sc">|</span> Required_N_per_Arm<span class="sc">|</span></span>
-<span id="cb18-19"><a href="#cb18-19" tabindex="-1"></a><span class="er">|</span><span class="sc">------------</span><span class="er">:|</span><span class="sc">------------------</span><span class="er">:|</span></span>
-<span id="cb18-20"><a href="#cb18-20" tabindex="-1"></a><span class="er">|</span>          <span class="fl">0.8</span><span class="sc">|</span>                <span class="dv">250</span><span class="sc">|</span></span></code></pre></div>
+<span id="cb18-15"><a href="#cb18-15" tabindex="-1"></a>Table<span class="sc">:</span> Required Sample Size</span>
+<span id="cb18-16"><a href="#cb18-16" tabindex="-1"></a></span>
+<span id="cb18-17"><a href="#cb18-17" tabindex="-1"></a><span class="sc">|</span> Target_Power<span class="sc">|</span> Required_N_per_Arm<span class="sc">|</span></span>
+<span id="cb18-18"><a href="#cb18-18" tabindex="-1"></a><span class="er">|</span><span class="sc">------------</span><span class="er">:|</span><span class="sc">------------------</span><span class="er">:|</span></span>
+<span id="cb18-19"><a href="#cb18-19" tabindex="-1"></a><span class="er">|</span>          <span class="fl">0.8</span><span class="sc">|</span>                <span class="dv">250</span><span class="sc">|</span></span></code></pre></div>
 <table class="table table table-striped" style="width: auto !important; margin-left: auto; margin-right: auto;">
 <caption>
-Estimated RMST Difference from Pilot Data
+Estimated RMST Difference from Reference Data
 </caption>
 <thead><tr>
 <th style="text-align:left;">
@@ -1456,18 +1464,16 @@ Assumed RMST Difference (from pilot)
 <div class="section level2">
 <h2 id="interactive-shiny-application">Interactive Shiny Application<a class="anchor" aria-label="anchor" href="#interactive-shiny-application"></a>
 </h2>
-<p>For users who prefer a graphical interface,
-<code>RMSTpowerBoost</code> provides an interactive Shiny web
-application that exposes the models and methods described in this
-vignette.</p>
+<p><code>RMSTpowerBoost</code> also includes a Shiny web application for
+users who prefer a graphical interface.</p>
 <div class="section level4">
 <h4 id="accessing-the-application">Accessing the Application<a class="anchor" aria-label="anchor" href="#accessing-the-application"></a>
 </h4>
 <p>There are two ways to access the application:</p>
 <ol style="list-style-type: decimal">
 <li>
-<p><strong>Live Web Version (Recommended)</strong>: Access the
-application directly in your browser without any installation.</p>
+<p><strong>Live Web Version</strong>: Access the application
+directly in your browser without any installation.</p>
 <ul>
 <li><a href="https://arnab96.shinyapps.io/uthsc-app/" class="external-link">Launch Web
 Application</a></li>
@@ -1484,40 +1490,34 @@ application on your own machine with the following command:</p></li>
 <h4 id="app-features">App Features<a class="anchor" aria-label="anchor" href="#app-features"></a>
 </h4>
 <ul>
-<li>
-<strong>Interactive Data Generation</strong>: Upload your pilot
-dataset in <code>.csv</code> format or generate data for analysis.</li>
-<li>
-<strong>Visual Column Mapping</strong>: Visually map the columns in
-your data to the required variables for the analysis (e.g., time,
-status, treatment arm).</li>
-<li>
-<strong>Full Model Selection</strong>: Choose the RMST model,
-calculation method (analytical or bootstrap), and the associated
-parameters through the interface.</li>
-<li>
-<strong>Rich Visualization</strong>: Execute the analysis and review
-the resulting data summary, Kaplan-Meier plot, analysis tables, and
-power curve within the application.</li>
-<li>
-<strong>Downloadable Reports</strong>: Export the completed analysis
-as either PDF or HTML.</li>
+<li>Upload a reference dataset or generate data inside the app.</li>
+<li>Map input columns to the variables required for the analysis.</li>
+<li>Select the RMST model, calculation method, and analysis
+parameters.</li>
+<li>Review data summaries, Kaplan-Meier plots, result tables, and power
+curves.</li>
+<li>Export the analysis as PDF or HTML.</li>
 </ul>
 </div>
 </div>
 <div class="section level2">
 <h2 id="conclusion">Conclusion<a class="anchor" aria-label="anchor" href="#conclusion"></a>
 </h2>
-<p>The <code>RMSTpowerBoost</code> package provides functions for
-RMST-based power and sample size calculations under linear, stratified,
-semiparametric, and covariate-dependent censoring models.</p>
-<p>In practice, these procedures depend on representative pilot data
+<p><code>RMSTpowerBoost</code> centers its interface on
+<code><a href="../reference/rmst.power.html">rmst.power()</a></code> and <code><a href="../reference/rmst.ss.html">rmst.ss()</a></code> for RMST-based
+power and sample size calculations under linear, stratified,
+semiparametric, and covariate-dependent censoring models. Both functions
+use the familiar <code>Surv(time, status) ~ covariates</code> syntax,
+with model choice controlled by a small set of arguments
+(<code>strata</code>, <code>strata_type</code>, <code>dep_cens</code>,
+<code>type</code>).</p>
+<p>In practice, these procedures depend on representative reference data
 because effect sizes and variance components are estimated from that
 dataset. Bootstrap-based methods can also require substantial
 computation.</p>
 <p>Future development could extend simulation-based procedures for
 covariate-dependent censoring and add more model diagnostic tools for
-checking the adequacy of pilot-data assumptions.</p>
+checking the adequacy of reference-data assumptions.</p>
 </div>
 <div class="section level2">
 <h2 class="unnumbered" id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>

@@ -4,18 +4,15 @@
 #'   semiparametric additive model for the RMST based on pseudo-observations.
 #'
 #' @details
-#' This function estimates power via a bootstrap simulation. It generates
-#' `n_sim` bootstrap samples from the pilot data (resampling within strata if
-#' a `strata_var` is provided). In each simulation, it performs these steps:
-#' 1.  Calculates jackknife pseudo-observations for the RMST for each subject.
-#' 2.  Fits a semiparametric additive model, typically a Generalized Additive Model
-#'     using `mgcv::gam`, to these pseudo-observations. The model formula can
-#'     include linear terms, non-linear smooth terms (`s()`), and interactions.
-#' 3.  Extracts the p-value for the treatment effect from the model summary.
+#' This function estimates power by bootstrap resampling the pilot data,
+#' computing RMST pseudo-observations, fitting a semiparametric additive model,
+#' and recording whether the treatment effect is significant. If `strata_var`
+#' is supplied, resampling is carried out within strata. The model formula can
+#' include linear terms, non-linear smooth terms (`s()`), and interactions.
 #'
-#' The final power is the proportion of simulations where the p-value is less
-#' than the significance level `alpha`. This pseudo-observation approach is an
-#' alternative to IPCW for direct RMST modeling.
+#' Power is estimated as the proportion of simulations with a treatment-effect
+#' p-value below `alpha`. This pseudo-observation approach models RMST directly
+#' without using the IPCW estimating equations used elsewhere in the package.
 #'
 #' @note `status_var` should be `1` for an event, `0` for censored. `arm_var`
 #'   should be `1` for treatment, `0` for control.
@@ -249,11 +246,9 @@ GAM.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var
 #'   using a flexible, semiparametric additive model for the RMST.
 #'
 #' @details
-#' This function iteratively searches for the sample size required to
-#' achieve a `target_power`. At each step, it runs a full bootstrap simulation
-#' (as described in `GAM.power.boot`) to estimate the power for the
-#' current sample size. The search proceeds until the target power is met or
-#' other stopping criteria are satisfied.
+#' This function increases the sample size step by step until the estimated
+#' power reaches `target_power` or a stopping rule is met. At each step it runs
+#' the same bootstrap procedure described in `GAM.power.boot`.
 #'
 #' @note This function's methodology is bootstrap-based.
 #'

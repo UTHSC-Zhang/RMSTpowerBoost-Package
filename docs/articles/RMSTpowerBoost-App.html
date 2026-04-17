@@ -61,16 +61,15 @@
 <div class="section level2">
 <h2 id="introduction">Introduction<a class="anchor" aria-label="anchor" href="#introduction"></a>
 </h2>
-<p>This vignette describes the current <code>RMSTpowerBoost</code> Shiny
-application. The app exposes the package’s RMST-based design methods
-through a workflow-oriented interface for either uploaded pilot data or
-app-generated simulated data.</p>
+<p>This vignette documents the <code>RMSTpowerBoost</code> Shiny
+application. The app supports analyses based on uploaded pilot data or
+data generated inside the app.</p>
 </div>
 <div class="section level2">
 <h2 id="workflow-overview">Workflow Overview<a class="anchor" aria-label="anchor" href="#workflow-overview"></a>
 </h2>
-<p>The application is organized as a staged workflow in the sidebar and
-a results workspace in the main panel.</p>
+<p>The sidebar holds the setup and analysis controls, and the main panel
+shows the resulting outputs.</p>
 <ol style="list-style-type: decimal">
 <li>
 <strong>Step 1. Data Source:</strong> choose whether to generate a
@@ -113,8 +112,8 @@ synthetic pilot datasets.</li>
 <li>Upload mode also exposes a downloadable template and a built-in test
 dataset loader.</li>
 <li>Each step has explicit <code>Confirm</code> and <code>Reset</code>
-buttons; there is also a workflow-level <code>Reset</code> button at the
-top of the app.</li>
+buttons; there is also a <code>Reset</code> button for the full app at
+the top.</li>
 </ul>
 </div>
 <div class="section level3">
@@ -213,13 +212,12 @@ complete.</p>
 <div class="section level2">
 <h2 id="main-panel-tabs">Main Panel Tabs<a class="anchor" aria-label="anchor" href="#main-panel-tabs"></a>
 </h2>
-<p>The main panel is organized into the tabs shown in the shipped
-UI.</p>
+<p>The main panel contains the tabs listed below.</p>
 <div class="section level3">
 <h3 id="pipeline">Pipeline<a class="anchor" aria-label="anchor" href="#pipeline"></a>
 </h3>
-<p>This tab summarizes the current workflow state and is the landing
-page when the app opens or resets.</p>
+<p>This tab summarizes the current app state and is the landing page
+when the app opens or resets.</p>
 </div>
 <div class="section level3">
 <h3 id="data">Data<a class="anchor" aria-label="anchor" href="#data"></a>
@@ -274,8 +272,8 @@ occur, or an imputation step leaves unresolved missingness.</p>
 <div class="section level3">
 <h3 id="about">About<a class="anchor" aria-label="anchor" href="#about"></a>
 </h3>
-<p>The <code>About</code> tab summarizes the app purpose and package
-context.</p>
+<p>The <code>About</code> tab gives a short overview of the app and the
+package.</p>
 <hr>
 </div>
 </div>

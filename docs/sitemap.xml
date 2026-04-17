@@ -11,6 +11,9 @@
 <url><loc>https://uthsc-zhang.github.io/RMSTpowerBoost-Package/reference/additive.ss.analytical.html</loc></url>
 <url><loc>https://uthsc-zhang.github.io/RMSTpowerBoost-Package/reference/aft_lognormal_L12_n150.html</loc></url>
 <url><loc>https://uthsc-zhang.github.io/RMSTpowerBoost-Package/reference/aft_weibull_L24_n200.html</loc></url>
+<url><loc>https://uthsc-zhang.github.io/RMSTpowerBoost-Package/reference/covar_binary.html</loc></url>
+<url><loc>https://uthsc-zhang.github.io/RMSTpowerBoost-Package/reference/covar_categorical.html</loc></url>
+<url><loc>https://uthsc-zhang.github.io/RMSTpowerBoost-Package/reference/covar_continuous.html</loc></url>
 <url><loc>https://uthsc-zhang.github.io/RMSTpowerBoost-Package/reference/DC.power.analytical.html</loc></url>
 <url><loc>https://uthsc-zhang.github.io/RMSTpowerBoost-Package/reference/DC.ss.analytical.html</loc></url>
 <url><loc>https://uthsc-zhang.github.io/RMSTpowerBoost-Package/reference/describe_generation.html</loc></url>
@@ -34,8 +37,14 @@
 <url><loc>https://uthsc-zhang.github.io/RMSTpowerBoost-Package/reference/rebuild_manifest.html</loc></url>
 <url><loc>https://uthsc-zhang.github.io/RMSTpowerBoost-Package/reference/recipe_grid.html</loc></url>
 <url><loc>https://uthsc-zhang.github.io/RMSTpowerBoost-Package/reference/recipe_quick_aft.html</loc></url>
+<url><loc>https://uthsc-zhang.github.io/RMSTpowerBoost-Package/reference/recipe_quick_ph.html</loc></url>
+<url><loc>https://uthsc-zhang.github.io/RMSTpowerBoost-Package/reference/rmst.power.html</loc></url>
+<url><loc>https://uthsc-zhang.github.io/RMSTpowerBoost-Package/reference/rmst.sim.html</loc></url>
+<url><loc>https://uthsc-zhang.github.io/RMSTpowerBoost-Package/reference/rmst.ss.html</loc></url>
+<url><loc>https://uthsc-zhang.github.io/RMSTpowerBoost-Package/reference/rmst_power_methods.html</loc></url>
 <url><loc>https://uthsc-zhang.github.io/RMSTpowerBoost-Package/reference/rmst_pwexp_strat_300.html</loc></url>
 <url><loc>https://uthsc-zhang.github.io/RMSTpowerBoost-Package/reference/rmst_small_50.html</loc></url>
+<url><loc>https://uthsc-zhang.github.io/RMSTpowerBoost-Package/reference/rmst_ss_methods.html</loc></url>
 <url><loc>https://uthsc-zhang.github.io/RMSTpowerBoost-Package/reference/run_app.html</loc></url>
 <url><loc>https://uthsc-zhang.github.io/RMSTpowerBoost-Package/reference/simulate_from_recipe.html</loc></url>
 <url><loc>https://uthsc-zhang.github.io/RMSTpowerBoost-Package/reference/validate_recipe.html</loc></url>

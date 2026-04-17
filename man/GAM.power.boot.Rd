@@ -55,20 +55,15 @@ Performs a power analysis for given sample sizes using a flexible,
 semiparametric additive model for the RMST based on pseudo-observations.
 }
 \details{
-This function estimates power via a bootstrap simulation. It generates
-\code{n_sim} bootstrap samples from the pilot data (resampling within strata if
-a \code{strata_var} is provided). In each simulation, it performs these steps:
-\enumerate{
-\item Calculates jackknife pseudo-observations for the RMST for each subject.
-\item Fits a semiparametric additive model, typically a Generalized Additive Model
-using \code{mgcv::gam}, to these pseudo-observations. The model formula can
+This function estimates power by bootstrap resampling the pilot data,
+computing RMST pseudo-observations, fitting a semiparametric additive model,
+and recording whether the treatment effect is significant. If \code{strata_var}
+is supplied, resampling is carried out within strata. The model formula can
 include linear terms, non-linear smooth terms (\code{s()}), and interactions.
-\item Extracts the p-value for the treatment effect from the model summary.
-}
 
-The final power is the proportion of simulations where the p-value is less
-than the significance level \code{alpha}. This pseudo-observation approach is an
-alternative to IPCW for direct RMST modeling.
+Power is estimated as the proportion of simulations with a treatment-effect
+p-value below \code{alpha}. This pseudo-observation approach models RMST directly
+without using the IPCW estimating equations used elsewhere in the package.
 }
 \note{
 \code{status_var} should be \code{1} for an event, \code{0} for censored. \code{arm_var}

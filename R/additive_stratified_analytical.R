@@ -3,17 +3,18 @@
 #'   analytic variance estimator based on the method of Zhang & Schaubel (2024).
 #'
 #' @details
-#' This function implements the power calculation for the semiparametric additive
-#' model for RMST, given by \eqn{\mu_{ij} = \mu_{0j} + \beta'Z_i}, where `i` is the
-#' subject and `j` is the stratum.
+#' This function computes power for the semiparametric additive RMST model
+#' \eqn{\mu_{ij} = \mu_{0j} + \beta'Z_i}, where `i` indexes subjects and `j`
+#' indexes strata.
 #'
-#' The method uses Inverse Probability of Censoring Weighting (IPCW), where weights are
-#' derived from a stratified Cox model on the censoring times. The regression
-#' coefficient \eqn{\hat{\beta}} is estimated using a closed-form solution that
-#' involves centering the covariates and RMST values within each stratum.
+#' The method uses Inverse Probability of Censoring Weighting (IPCW), with
+#' weights derived from a stratified Cox model for the censoring times. The
+#' regression coefficient \eqn{\hat{\beta}} is estimated by centering the
+#' covariates and RMST values within each stratum and then solving the
+#' resulting estimating equations in closed form.
 #'
-#' Power is determined analytically from the asymptotic sandwich variance of \eqn{\hat{\beta}}.
-#' This implementation uses a robust variance estimator of the form
+#' Power is obtained from the asymptotic sandwich variance of \eqn{\hat{\beta}}.
+#' This implementation uses the robust variance estimator
 #' \eqn{A_n^{-1} B_n (A_n^{-1})'}, where \eqn{A_n} and \eqn{B_n} are empirical
 #' estimates of the variance components.
 #'
@@ -255,12 +256,10 @@ additive.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
 #'   method for a stratified, additive RMST model.
 #'
 #' @details
-#' This function performs an iterative search for the sample size required to
-#' achieve a specified `target_power`. It uses the same underlying theory as
-#' `additive.power.analytical`, based on stratum-centering of covariates. It performs
-#' a one-time estimation of the additive treatment effect and its asymptotic variance
-#' from the pilot data, then uses these parameters in an analytic formula to
-#' efficiently find the required sample size.
+#' This function estimates the additive treatment effect and its asymptotic
+#' variance once from the pilot data, then increases the per-stratum sample
+#' size until the target power is reached or the search limit is hit. It uses
+#' the same stratum-centering framework as `additive.power.analytical`.
 #'
 #' @param pilot_data A `data.frame` containing pilot study data.
 #' @param time_var A character string for the time-to-event variable.

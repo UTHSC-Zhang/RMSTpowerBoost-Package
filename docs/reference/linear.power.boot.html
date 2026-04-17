@@ -129,8 +129,7 @@ should be <code>1</code> for treatment, <code>0</code> for control.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="kw">if</span> <span class="op">(</span><span class="cn">FALSE</span><span class="op">)</span> <span class="op">{</span> <span class="co"># \dontrun{</span></span></span>
-<span class="r-in"><span><span class="va">pilot_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">pilot_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">0.1</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  status <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">1</span>, <span class="fl">0.7</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  arm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">1</span>, each <span class="op">=</span> <span class="fl">50</span><span class="op">)</span>,</span></span>
@@ -149,9 +148,31 @@ should be <code>1</code> for treatment, <code>0</code> for control.</p>
 <span class="r-in"><span>  L <span class="op">=</span> <span class="fl">10</span>,</span></span>
 <span class="r-in"><span>  n_sim <span class="op">=</span> <span class="fl">200</span> <span class="co"># Use more simulations in practice (e.g., 1000)</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> --- Calculating Power (Method: Linear RMST with IPCW) ---</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Model: Y_rmst ~ arm + age</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Simulating for n = 100 per arm...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Simulating for n = 150 per arm...</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Simulating for n = 200 per arm...</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Total simulation time: 2.59 seconds</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> --- Simulation Summary ---</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> Table: Estimated Treatment Effect (RMST Difference)</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |Statistic            |     Value|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |:--------------------|---------:|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |Mean RMST Difference | 1.5554654|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |Mean Standard Error  | 0.3889167|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |95% CI Lower         | 0.8396978|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |95% CI Upper         | 2.2712330|</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">power_results</span><span class="op">$</span><span class="va">results_data</span><span class="op">)</span></span></span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N_per_Arm Power</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1       100 0.830</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2       150 0.940</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3       200 0.985</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">power_results</span><span class="op">$</span><span class="va">results_plot</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="op">}</span> <span class="co"># }</span></span></span>
+<span class="r-plt img"><img src="linear.power.boot-1.png" alt="" width="700" height="433"></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

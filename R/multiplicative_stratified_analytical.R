@@ -216,12 +216,10 @@ MS.power.analytical <- function(pilot_data, time_var, status_var, arm_var, strat
 #'   (approximate) method from Wang et al. (2019).
 #'
 #' @details
-#' This function performs an iterative search for the sample size required to
-#' achieve a specified `target_power`. It uses the same underlying theory and
-#' log-linear approximation as `MS.power.analytical`. It performs a one-time
-#' estimation of the log-RMST ratio and its asymptotic variance from the pilot data,
-#' then uses these parameters in an analytic formula to efficiently find the
-#' required sample size.
+#' This function estimates the log-RMST ratio and its asymptotic variance once
+#' from the pilot data, then increases the per-stratum sample size until the
+#' target power is reached or the search limit is hit. It uses the same
+#' log-linear approximation as `MS.power.analytical`.
 #'
 #' @param pilot_data A `data.frame` containing pilot study data.
 #' @param time_var A character string for the time-to-event variable.

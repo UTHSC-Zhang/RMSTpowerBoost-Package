@@ -183,8 +183,7 @@
 #' Power analysis for RMST-based models via formula interface
 #'
 #' @description
-#' A high-level wrapper that routes to the appropriate underlying power function
-#' based on the formula, strata, and model type arguments.
+#' Routes a formula-based call to the matching RMST power routine.
 #'
 #' @param formula A formula of the form \code{Surv(time, status) ~ cov1 + cov2}.
 #'   Use \code{s()} wrapping (mgcv style) for smooth terms: \code{Surv(time, status) ~ s(age)}.
@@ -278,8 +277,7 @@ rmst.power <- function(formula,
 #' Sample size estimation for RMST-based models via formula interface
 #'
 #' @description
-#' A high-level wrapper that routes to the appropriate underlying sample-size
-#' function based on the formula, strata, and model type arguments.
+#' Routes a formula-based call to the matching RMST sample-size routine.
 #'
 #' @param formula A formula of the form \code{Surv(time, status) ~ cov1 + cov2}.
 #' @param data A \code{data.frame} containing the reference (pilot) data.
@@ -387,8 +385,7 @@ rmst.ss <- function(formula,
 
 #' Print an rmst_power result
 #'
-#' Displays model metadata and the computed power table returned by
-#' [rmst.power()].
+#' Prints the model metadata and power table returned by [rmst.power()].
 #'
 #' @param x An object returned by [rmst.power()].
 #' @param ... Additional arguments passed to or from other methods.
@@ -425,8 +422,7 @@ print.rmst_power <- function(x, ...) {
 
 #' Print an rmst_ss result
 #'
-#' Displays model metadata and the computed sample-size table returned by
-#' [rmst.ss()].
+#' Prints the model metadata and sample-size table returned by [rmst.ss()].
 #'
 #' @param x An object returned by [rmst.ss()].
 #' @param ... Additional arguments passed to or from other methods.
@@ -464,7 +460,7 @@ print.rmst_ss <- function(x, ...) {
 
 #' Summarize an rmst_power result
 #'
-#' Builds a structured summary object for reporting and downstream printing.
+#' Returns a summary object for printing and further inspection.
 #'
 #' @param object An object returned by [rmst.power()].
 #' @param ... Additional arguments passed to or from other methods.
@@ -503,7 +499,7 @@ summary.rmst_power <- function(object, ...) {
 
 #' Summarize an rmst_ss result
 #'
-#' Builds a structured summary object for reporting and downstream printing.
+#' Returns a summary object for printing and further inspection.
 #'
 #' @param object An object returned by [rmst.ss()].
 #' @param ... Additional arguments passed to or from other methods.
@@ -632,7 +628,7 @@ print.summary.rmst_ss <- function(x, ...) {
 
 #' Plot an rmst_power result
 #'
-#' Prints and returns the `ggplot2` object stored in the analysis result.
+#' Prints and returns the stored `ggplot2` object.
 #'
 #' @param x An object returned by [rmst.power()].
 #' @param ... Additional arguments passed to or from other methods.
@@ -648,7 +644,7 @@ plot.rmst_power <- function(x, ...) {
 
 #' Plot an rmst_ss result
 #'
-#' Prints and returns the `ggplot2` object stored in the analysis result.
+#' Prints and returns the stored `ggplot2` object.
 #'
 #' @param x An object returned by [rmst.ss()].
 #' @param ... Additional arguments passed to or from other methods.

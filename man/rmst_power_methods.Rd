@@ -27,10 +27,9 @@ An object of class \code{"summary.rmst_power"}.
 A \code{ggplot2} object, invisibly.
 }
 \description{
-Displays model metadata and the computed power table returned by
-\code{\link[=rmst.power]{rmst.power()}}.
+Prints the model metadata and power table returned by \code{\link[=rmst.power]{rmst.power()}}.
 
-Builds a structured summary object for reporting and downstream printing.
+Returns a summary object for printing and further inspection.
 
-Prints and returns the \code{ggplot2} object stored in the analysis result.
+Prints and returns the stored \code{ggplot2} object.
 }

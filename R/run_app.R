@@ -82,8 +82,8 @@
 #' Launch the RMSTpowerBoost Shiny Application
 #'
 #' @description
-#' A helper to launch the interactive Shiny application bundled with the package.
-#' App-specific dependencies are installed lazily when needed.
+#' Launches the Shiny application bundled with the package.
+#' App-specific dependencies are installed only when they are needed.
 #'
 #' @param install_missing Logical; if `TRUE`, prompt to install missing app
 #'   dependencies.
@@ -93,8 +93,8 @@
 #' @return Invisible return value from `shiny::runApp()`.
 #' @export
 #'
-#' @examples
-#'   RMSTpowerBoost::run_app()
+#' @examplesIf interactive()
+#' RMSTpowerBoost::run_app()
 run_app <- function(install_missing = TRUE, repos = getOption("repos")) {
    .ensure_app_dependencies(install_missing = install_missing, repos = repos)
 

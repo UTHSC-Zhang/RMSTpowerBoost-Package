@@ -55,12 +55,10 @@ Calculates the required sample size for a target power using the analytic
 method for a stratified, additive RMST model.
 }
 \details{
-This function performs an iterative search for the sample size required to
-achieve a specified \code{target_power}. It uses the same underlying theory as
-\code{additive.power.analytical}, based on stratum-centering of covariates. It performs
-a one-time estimation of the additive treatment effect and its asymptotic variance
-from the pilot data, then uses these parameters in an analytic formula to
-efficiently find the required sample size.
+This function estimates the additive treatment effect and its asymptotic
+variance once from the pilot data, then increases the per-stratum sample
+size until the target power is reached or the search limit is hit. It uses
+the same stratum-centering framework as \code{additive.power.analytical}.
 }
 \examples{
 set.seed(123)

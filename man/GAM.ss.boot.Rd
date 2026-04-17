@@ -67,11 +67,9 @@ Performs an iterative sample size search to achieve a target power
 using a flexible, semiparametric additive model for the RMST.
 }
 \details{
-This function iteratively searches for the sample size required to
-achieve a \code{target_power}. At each step, it runs a full bootstrap simulation
-(as described in \code{GAM.power.boot}) to estimate the power for the
-current sample size. The search proceeds until the target power is met or
-other stopping criteria are satisfied.
+This function increases the sample size step by step until the estimated
+power reaches \code{target_power} or a stopping rule is met. At each step it runs
+the same bootstrap procedure described in \code{GAM.power.boot}.
 }
 \note{
 This function's methodology is bootstrap-based.

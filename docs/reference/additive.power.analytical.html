@@ -107,15 +107,16 @@ analytic variance estimator based on the method of Zhang &amp; Schaubel (2024).<
 </dl></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>This function implements the power calculation for the semiparametric additive
-model for RMST, given by \(\mu_{ij} = \mu_{0j} + \beta'Z_i\), where <code>i</code> is the
-subject and <code>j</code> is the stratum.</p>
-<p>The method uses Inverse Probability of Censoring Weighting (IPCW), where weights are
-derived from a stratified Cox model on the censoring times. The regression
-coefficient \(\hat{\beta}\) is estimated using a closed-form solution that
-involves centering the covariates and RMST values within each stratum.</p>
-<p>Power is determined analytically from the asymptotic sandwich variance of \(\hat{\beta}\).
-This implementation uses a robust variance estimator of the form
+    <p>This function computes power for the semiparametric additive RMST model
+\(\mu_{ij} = \mu_{0j} + \beta'Z_i\), where <code>i</code> indexes subjects and <code>j</code>
+indexes strata.</p>
+<p>The method uses Inverse Probability of Censoring Weighting (IPCW), with
+weights derived from a stratified Cox model for the censoring times. The
+regression coefficient \(\hat{\beta}\) is estimated by centering the
+covariates and RMST values within each stratum and then solving the
+resulting estimating equations in closed form.</p>
+<p>Power is obtained from the asymptotic sandwich variance of \(\hat{\beta}\).
+This implementation uses the robust variance estimator
 \(A_n^{-1} B_n (A_n^{-1})'\), where \(A_n\) and \(B_n\) are empirical
 estimates of the variance components.</p>
     </div>

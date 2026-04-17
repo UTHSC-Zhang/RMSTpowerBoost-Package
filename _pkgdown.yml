@@ -9,6 +9,8 @@ template:
     - vignettes/css/extra.css
 navbar:
   left:
+    - text: "Overview"
+      href: articles/index.html
     - text: "R Package"
       href: articles/RMSTpowerBoost-Main.html
     - text: "Data Generation"
@@ -24,6 +26,7 @@ navbar:
 articles:
   - title: Guides
     contents:
+      - index
       - RMSTpowerBoost-Main
       - RMSTpowerBoost-DataGen
       - RMSTpowerBoost-App

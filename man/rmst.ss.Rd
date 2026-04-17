@@ -62,8 +62,7 @@ An object of class \code{c("rmst_ss", "list")} with elements
 \code{model_output}, and \code{.meta}.
 }
 \description{
-A high-level wrapper that routes to the appropriate underlying sample-size
-function based on the formula, strata, and model type arguments.
+Routes a formula-based call to the matching RMST sample-size routine.
 }
 \examples{
 r <- rmst.ss(Surv(time, status) ~ age,

@@ -36,7 +36,7 @@ set.seed(1)
 
 # Quick start with `rmst.sim()`
 
-For common cases — AFT or PH baseline, random censoring, standard covariate distributions — `rmst.sim()` provides a single-call interface. Use `covar_continuous()`, `covar_binary()`, and `covar_categorical()` to specify covariates without building nested lists by hand.
+For common settings — AFT or PH baseline, random censoring, and standard covariate distributions — `rmst.sim()` generates data from one function call. Use `covar_continuous()`, `covar_binary()`, and `covar_categorical()` to define covariates directly.
 
 ```{r quick_start, eval=TRUE}
 df <- rmst.sim(
