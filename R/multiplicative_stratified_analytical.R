@@ -1,4 +1,4 @@
-﻿# Power Calculation -------------------------------------------------------
+# Power Calculation -------------------------------------------------------
 
 #' @title Analyze Power for a Multiplicative Stratified RMST Model (Analytic)
 #' @description Performs power analysis for a multiplicative, stratified RMST model using an

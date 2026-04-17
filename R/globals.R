@@ -1,4 +1,4 @@
-﻿# This file is used to declare global variables to satisfy R CMD check.
+# This file is used to declare global variables to satisfy R CMD check.
 # These variables are used in dplyr and ggplot2 pipelines and are not
 # actual global variables in the user's session.
 

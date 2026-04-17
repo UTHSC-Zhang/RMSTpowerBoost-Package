@@ -1,4 +1,4 @@
-﻿#' @title Analyze Power for a Stratified Additive RMST Model (Analytic)
+#' @title Analyze Power for a Stratified Additive RMST Model (Analytic)
 #' @description Performs power analysis for a stratified, additive RMST model using the
 #'   analytic variance estimator based on the method of Zhang & Schaubel (2024).
 #'

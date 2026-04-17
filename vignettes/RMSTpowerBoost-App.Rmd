@@ -24,7 +24,8 @@ knitr::opts_chunk$set(
   echo = TRUE,
   message = FALSE,
   warning = FALSE,
-  cache = FALSE
+  cache = FALSE,
+  cache.path = "cache/RMSTpowerBoost-App/"
 )
 ```
 

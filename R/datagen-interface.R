@@ -1,4 +1,4 @@
-﻿# datagen-interface.R â€” Convenient data generation wrappers
+# datagen-interface.R â€” Convenient data generation wrappers
 # Provides covariate helpers, recipe_quick_ph(), rmst.sim(), and S3 methods.
 
 # â”€â”€ Internal helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

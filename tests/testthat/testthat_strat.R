@@ -25,7 +25,7 @@ test_that("MS.power.boot returns correct structure", {
       sample_sizes = c(60), L = 10, n_sim = 10
    )
    expect_type(results, "list")
-   expect_named(results, c("results_data", "results_plot", "results_summary"))
+   expect_named(results, c("results_data", "results_plot", "results_summary", "model_output"))
    expect_s3_class(results$results_data, "data.frame")
    expect_named(results$results_data, c("N_per_Stratum", "Power"))
 })
@@ -56,7 +56,7 @@ test_that("MS.power.analytical returns correct structure", {
       sample_sizes = c(80, 100), L = 10
    )
    expect_type(results, "list")
-   expect_named(results, c("results_data", "results_plot"))
+   expect_named(results, c("results_data", "results_plot", "results_summary", "model_output"))
 })
 
 

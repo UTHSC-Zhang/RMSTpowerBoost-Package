@@ -1,4 +1,4 @@
-﻿
+
 # R/generate_sets.R
 # Generate datasets to disk (CSV/TXT/RDS/RData) + manifest. No L/tau recorded.
 

@@ -1,4 +1,4 @@
-﻿# rmst-interface.R â€” High-level wrappers rmst.power() and rmst.ss()
+# rmst-interface.R â€” High-level wrappers rmst.power() and rmst.ss()
 # with formula interface, routing logic, and S3 methods.
 
 # â”€â”€ Internal helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -7,7 +7,7 @@
 #' @noRd
 .parse_rmst_formula <- function(formula) {
   lhs <- formula[[2L]]
-  if (!is.call(lhs) || !identical(as.character(lhs[[1L]]), "Surv"))
+  if (!is.call(lhs) || !identical(tail(as.character(lhs[[1L]]), 1L), "Surv"))
     stop("LHS of formula must be Surv(time, status).", call. = FALSE)
   tt     <- stats::terms(formula)
   labels <- attr(tt, "term.labels")
@@ -385,6 +385,17 @@ rmst.ss <- function(formula,
   paste0(mt, " (", md, ")")
 }
 
+#' Print an rmst_power result
+#'
+#' Displays model metadata and the computed power table returned by
+#' [rmst.power()].
+#'
+#' @param x An object returned by [rmst.power()].
+#' @param ... Additional arguments passed to or from other methods.
+#'
+#' @return The input object `x`, invisibly.
+#'
+#' @rdname rmst_power_methods
 #' @export
 print.rmst_power <- function(x, ...) {
   meta  <- x$.meta
@@ -412,6 +423,17 @@ print.rmst_power <- function(x, ...) {
   invisible(x)
 }
 
+#' Print an rmst_ss result
+#'
+#' Displays model metadata and the computed sample-size table returned by
+#' [rmst.ss()].
+#'
+#' @param x An object returned by [rmst.ss()].
+#' @param ... Additional arguments passed to or from other methods.
+#'
+#' @return The input object `x`, invisibly.
+#'
+#' @rdname rmst_ss_methods
 #' @export
 print.rmst_ss <- function(x, ...) {
   meta  <- x$.meta
@@ -440,6 +462,16 @@ print.rmst_ss <- function(x, ...) {
 
 # â”€â”€ S3 methods â€” summary â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+#' Summarize an rmst_power result
+#'
+#' Builds a structured summary object for reporting and downstream printing.
+#'
+#' @param object An object returned by [rmst.power()].
+#' @param ... Additional arguments passed to or from other methods.
+#'
+#' @return An object of class `"summary.rmst_power"`.
+#'
+#' @rdname rmst_power_methods
 #' @export
 summary.rmst_power <- function(object, ...) {
   meta <- object$.meta
@@ -469,6 +501,16 @@ summary.rmst_power <- function(object, ...) {
   )
 }
 
+#' Summarize an rmst_ss result
+#'
+#' Builds a structured summary object for reporting and downstream printing.
+#'
+#' @param object An object returned by [rmst.ss()].
+#' @param ... Additional arguments passed to or from other methods.
+#'
+#' @return An object of class `"summary.rmst_ss"`.
+#'
+#' @rdname rmst_ss_methods
 #' @export
 summary.rmst_ss <- function(object, ...) {
   meta <- object$.meta
@@ -588,12 +630,32 @@ print.summary.rmst_ss <- function(x, ...) {
 
 # â”€â”€ S3 methods â€” plot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+#' Plot an rmst_power result
+#'
+#' Prints and returns the `ggplot2` object stored in the analysis result.
+#'
+#' @param x An object returned by [rmst.power()].
+#' @param ... Additional arguments passed to or from other methods.
+#'
+#' @return A `ggplot2` object, invisibly.
+#'
+#' @rdname rmst_power_methods
 #' @export
 plot.rmst_power <- function(x, ...) {
   print(x$results_plot)
   invisible(x$results_plot)
 }
 
+#' Plot an rmst_ss result
+#'
+#' Prints and returns the `ggplot2` object stored in the analysis result.
+#'
+#' @param x An object returned by [rmst.ss()].
+#' @param ... Additional arguments passed to or from other methods.
+#'
+#' @return A `ggplot2` object, invisibly.
+#'
+#' @rdname rmst_ss_methods
 #' @export
 plot.rmst_ss <- function(x, ...) {
   print(x$results_plot)

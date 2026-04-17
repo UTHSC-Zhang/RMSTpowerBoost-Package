@@ -38,7 +38,7 @@ test_that("DC.power.analytical returns correct structure", {
    )
 
    expect_type(results, "list")
-   expect_named(results, c("results_data", "results_plot", "results_summary"))
+   expect_named(results, c("results_data", "results_plot", "results_summary", "model_output"))
    expect_s3_class(results$results_data, "data.frame")
    expect_s3_class(results$results_plot, "ggplot")
    expect_s3_class(results$results_summary, "data.frame")
@@ -59,7 +59,7 @@ test_that("DC.ss.analytical returns correct structure", {
       L = 15
    ))
    expect_type(results, "list")
-   expect_named(results, c("results_data", "results_plot", "results_summary"))
+   expect_named(results, c("results_data", "results_plot", "results_summary", "model_output"))
    expect_gt(results$results_data$Required_N_per_Arm, 0)
 })
 

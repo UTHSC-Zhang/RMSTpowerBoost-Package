@@ -1,4 +1,4 @@
-﻿# R/describe_generation.R
+# R/describe_generation.R
 
 #' Summarize a generated dataset and its simulation mechanism
 #'

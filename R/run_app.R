@@ -1,4 +1,4 @@
-﻿# Internal app dependency package list.
+# Internal app dependency package list.
 # @noRd
 .app_dependency_packages <- function() {
    c(
@@ -19,8 +19,13 @@
 }
 
 # @noRd
+.is_interactive_session <- function() {
+   interactive()
+}
+
+# @noRd
 .prompt_install_app_dependencies <- function(missing) {
-   if (!interactive()) return(FALSE)
+   if (!.is_interactive_session()) return(FALSE)
    choice <- utils::menu(
       choices = c("Install missing app dependencies", "Cancel launch"),
       title = paste0(

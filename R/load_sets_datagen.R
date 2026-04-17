@@ -1,4 +1,4 @@
-﻿
+
 # R/load_sets.R
 # Read manifest + datasets back. No L/tau reattachment.
 

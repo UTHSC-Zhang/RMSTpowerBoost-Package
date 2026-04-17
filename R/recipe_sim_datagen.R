@@ -1,4 +1,4 @@
-﻿
+
 # R/recipe_sim.R
 # Core list-only simulation engine. No YAML. No L/tau anywhere (analysis horizon is external).
 
@@ -176,7 +176,7 @@ validate_recipe <- function(recipe) {
 #' @export
 gen_covariates <- function(n, covariates) {
   defs <- covariates$defs %||% list()
-  if (!length(defs)) return(data.frame())
+  if (!length(defs)) return(data.frame(matrix(nrow = n, ncol = 0L)))
   out <- vector("list", length(defs))
   names(out) <- vapply(defs, function(d) d$name, character(1))
   for (i in seq_along(defs)) {
@@ -337,6 +337,12 @@ gen_covariates <- function(n, covariates) {
       k <- baseline$shape; lam <- baseline$scale
       u <- stats::runif(n)
       return( lam * (-log(u) / exp(eta))^(1/k) )
+   }
+   if (model == "ph_gompertz") {
+      alpha <- baseline$rate    # baseline hazard level
+      gamma <- baseline$shape   # growth parameter (>0)
+      u <- stats::runif(n)
+      return( log(1 - log(u) * gamma / (alpha * exp(eta))) / gamma )
    }
    if (model %in% c("ph_pwexp", "cox_pwexp")) {
       rates <- baseline$rates

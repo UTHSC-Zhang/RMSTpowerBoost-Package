@@ -226,7 +226,8 @@ test_that("rmst.power strata as formula sets strata metadata", {
   r <- rmst.power(survival::Surv(time, status) ~ age,
                   data = pilot_s, arm = "arm",
                   sample_sizes = c(30L), L = 5,
-                  strata = ~region)
+                  strata = ~region,
+                  strata_type = "multiplicative")
   expect_identical(r$.meta$strata, "region")
 })
 
@@ -234,7 +235,8 @@ test_that("rmst.power strata as character string sets strata metadata", {
   r <- rmst.power(survival::Surv(time, status) ~ age,
                   data = pilot_s, arm = "arm",
                   sample_sizes = c(30L), L = 5,
-                  strata = "region")
+                  strata = "region",
+                  strata_type = "multiplicative")
   expect_identical(r$.meta$strata, "region")
 })
 
@@ -272,7 +274,7 @@ test_that("rmst.power errors on formula without Surv() LHS", {
 test_that("rmst.ss linear analytical returns rmst_ss with 5-element structure", {
   r <- rmst.ss(survival::Surv(time, status) ~ age,
                data = pilot, arm = "arm",
-               target_power = 0.80, L = 5,
+               target_power = 0.02, L = 5,
                n_start = 20L, n_step = 10L, max_n = 60L)
   expect_s3_class(r, "rmst_ss")
   expect_named(r, c("results_data", "results_plot", "results_summary",
@@ -311,7 +313,8 @@ test_that("print.rmst_power shows strata line when strata is non-NULL", {
   r   <- rmst.power(survival::Surv(time, status) ~ age,
                     data = pilot_s, arm = "arm",
                     sample_sizes = c(30L), L = 5,
-                    strata = "region")
+                    strata = "region",
+                    strata_type = "multiplicative")
   out <- capture.output(print(r))
   expect_true(any(grepl("Strata", out)))
 })
@@ -332,7 +335,7 @@ test_that("print.rmst_power shows Note when type was auto-switched", {
 test_that("print.rmst_ss prints without error and returns x invisibly", {
   r   <- rmst.ss(survival::Surv(time, status) ~ age,
                  data = pilot, arm = "arm",
-                 target_power = 0.80, L = 5,
+                 target_power = 0.02, L = 5,
                  n_start = 20L, n_step = 10L, max_n = 60L)
   out <- capture.output(ret <- print(r))
   expect_identical(ret, r)
@@ -373,7 +376,8 @@ test_that("summary.rmst_power strata meta shows non-None Strata field", {
   r <- rmst.power(survival::Surv(time, status) ~ age,
                   data = pilot_s, arm = "arm",
                   sample_sizes = c(30L), L = 5,
-                  strata = "region")
+                  strata = "region",
+                  strata_type = "multiplicative")
   s <- summary(r)
   expect_identical(s$model_info$Strata, "region")
 })
@@ -383,7 +387,7 @@ test_that("summary.rmst_power strata meta shows non-None Strata field", {
 test_that("summary.rmst_ss returns summary.rmst_ss with required fields", {
   r <- rmst.ss(survival::Surv(time, status) ~ age,
                data = pilot, arm = "arm",
-               target_power = 0.80, L = 5,
+               target_power = 0.02, L = 5,
                n_start = 20L, n_step = 10L, max_n = 60L)
   s <- summary(r)
   expect_s3_class(s, "summary.rmst_ss")
@@ -464,7 +468,7 @@ test_that("print.summary.rmst_power mock covers all optional output sections", {
 test_that("print.summary.rmst_ss prints all sections and returns x invisibly", {
   r   <- rmst.ss(survival::Surv(time, status) ~ age,
                  data = pilot, arm = "arm",
-                 target_power = 0.80, L = 5,
+                 target_power = 0.02, L = 5,
                  n_start = 20L, n_step = 10L, max_n = 60L)
   s   <- summary(r)
   out <- capture.output(ret <- print(s))
@@ -485,7 +489,7 @@ test_that("plot.rmst_power returns ggplot invisibly without error", {
 test_that("plot.rmst_ss returns ggplot invisibly without error", {
   r   <- rmst.ss(survival::Surv(time, status) ~ age,
                  data = pilot, arm = "arm",
-                 target_power = 0.80, L = 5,
+                 target_power = 0.02, L = 5,
                  n_start = 20L, n_step = 10L, max_n = 60L)
   ret <- expect_no_error(plot(r))
   expect_true(inherits(ret, "ggplot"))

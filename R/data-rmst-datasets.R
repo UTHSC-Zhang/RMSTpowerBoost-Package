@@ -1,4 +1,4 @@
-﻿# R/data-aft-and-ph-examples.R
+# R/data-aft-and-ph-examples.R
 
 #' Simulated dataset: AFT log-normal, L = 12, n = 150
 #'

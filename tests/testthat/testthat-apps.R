@@ -31,7 +31,7 @@ test_that("analytical functions return structured outputs", {
     pilot_data = pilot, time_var = "time", status_var = "status", arm_var = "arm",
     sample_sizes = c(10, 20), linear_terms = "age", L = 5
   )
-  expect_named(lin_power, c("results_data", "results_plot", "results_summary"))
+  expect_named(lin_power, c("results_data", "results_plot", "results_summary", "model_output"))
   expect_s3_class(lin_power$results_plot, "ggplot")
 
   lin_ss <- linear.ss.analytical(
@@ -91,7 +91,7 @@ test_that("bootstrap functions return expected structures", {
     strata_var = "region", sample_sizes = c(8), linear_terms = "age",
     L = 5, n_sim = 2, alpha = 0.1, parallel.cores = 1
   )
-  expect_named(add_power, c("results_data", "results_plot", "results_summary"))
+  expect_named(add_power, c("results_data", "results_plot", "results_summary", "model_output"))
 
   add_ss <- GAM.ss.boot(
     pilot_data = pilot_strat, time_var = "time", status_var = "status", arm_var = "arm",
@@ -221,7 +221,13 @@ test_that(".install_command_for builds an install.packages call from the supplie
 })
 
 test_that(".prompt_install_app_dependencies returns FALSE in non-interactive sessions", {
-  expect_false(RMSTpowerBoost:::.prompt_install_app_dependencies(c("shiny", "mice")))
+  testthat::with_mocked_bindings(
+    {
+      expect_false(RMSTpowerBoost:::.prompt_install_app_dependencies(c("shiny", "mice")))
+    },
+    .is_interactive_session = function() FALSE,
+    .package = "RMSTpowerBoost"
+  )
 })
 
 test_that(".prompt_install_app_dependencies honors the user's menu selection when interactive", {
@@ -238,8 +244,8 @@ test_that(".prompt_install_app_dependencies honors the user's menu selection whe
     {
       expect_true(RMSTpowerBoost:::.prompt_install_app_dependencies(c("shiny")))
     },
-    interactive = function() TRUE,
-    .package = "base"
+    .is_interactive_session = function() TRUE,
+    .package = "RMSTpowerBoost"
   )
 
   assign("menu", function(choices, title = NULL) 2L, envir = utils_ns)
@@ -247,8 +253,8 @@ test_that(".prompt_install_app_dependencies honors the user's menu selection whe
     {
       expect_false(RMSTpowerBoost:::.prompt_install_app_dependencies(c("shiny")))
     },
-    interactive = function() TRUE,
-    .package = "base"
+    .is_interactive_session = function() TRUE,
+    .package = "RMSTpowerBoost"
   )
 })
 

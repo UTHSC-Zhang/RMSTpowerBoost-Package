@@ -1,4 +1,4 @@
-﻿#' @title Internal Factory for RMST Simulation Functions (Bootstrap)
+#' @title Internal Factory for RMST Simulation Functions (Bootstrap)
 #' @description This is a non-exported helper function that sets up and returns
 #'   another function responsible for running the core bootstrap simulation logic. This
 #'   factory pattern helps reduce code duplication between the public-facing

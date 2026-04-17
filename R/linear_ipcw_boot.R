@@ -1,4 +1,4 @@
-﻿# Power Calculation -------------------------------------------------------
+# Power Calculation -------------------------------------------------------
 
 #' @title Analyze Power for a Linear RMST Model via Simulation
 #' @description Performs a power analysis for given sample sizes based on the direct

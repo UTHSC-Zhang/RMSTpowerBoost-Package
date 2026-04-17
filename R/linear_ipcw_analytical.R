@@ -1,4 +1,4 @@
-﻿# Power Calculation -------------------------------------------------------------------
+# Power Calculation -------------------------------------------------------------------
 
 
 #' @title Analyze Power for a Linear RMST Model (Analytic)

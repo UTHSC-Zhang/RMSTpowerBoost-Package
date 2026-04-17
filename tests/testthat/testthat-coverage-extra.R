@@ -122,12 +122,12 @@ test_that("bootstrap functions cover smooth and linear terms", {
     L = 3, alpha = 0.1, n_sim = 2, parallel.cores = 1
   )
   expect_true(is.list(sim))
-  expect_named(sim, c("results_data", "results_plot", "results_summary"))
+  expect_named(sim, c("results_data", "results_plot", "results_summary", "model_output"))
 
   sim_lin <- linear.power.boot(
     pilot_data = pilot, time_var = "time", status_var = "status", arm_var = "arm",
     sample_sizes = c(5), linear_terms = "age", L = 3, alpha = 0.1, n_sim = 2
   )
   expect_true(is.list(sim_lin))
-  expect_named(sim_lin, c("results_data", "results_plot", "results_summary"))
+  expect_named(sim_lin, c("results_data", "results_plot", "results_summary", "model_output"))
 })

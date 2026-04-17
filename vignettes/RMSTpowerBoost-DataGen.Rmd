@@ -22,8 +22,9 @@ vignette: >
 is_pkgdown <- identical(Sys.getenv("IN_PKGDOWN"), "true")
 knitr::opts_chunk$set(
   collapse = TRUE,
-  cache = FALSE,                
-  cache.lazy = FALSE,            
+  cache = FALSE,
+  cache.path = "cache/RMSTpowerBoost-DataGen/",
+  cache.lazy = FALSE,
   autodep = TRUE,
   comment = NA,
   fig.width = 6, fig.height = 4,
@@ -32,6 +33,41 @@ knitr::opts_chunk$set(
 library(RMSTpowerBoost)
 set.seed(1)
 ```
+
+# Quick start with `rmst.sim()`
+
+For common cases — AFT or PH baseline, random censoring, standard covariate distributions — `rmst.sim()` provides a single-call interface. Use `covar_continuous()`, `covar_binary()`, and `covar_categorical()` to specify covariates without building nested lists by hand.
+
+```{r quick_start, eval=TRUE}
+df <- rmst.sim(
+  n              = 200,
+  model          = "aft_lognormal",
+  baseline       = list(mu = 2.5, sigma = 0.6),
+  treat_effect   = -0.25,
+  covariates     = list(
+    covar_continuous("age",  mean = 62, sd = 10),
+    covar_binary("sex",      p = 0.45),
+    covar_continuous("x",    dist = "lognormal", meanlog = 0, sdlog = 0.5)
+  ),
+  target_censoring = 0.25,
+  L    = 36,
+  seed = 42
+)
+
+print(df)
+```
+
+The result is a data frame of class `rmst_simdata`. Pass it directly to `rmst.power()` or `rmst.ss()`:
+
+```r
+rmst.power(Surv(time, status) ~ age + sex + x,
+           data = df, arm = "arm",
+           sample_sizes = c(100, 200, 300), L = 36)
+```
+
+For designs requiring explicit covariate-dependent censoring, stratified assignment, or frailty, use the full recipe system described below.
+
+---
 
 # What this covers
 

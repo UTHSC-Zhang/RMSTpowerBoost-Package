@@ -32,6 +32,12 @@ docs/
 # vignettes/RMSTSS.Rmd
 
 ^vignettes/.*_cache/
+^vignettes/cache$
+^vignettes/cache/
+^vignettes/.*[.]html$
+^vignettes/.*[.]R$
+^vignettes/.*_files$
+^vignettes/.*_files/
 ^.*_cache/
 ^.*[.]Rproj$
 ^\.Rproj\.user$

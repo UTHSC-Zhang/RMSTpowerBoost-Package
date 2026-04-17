@@ -37,7 +37,7 @@ test_that("GAM.power.boot works for non-stratified case", {
    )
    # CORRECTED: Use expect_type for a base list
    expect_type(results, "list")
-   expect_named(results, c("results_data", "results_plot", "results_summary"))
+   expect_named(results, c("results_data", "results_plot", "results_summary", "model_output"))
    expect_s3_class(results$results_data, "data.frame")
    expect_named(results$results_data, c("N_per_Group", "Power"))
 })

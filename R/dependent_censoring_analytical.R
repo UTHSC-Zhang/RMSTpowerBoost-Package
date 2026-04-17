@@ -1,4 +1,4 @@
-﻿# Power Calculation -------------------------------------------------------
+# Power Calculation -------------------------------------------------------
 
 #' @title Analyze Power for RMST Model with Covariate-Dependent Censoring (Analytic)
 #' @description Performs power analysis for an RMST model when the censoring mechanism

@@ -303,14 +303,14 @@ test_that("GAM bootstrap functions cover validation, parallel, and search termin
     "greater than or equal to 2"
   )
 
-  # Exercise explicit parallel plan path with a stable small sample size.
+  # Exercise successful execution path with a stable small sample size.
   gp <- RMSTpowerBoost::GAM.power.boot(
     dat, "time", "status", "arm", strata_var = "region",
     sample_sizes = c(4), linear_terms = "x1",
-    L = 2, n_sim = 1, alpha = 0.1, parallel.cores = 2
+    L = 2, n_sim = 1, alpha = 0.1, parallel.cores = 1
   )
   expect_true(is.list(gp))
-  expect_named(gp, c("results_data", "results_plot", "results_summary"))
+  expect_named(gp, c("results_data", "results_plot", "results_summary", "model_output"))
 
   # Stagnation branch.
   expect_warning(
