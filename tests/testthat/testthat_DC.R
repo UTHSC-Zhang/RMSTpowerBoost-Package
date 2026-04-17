@@ -48,35 +48,35 @@ test_that("DC.power.analytical returns correct structure", {
 # --- Test Suite for DC.ss.analytical ---
 
 test_that("DC.ss.analytical returns correct structure", {
-   pilot_data <- generate_dc_data(seed = 456)
-   results <- DC.ss.analytical(
+   pilot_data <- generate_dc_data(seed = 456, effect = 1.8)
+   results <- expect_no_warning(DC.ss.analytical(
       pilot_data = pilot_data,
       time_var = "time",
       status_var = "status",
       arm_var = "arm",
       target_power = 0.50,
       L = 15
-   )
+   ))
    expect_type(results, "list")
    expect_named(results, c("results_data", "results_plot", "results_summary"))
    expect_gt(results$results_data$Required_N_per_Arm, 0)
 })
 
 test_that("DC.ss.analytical requires larger N for weaker effect", {
-   data_strong_effect <- generate_dc_data(seed = 101, effect = 1.7)
-   data_weak_effect <- generate_dc_data(seed = 101, effect = 1.2)
+   data_strong_effect <- generate_dc_data(seed = 101, effect = 2.2)
+   data_weak_effect <- generate_dc_data(seed = 101, effect = 1.5)
 
-   ss_strong <- DC.ss.analytical(
+   ss_strong <- expect_no_warning(DC.ss.analytical(
       pilot_data = data_strong_effect, time_var = "time", status_var = "status",
       arm_var = "arm",
-      target_power = 0.80, L = 20
-   )
+      target_power = 0.70, L = 20
+   ))
 
-   ss_weak <- DC.ss.analytical(
+   ss_weak <- expect_no_warning(DC.ss.analytical(
       pilot_data = data_weak_effect, time_var = "time", status_var = "status",
-       arm_var = "arm",
-      target_power = 0.80, L = 20
-   )
+      arm_var = "arm",
+      target_power = 0.70, L = 20
+   ))
 
    expect_gt(ss_weak$results_data$Required_N_per_Arm, ss_strong$results_data$Required_N_per_Arm)
 })

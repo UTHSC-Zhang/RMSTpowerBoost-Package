@@ -14,8 +14,8 @@
 #' and power is derived from a sandwich variance that ignores uncertainty from
 #' estimating \eqn{\hat G}.
 #'
-#' Note: \code{dep_cens_status_var} is accepted for API compatibility but is
-#' ignored under this setting (no competing risks are modeled).
+#' Note: This implementation models a single censoring process and does not
+#' handle competing risks.
 #'
 #' @param pilot_data A `data.frame` with pilot data.
 #' @param time_var Name of the time-to-event variable.
@@ -134,7 +134,8 @@ DC.power.analytical <- function(pilot_data,
 #' and fits a weighted RMST regression. Treatment is excluded from the censoring model
 #' by default. Competing risks are not modeled. Variance ignores uncertainty in \eqn{\hat G}.
 #'
-#' Note: \code{dep_cens_status_var} is accepted for API compatibility but ignored here.
+#' Note: This implementation models a single censoring process and does not
+#' handle competing risks.
 #'
 #' @param pilot_data A `data.frame` containing pilot study data.
 #' @param time_var Time variable.

@@ -3,10 +3,11 @@ library(testthat)
 
 # --- Test Data Setup ---
 # CORRECTED: Increased the size of the pilot data to make bootstrap tests more stable.
+set.seed(1003)
 pilot_data_mult_strat <- data.frame(
    time = stats::rexp(300, rate = 0.15),
    status = stats::rbinom(300, 1, 0.7),
-   arm = rep(0:1, each = 150),
+   arm = rep(c(rep(0, 50), rep(1, 50)), times = 3),
    region = factor(rep(c("A", "B", "C"), each = 100)),
    age = stats::rnorm(300, 55, 8)
 )
@@ -34,12 +35,12 @@ test_that("MS.power.boot returns correct structure", {
 
 test_that("MS.ss.boot finds a plausible N", {
    set.seed(456)
-   results <- MS.ss.boot(
+   results <- expect_no_warning(MS.ss.boot(
       pilot_data = pilot_data_mult_strat,
       time_var = "time", status_var = "status", arm_var = "arm", strata_var = "region",
       target_power = 0.7, L = 10, n_sim = 10,
       n_start = 50, n_step = 50, patience = 2
-   )
+   ))
    expect_s3_class(results$results_data, "data.frame")
    expect_true(results$results_data$Required_N_per_Stratum > 0)
 })
@@ -92,9 +93,6 @@ test_that("Analytical and Bootstrap methods give comparable results for multipli
       n_sim = 10 # CORRECTED: Reduced n_sim to make test faster
    )$results_data$Power
 
-   # Add a check to ensure power_boot is not NaN before comparison
-   skip_if(is.nan(power_boot), "Bootstrap power calculation resulted in NaN")
-   # Check that the result is a valid probability, which is a more robust test for low n_sim
-   expect_true(is.numeric(power_boot) && power_boot >= 0 && power_boot <= 1)
+   expect_true(is.numeric(power_boot) && is.finite(power_boot) && power_boot >= 0 && power_boot <= 1)
 })
 

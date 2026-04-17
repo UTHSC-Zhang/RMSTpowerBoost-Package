@@ -39,7 +39,7 @@ A \code{list} with:
 }
 \description{
 Performs power analysis for an RMST model when the censoring mechanism
-depends on observed covariates. Competing risks are not modeled here.
+depends on observed covariates.
 }
 \details{
 This function assumes a single censoring process whose hazard depends on covariates
@@ -51,6 +51,6 @@ The RMST regression \eqn{E[Y_i \mid A_i,X_i]} is then fit by weighted least squa
 and power is derived from a sandwich variance that ignores uncertainty from
 estimating \eqn{\hat G}.
 
-Note: \code{dep_cens_status_var} is accepted for API compatibility but is
-ignored under this setting (no competing risks are modeled).
+Note: This implementation models a single censoring process and does not
+handle competing risks.
 }

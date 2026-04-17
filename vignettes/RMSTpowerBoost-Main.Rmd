@@ -47,7 +47,7 @@ library(RMSTpowerBoost)
 
 The design and analysis of clinical trials with time-to-event endpoints often rely on hazard-based methods such as the proportional hazards (PH) model and use the hazard ratio (HR) as the primary estimand of treatment effect. However, the HR can be difficult to interpret clinically, especially when treatment effects vary over time. Moreover, the key assumption underlying most hazard-based methods - proportional hazards - is often tenuous or violated in practice.
 
-As an alternative, the **Restricted Mean Survival Time (RMST)** provides a direct summary of average event-free time up to a pre-specified follow-up point, $L$ [@royston2013; @uno2014]. This yields an interpretable measure of treatment benefit, for example, an average gain of several months of survival over a clinically relevant horizon.
+As an alternative, the **Restricted Mean Survival Time (RMST)** provides a direct summary of average event-free time up to a pre-specified follow-up point, $L$ [@royston2013; @uno2014]. This yields an interpretable treatment contrast, for example, an average gain of several months of survival over a clinically relevant horizon.
 
 Modern statistical methods also model the RMST directly as a function of baseline covariates rather than estimating it only from a survival curve or hazard model. This direct approach, based on work using Inverse Probability of Censoring Weighting (IPCW) [@tian2014], has been extended to accommodate stratification in multi-center studies [@wang2019; @zhang2024] and covariate-dependent censoring [@wang2018].
 
@@ -55,7 +55,7 @@ However, most software tools for these advanced methods focus on analyzing exist
 
 The `RMSTpowerBoost` package addresses this design problem by providing tools for **power and sample size calculations** based on direct RMST methodologies from the recent literature. The package implements several key approaches:
 
-* **Generalized Linear Models**: The foundational regression model for RMST with IPCW-based estimation [@tian2014].
+* **Linear IPCW Models**: A direct regression model for RMST with IPCW-based estimation [@tian2014].
 * **Stratified Models**: Efficient methods for studies with a large number of strata (e.g., clinical centers), including both **additive** [@zhang2024] and **multiplicative** [@wang2019] models.
 * **Dependent Censoring Models**: Methods for handling covariate-dependent censoring [@wang2018].
 * **Flexible Non-Linear Models**: Bootstrap-based functions using Generalized Additive Models (GAMs) to capture non-linear covariate effects.
@@ -74,7 +74,7 @@ $$
 \beta_0 + \beta_{\text{effect}}\,\mathrm{Trt}_i + \beta_2^{\top} Z_i,
 $$
 
-where \(L\) is the restriction time, and \( \beta_{\text{effect}} \) represents the average treatment effect on the RMST scale, that is, the expected gain in event-free time attributable to treatment. The quantity \( \beta_{\text{effect}} \) therefore defines the **effect size**. All analytical power and sample size functions in `RMSTpowerBoost` use this parameterization as their foundation.
+where \(L\) is the restriction time, and \( \beta_{\text{effect}} \) represents the modeled treatment contrast on the RMST scale, that is, the expected difference in event-free time between treatment arms after adjustment for the included covariates. The quantity \( \beta_{\text{effect}} \) therefore defines the **effect size** used throughout the analytical power and sample size functions in `RMSTpowerBoost`.
 
 
 ## The Analytic Method (`.analytical` functions)
@@ -96,7 +96,7 @@ The analytical functions are fast because they use a direct mathematical formula
 
 ## The Bootstrap Method (`.boot` functions)
 
-The bootstrap functions provide a robust, simulation-based alternative that makes fewer assumptions about the data's distribution. This is a trade-off, as they are much more computationally intensive. The process is:
+The bootstrap functions provide a simulation-based alternative that relies less on closed-form analytic approximations. This is a trade-off, as they are much more computationally intensive. The process is:
 
 1.  **Resample**: The function simulates a "future trial" of a given `sample_size` by resampling with replacement from the `pilot_data`.
 2.  **Fit Model**: On this new bootstrap sample, it performs the full analysis (e.g., calculating weights or pseudo-observations and fitting the specified model).
@@ -382,7 +382,7 @@ The multiplicative model, based on the work of [@wang2019], is defined as:
 $$\mu_{ij} = \mu_{0j} \exp(\beta'Z_i)$$
 In this model, the covariates $Z_i$ have a **multiplicative** effect on the baseline stratum-specific RMST, $\mu_{0j}$. This structure is equivalent to a linear model on the log-RMST.
 
-While the formal estimation of $\beta$ requires a complex iterative solver, this package uses a practical and computationally efficient approximation. It fits a weighted log-linear model (`lm(log(Y_rmst) ~ ...)`) to the data, which provides robust estimates for the effect size (the log-RMST ratio) and its variance.
+While the formal estimation of $\beta$ requires a complex iterative solver, this package uses a practical and computationally efficient approximation. It fits a weighted log-linear model (`lm(log(Y_rmst) ~ ...)`) to the data, which provides an approximate estimate of the effect size (the log-RMST ratio) and its variance.
 
 
 
@@ -430,7 +430,7 @@ ms_ss_results_colon$results_plot +
 
 ## Bootstrap Methods
 
-The bootstrap approach provides a more robust, simulation-based analysis for the multiplicative model.
+The bootstrap approach provides a simulation-based analysis for the multiplicative model.
 
 ### Power Calculation - [`MS.power.boot`](../reference/MS.power.boot.html)
 
@@ -577,7 +577,7 @@ ss_gam$results_plot +
 
 In many observational or longitudinal studies, the probability of being censored may depend on measured subject characteristics such as age, disease stage, or biomarker level, but **not** on the unobserved event time after conditioning on those covariates.  
 This setting is referred to as **covariate-dependent (or conditionally independent) censoring**.  
-Inverse-probability-of-censoring weighting (IPCW) accounts for this dependence under the stated model while preserving unbiased estimation of the restricted mean survival time (RMST).
+Inverse-probability-of-censoring weighting (IPCW) can account for this dependence under the stated model and support valid estimation of the restricted mean survival time (RMST).
 
 ## Theory and Model
 
@@ -722,5 +722,4 @@ In practice, these procedures depend on representative pilot data because effect
 Future development could extend simulation-based procedures for covariate-dependent censoring and add more model diagnostic tools for checking the adequacy of pilot-data assumptions.
 
 # References
-
 

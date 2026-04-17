@@ -15,7 +15,8 @@
 #'
 #' The final power for a given sample size is the proportion of the `n_sim` simulations
 #' where this p-value is less than the significance level `alpha`. This simulation-based
-#' approach is robust but can be computationally intensive.
+#' approach can be useful when analytic approximations are less reliable, but it can
+#' be computationally intensive.
 #'
 #' @note `status_var` should be `1` for an event, `0` for censored. `arm_var`
 #'   should be `1` for treatment, `0` for control.

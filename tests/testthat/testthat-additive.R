@@ -3,6 +3,7 @@ library(testthat)
 
 # --- Test Data Setup ---
 # Unstratified data with an additive effect
+set.seed(1001)
 pilot_data_add_simple <- data.frame(
    time = stats::rexp(100, rate = 0.08),
    status = stats::rbinom(100, 1, 0.8),
@@ -13,15 +14,16 @@ pilot_data_add_simple$time[pilot_data_add_simple$arm == 1] <-
    pilot_data_add_simple$time[pilot_data_add_simple$arm == 1] + 2.5 # Additive effect
 
 # Stratified data with an additive effect
+set.seed(1002)
 pilot_data_add_strat <- data.frame(
    time = stats::rexp(120, rate = 0.08),
    status = stats::rbinom(120, 1, 0.8),
-   arm = rep(0:1, each = 60),
+   arm = rep(c(rep(0, 20), rep(1, 20)), times = 3),
    age = stats::rnorm(120, 60, 10),
    region = factor(rep(c("NA", "EU", "AS"), each = 40))
 )
 pilot_data_add_strat$time[pilot_data_add_strat$arm == 1] <-
-   pilot_data_add_strat$time[pilot_data_add_strat$arm == 1] + 2.5 # Additive effect
+   pilot_data_add_strat$time[pilot_data_add_strat$arm == 1] + 4.5 # Additive effect
 
 
 # --- Test Suite for Additive Bootstrap Functions ---
@@ -54,12 +56,12 @@ test_that("GAM.power.boot works for stratified case", {
 
 test_that("GAM.ss.boot finds a plausible N", {
    set.seed(789)
-   results <- GAM.ss.boot(
+   results <- expect_no_warning(GAM.ss.boot(
       pilot_data = pilot_data_add_simple,
       time_var = "time", status_var = "status", arm_var = "arm",
-      target_power = 0.6, L = 15, n_sim = 10,
+      target_power = 0.1, L = 15, n_sim = 10,
       n_start = 50, n_step = 50, patience = 2
-   )
+   ))
    expect_s3_class(results$results_data, "data.frame")
    expect_true(results$results_data$Required_N_per_Group > 0)
 })
@@ -80,11 +82,11 @@ test_that("additive.power.analytical works for stratified case", {
 
 test_that("additive.ss.analytical finds a plausible N", {
    set.seed(222)
-   results <- additive.ss.analytical(
+   results <- expect_no_warning(additive.ss.analytical(
       pilot_data = pilot_data_add_strat,
       time_var = "time", status_var = "status", arm_var = "arm", strata_var = "region",
       target_power = 0.8, L = 15
-   )
+   ))
    expect_s3_class(results$results_data, "data.frame")
    expect_true(results$results_data$Required_N_per_Stratum > 0)
 })

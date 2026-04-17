@@ -53,8 +53,6 @@ The sidebar on the left contains all the controls for setting up and running you
 
 This is the starting point of your analysis.
 
-*[Suggest placing a screenshot of the "Setup & Model" panel here]*
-
   * **Upload Pilot Data (.csv):** Click the "Browse..." button to upload a CSV file containing your pilot or historical study data. This data is essential, as the application will use it to estimate the treatment effect and data variability needed for the calculations.
   * **Select RMST Model:** Choose the statistical model that best fits your trial's design and assumptions. The available models are:
       * **`Linear IPCW Model`**: The standard model for single-center studies, assuming covariates have a linear effect on the RMST.
@@ -66,8 +64,6 @@ This is the starting point of your analysis.
 ## 2\. Column Mapping
 
 After uploading data and selecting a model, this panel appears. You must map the columns from your CSV file to the variables the model needs to run.
-
-*[Suggest placing a screenshot of the "Column Mapping" panel here]*
 
   * **Time-to-Event:** Select the column that contains the time data (e.g., `time`, `futime`).
   * **Status (1=event):** Select the column indicating event status. By convention, this column should contain `1` for an event and `0` for a censored observation.
@@ -85,8 +81,6 @@ Depending on the model you chose in the first panel, additional mapping options 
 
 This panel contains the core settings for the calculation itself.
 
-*[Suggest placing a screenshot of the "Analysis Parameters" panel here]*
-
   * **Target Quantity:**
       * **`Power`**: Choose this if you want to calculate the statistical power for a given set of sample sizes.
       * **`Sample Size`**: Choose this if you want to find the required sample size to achieve a specific target power.
@@ -102,8 +96,6 @@ This panel contains the core settings for the calculation itself.
 ## 4\. Bootstrap Options
 
 This panel only appears if you have selected a model that uses the **Bootstrap** calculation method (either by choice or because it's the only method available, like for the GAM model).
-
-*[Suggest placing a screenshot of the "Bootstrap Options" panel here]*
 
   * **Simulations:** The number of bootstrap simulations to run (`n_sim`). Higher numbers lead to more stable results but take longer. A value of `1000` is often recommended for final analyses.
   * **Parallel Cores:** The number of CPU cores to use for the simulation. Using more than `1` can significantly speed up the calculation on multi-core computers.

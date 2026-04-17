@@ -7,7 +7,7 @@ make_small_pilot <- function(n = 40, stratified = FALSE) {
     x1 = stats::rnorm(n)
   )
   if (stratified) {
-    dat$region <- factor(rep(c("A", "B"), length.out = n))
+    dat$region <- factor(rep(c("A", "A", "B", "B"), length.out = n))
   }
   dat
 }
@@ -285,14 +285,14 @@ test_that("GAM bootstrap functions cover validation, parallel, and search termin
     .package = "base"
   )
 
-  # Exercise pseudo-observation n==1 and n==0 branches (expected unstable fit errors).
+  # Exercise small-sample validation branches.
   expect_error(
     RMSTpowerBoost::GAM.power.boot(
       dat, "time", "status", "arm", strata_var = "region",
       sample_sizes = c(1), linear_terms = "x1",
       L = 2, n_sim = 1, alpha = 0.1, parallel.cores = 1
     ),
-    "infinite or missing|Canceling all iterations"
+    "greater than or equal to 2"
   )
   expect_error(
     RMSTpowerBoost::GAM.power.boot(
@@ -300,7 +300,7 @@ test_that("GAM bootstrap functions cover validation, parallel, and search termin
       sample_sizes = c(0), linear_terms = "x1",
       L = 2, n_sim = 1, alpha = 0.1, parallel.cores = 1
     ),
-    "second argument must be a list|Canceling all iterations"
+    "greater than or equal to 2"
   )
 
   # Exercise explicit parallel plan path with a stable small sample size.
@@ -334,14 +334,14 @@ test_that("GAM bootstrap functions cover validation, parallel, and search termin
     "not achieved by max N"
   )
 
-  expect_warning(
+  expect_error(
     RMSTpowerBoost::GAM.ss.boot(
       dat, "time", "status", "arm", strata_var = "region",
       target_power = 0.9, linear_terms = "x1",
       L = 2, n_sim = 1, alpha = 0.1, parallel.cores = 1,
       patience = 1, n_start = 1, n_step = 1, max_n_per_arm = 2
     ),
-    "stagnation|Canceling all iterations|NaNs produced"
+    "greater than or equal to 2"
   )
   expect_error(
     RMSTpowerBoost::GAM.ss.boot(
@@ -350,6 +350,6 @@ test_that("GAM bootstrap functions cover validation, parallel, and search termin
       L = 2, n_sim = 1, alpha = 0.1, parallel.cores = 1,
       patience = 1, n_start = 0, n_step = 1, max_n_per_arm = 1
     ),
-    "second argument must be a list|Canceling all iterations"
+    "greater than or equal to 2"
   )
 })

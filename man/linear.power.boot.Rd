@@ -58,7 +58,8 @@ For each bootstrap sample, it performs the following steps:
 
 The final power for a given sample size is the proportion of the \code{n_sim} simulations
 where this p-value is less than the significance level \code{alpha}. This simulation-based
-approach is robust but can be computationally intensive.
+approach can be useful when analytic approximations are less reliable, but it can
+be computationally intensive.
 }
 \note{
 \code{status_var} should be \code{1} for an event, \code{0} for censored. \code{arm_var}

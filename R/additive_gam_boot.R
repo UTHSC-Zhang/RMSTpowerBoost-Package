@@ -77,6 +77,10 @@ GAM.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var
                            parallel.cores = 1) {
    start_time <- proc.time()
    if (is.null(sample_sizes)) stop("You must provide a numeric vector for 'sample_sizes'.")
+   if (!is.numeric(sample_sizes) || any(!is.finite(sample_sizes)) ||
+       any(sample_sizes < 2) || any(sample_sizes != floor(sample_sizes))) {
+      stop("'sample_sizes' must contain integers greater than or equal to 2.")
+   }
    if (parallel.cores > 1) {
       if (!requireNamespace("future", quietly = TRUE) || !requireNamespace("future.apply", quietly = TRUE)) {
          stop("Packages 'future' and 'future.apply' are required for parallel processing.")
@@ -161,9 +165,15 @@ GAM.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var
             p_table <- sfit$p.table
             matching_rows <- grep(test_term_pattern, rownames(p_table), fixed = FALSE)
             if (length(matching_rows) > 0) {
-               p_val <- min(p_table[matching_rows, "Pr(>|t|)"], na.rm = TRUE)
-               est_val <- mean(p_table[matching_rows, "Estimate"], na.rm = TRUE)
-               se_val <- mean(p_table[matching_rows, "Std. Error"], na.rm = TRUE)
+               matched_p <- p_table[matching_rows, "Pr(>|t|)"]
+               matched_est <- p_table[matching_rows, "Estimate"]
+               matched_se <- p_table[matching_rows, "Std. Error"]
+               finite_p <- matched_p[is.finite(matched_p)]
+               finite_est <- matched_est[is.finite(matched_est)]
+               finite_se <- matched_se[is.finite(matched_se)]
+               if (length(finite_p) > 0) p_val <- min(finite_p)
+               if (length(finite_est) > 0) est_val <- mean(finite_est)
+               if (length(finite_se) > 0) se_val <- mean(finite_se)
             }
          }
          return(list(p_value = p_val, estimate = est_val, std_error = se_val))
@@ -172,8 +182,9 @@ GAM.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var
       p_values <- vapply(sim_results_list, `[[`, "p_value", FUN.VALUE = numeric(1))
       estimates <- vapply(sim_results_list, `[[`, "estimate", FUN.VALUE = numeric(1))
       std_errors <- vapply(sim_results_list, `[[`, "std_error", FUN.VALUE = numeric(1))
+      finite_p_values <- p_values[is.finite(p_values)]
 
-      all_sim_outputs[[i]] <- list(power = mean(p_values < alpha, na.rm = TRUE),
+      all_sim_outputs[[i]] <- list(power = if (length(finite_p_values) > 0) mean(finite_p_values < alpha) else 0,
                                    estimates = estimates,
                                    std_errors = std_errors)
    }
@@ -293,6 +304,21 @@ GAM.ss.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var = 
    if (is.null(target_power) || length(target_power) != 1 || !is.numeric(target_power)) {
       stop("You must provide a single numeric value for 'target_power'.")
    }
+    if (!is.numeric(n_start) || length(n_start) != 1 || !is.finite(n_start) ||
+        n_start < 2 || n_start != floor(n_start)) {
+       stop("'n_start' must be a single integer greater than or equal to 2.")
+    }
+    if (!is.numeric(n_step) || length(n_step) != 1 || !is.finite(n_step) ||
+        n_step < 1 || n_step != floor(n_step)) {
+       stop("'n_step' must be a single positive integer.")
+    }
+    if (!is.numeric(max_n_per_arm) || length(max_n_per_arm) != 1 || !is.finite(max_n_per_arm) ||
+        max_n_per_arm < 2 || max_n_per_arm != floor(max_n_per_arm)) {
+       stop("'max_n_per_arm' must be a single integer greater than or equal to 2.")
+    }
+    if (max_n_per_arm < n_start) {
+       stop("'max_n_per_arm' must be greater than or equal to 'n_start'.")
+    }
    if (parallel.cores > 1) {
       if (!requireNamespace("future", quietly = TRUE) || !requireNamespace("future.apply", quietly = TRUE)) {
          stop("Packages 'future' and 'future.apply' are required for parallel processing.")
@@ -382,9 +408,15 @@ GAM.ss.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var = 
             p_table <- sfit$p.table
             matching_rows <- grep(test_term_pattern, rownames(p_table), fixed = FALSE)
             if (length(matching_rows) > 0) {
-               p_val <- min(p_table[matching_rows, "Pr(>|t|)"], na.rm = TRUE)
-               est_val <- mean(p_table[matching_rows, "Estimate"], na.rm = TRUE)
-               se_val <- mean(p_table[matching_rows, "Std. Error"], na.rm = TRUE)
+               matched_p <- p_table[matching_rows, "Pr(>|t|)"]
+               matched_est <- p_table[matching_rows, "Estimate"]
+               matched_se <- p_table[matching_rows, "Std. Error"]
+               finite_p <- matched_p[is.finite(matched_p)]
+               finite_est <- matched_est[is.finite(matched_est)]
+               finite_se <- matched_se[is.finite(matched_se)]
+               if (length(finite_p) > 0) p_val <- min(finite_p)
+               if (length(finite_est) > 0) est_val <- mean(finite_est)
+               if (length(finite_se) > 0) se_val <- mean(finite_se)
             }
          }
          return(list(p_value = p_val, estimate = est_val, std_error = se_val))
@@ -393,7 +425,8 @@ GAM.ss.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var = 
       p_values <- vapply(sim_results_list, `[[`, "p_value", FUN.VALUE = numeric(1))
       estimates <- vapply(sim_results_list, `[[`, "estimate", FUN.VALUE = numeric(1))
       std_errors <- vapply(sim_results_list, `[[`, "std_error", FUN.VALUE = numeric(1))
-      sim_output <- list(power = mean(p_values < alpha, na.rm = TRUE),
+      finite_p_values <- p_values[is.finite(p_values)]
+      sim_output <- list(power = if (length(finite_p_values) > 0) mean(finite_p_values < alpha) else 0,
                          estimates = estimates, std_errors = std_errors)
 
       calculated_power <- if(is.finite(sim_output$power)) sim_output$power else 0

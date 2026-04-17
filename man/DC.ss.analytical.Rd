@@ -56,5 +56,6 @@ Uses a single censoring Cox model \code{Surv(time, status==0) ~ linear_terms} to
 and fits a weighted RMST regression. Treatment is excluded from the censoring model
 by default. Competing risks are not modeled. Variance ignores uncertainty in \eqn{\hat G}.
 
-Note: \code{dep_cens_status_var} is accepted for API compatibility but ignored here.
+Note: This implementation models a single censoring process and does not
+handle competing risks.
 }

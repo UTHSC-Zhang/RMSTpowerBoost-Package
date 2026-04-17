@@ -82,8 +82,12 @@
 
                   if (length(matching_rows) > 0) {
                      # For multiple strata, take the minimum p-value
-                     p_val <- min(coeffs[matching_rows, "Pr(>|t|)"], na.rm = TRUE)
-                     estimate <- mean(coeffs[matching_rows, "Estimate"], na.rm = TRUE)
+                     matched_p <- coeffs[matching_rows, "Pr(>|t|)"]
+                     matched_est <- coeffs[matching_rows, "Estimate"]
+                     finite_p <- matched_p[is.finite(matched_p)]
+                     finite_est <- matched_est[is.finite(matched_est)]
+                     if (length(finite_p) > 0) p_val <- min(finite_p)
+                     if (length(finite_est) > 0) estimate <- mean(finite_est)
                   }
                }
             }
@@ -101,8 +105,9 @@
 
       p_values <- vapply(all_sim_outputs, `[[`, "p_value", FUN.VALUE = numeric(1))
       estimates <- vapply(all_sim_outputs, `[[`, "estimate", FUN.VALUE = numeric(1))
+      finite_p_values <- p_values[is.finite(p_values)]
 
-      power <- mean(p_values < alpha, na.rm = TRUE)
+      power <- if (length(finite_p_values) > 0) mean(finite_p_values < alpha) else 0
       valid_estimates <- estimates[is.finite(estimates)]
       # Return estimates as RMST Ratio (exp(beta))
       return(list(power = power, estimates = exp(valid_estimates)))
@@ -182,6 +187,10 @@ MS.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
                           alpha = 0.05, parallel.cores = 1) {
    # --- Input Validation ---
    if (is.null(sample_sizes)) stop("You must provide the 'sample_sizes' argument.")
+   if (!is.numeric(sample_sizes) || any(!is.finite(sample_sizes)) ||
+       any(sample_sizes < 2) || any(sample_sizes != floor(sample_sizes))) {
+      stop("'sample_sizes' must contain integers greater than or equal to 2.")
+   }
    if (parallel.cores > 1) {
       if (!requireNamespace("future", quietly = TRUE) || !requireNamespace("future.apply", quietly = TRUE)) {
          stop("Packages 'future' and 'future.apply' are required for parallel processing.")
@@ -316,6 +325,21 @@ MS.ss.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
    # --- Input Validation ---
    if (is.null(target_power) || length(target_power) != 1 || !is.numeric(target_power)) {
       stop("You must provide a single numeric value for 'target_power'.")
+   }
+   if (!is.numeric(n_start) || length(n_start) != 1 || !is.finite(n_start) ||
+       n_start < 2 || n_start != floor(n_start)) {
+      stop("'n_start' must be a single integer greater than or equal to 2.")
+   }
+   if (!is.numeric(n_step) || length(n_step) != 1 || !is.finite(n_step) ||
+       n_step < 1 || n_step != floor(n_step)) {
+      stop("'n_step' must be a single positive integer.")
+   }
+   if (!is.numeric(max_n_per_arm) || length(max_n_per_arm) != 1 || !is.finite(max_n_per_arm) ||
+       max_n_per_arm < 2 || max_n_per_arm != floor(max_n_per_arm)) {
+      stop("'max_n_per_arm' must be a single integer greater than or equal to 2.")
+   }
+   if (max_n_per_arm < n_start) {
+      stop("'max_n_per_arm' must be greater than or equal to 'n_start'.")
    }
    if (parallel.cores > 1) {
       if (!requireNamespace("future", quietly = TRUE) || !requireNamespace("future.apply", quietly = TRUE)) {

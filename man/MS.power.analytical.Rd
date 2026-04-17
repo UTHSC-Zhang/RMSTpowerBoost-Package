@@ -49,16 +49,17 @@ This function is based on the method for evaluating center (stratum) effects
 using a multiplicative model for RMST: \eqn{\mu_{ij} = \mu_{0j} \exp\{\beta'Z_i\}}.
 The method uses IPCW with a stratified Cox model for the censoring distribution.
 
-The formal estimation of \eqn{\beta} requires an iterative solver for a complex
-estimating equation (Equation 8 in the paper). As this is computationally intensive,
-this implementation uses a practical approximation by fitting a weighted log-linear
-model (\code{lm(log(Y_rmst) ~ ...)}), which is conceptually similar and provides robust
-estimates for the effect size and its variance.
+Formal estimation of \eqn{\beta} requires an iterative solver for the estimating
+equation given in Equation (8) of Wang et al. (2019). Because this is computationally
+intensive, this implementation uses a log-linear working model fitted by weighted
+least squares to pseudo-observations (\code{lm(log(Y_rmst) ~ ...)}) as a tractable
+approximation. The approximation is consistent when the log-linear mean structure
+is well-specified but may differ from the formal estimator under strong misspecification.
 
 The power calculation relies on the asymptotic variance of the log-RMST ratio
-estimator, \eqn{\hat{\beta}}. The variance is derived from the robust variance-covariance
+estimator, \eqn{\hat{\tau}}. The variance is derived from the robust variance-covariance
 matrix of the \code{lm} fit, which serves as a proxy for the formal sandwich estimator
-\eqn{A^{-1}B(A^{-1})'} described in Theorem 1 of the paper.
+\eqn{A^{-1}B(A^{-1})'} described in Theorem 1 of Wang et al. (2019).
 }
 \examples{
 set.seed(123)
