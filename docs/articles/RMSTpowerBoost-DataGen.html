@@ -215,7 +215,8 @@ listed <strong>categorical</strong> covariates.</td>
 <tr class="odd">
 <td><code>"logistic_ps"</code></td>
 <td><code>ps_model = list(formula, beta)</code></td>
-<td>Treatment probability is (^{-1}()) from user model.</td>
+<td>Treatment probability is <code>plogis(eta)</code> from the
+user-specified model.</td>
 </tr>
 </tbody>
 </table>
@@ -240,9 +241,10 @@ listed <strong>categorical</strong> covariates.</td>
 <div class="section level2">
 <h2 id="event-time-engines">Event-time engines<a class="anchor" aria-label="anchor" href="#event-time-engines"></a>
 </h2>
-<p>Let (Z) be treatment (0/1), (X) be covariates, and () be the
-<strong>linear predictor</strong> (defined in <code>effects</code>,
-below). Supported engines and baseline parameterizations:</p>
+<p>Let <code>Z</code> be treatment (0/1), <code>X</code> be covariates,
+and <code>eta</code> be the <strong>linear predictor</strong> (defined
+in <code>effects</code>, below). Supported engines and baseline
+parameterizations:</p>
 <table class="table">
 <colgroup>
 <col width="11%">
@@ -264,7 +266,9 @@ below). Supported engines and baseline parameterizations:</p>
 <td>
 <code>mu</code>, <code>sigma</code>
 </td>
-<td>(T = + + ), ((0,1)).</td>
+<td>
+<code>log(T) = mu + eta + sigma * epsilon</code>, with
+<code>epsilon ~ N(0, 1)</code>.</td>
 </tr>
 <tr class="even">
 <td>AFT Weibull</td>
@@ -272,7 +276,8 @@ below). Supported engines and baseline parameterizations:</p>
 <td>
 <code>shape</code>, <code>scale</code>
 </td>
-<td>(S_0(t) = (-(t/)^k)); AFT shift via ().</td>
+<td>Baseline survival <code>S0(t) = exp(-(t/scale)^shape)</code> with an
+AFT shift via <code>eta</code>.</td>
 </tr>
 <tr class="odd">
 <td>AFT Log-Logistic</td>
@@ -280,15 +285,16 @@ below). Supported engines and baseline parameterizations:</p>
 <td>
 <code>shape</code>, <code>scale</code>
 </td>
-<td>(T = (),(U/(1-U))^{1/k}).</td>
+<td>Log-logistic AFT model with
+<code>T = scale * exp(eta) * (U/(1-U))^(1/shape)</code>.</td>
 </tr>
 <tr class="even">
 <td>PH Exponential</td>
 <td><code>"ph_pwexp"</code></td>
 <td>
-<code>rates = c(\lambda)</code>, <code>cuts = numeric(0)</code>
+<code>rates = c(rate)</code>, <code>cuts = numeric(0)</code>
 </td>
-<td>Piecewise-Exp with a <strong>single</strong> segment is
+<td>Piecewise exponential with a <strong>single</strong> segment is
 exponential.</td>
 </tr>
 <tr class="odd">
@@ -297,7 +303,7 @@ exponential.</td>
 <td>
 <code>shape</code>, <code>scale</code>
 </td>
-<td>Proportional hazards with Weibull baseline.</td>
+<td>Proportional hazards with a Weibull baseline.</td>
 </tr>
 <tr class="even">
 <td>PH Gompertz</td>
@@ -305,7 +311,7 @@ exponential.</td>
 <td>
 <code>rate</code>, <code>gamma</code>
 </td>
-<td>Hazard (h(t) = a, (bt)).</td>
+<td>Hazard <code>h(t) = rate * exp(gamma * t)</code>.</td>
 </tr>
 <tr class="odd">
 <td>PH Piecewise Exp</td>
@@ -313,7 +319,7 @@ exponential.</td>
 <td>
 <code>rates = c(r1,r2,...)</code>, <code>cuts = c(...)</code>
 </td>
-<td>Rate in segment (s) is (r_s ()).</td>
+<td>Segment-specific hazard is <code>r_s * exp(eta)</code>.</td>
 </tr>
 </tbody>
 </table>
@@ -358,9 +364,9 @@ supported:</p>
 <td>
 <code>target</code>, <code>admin_time</code>
 </td>
-<td>Finds an exponential random-censoring rate so overall censoring
-fraction ≈ <code>target</code>, with an administrative floor at
-<code>admin_time</code> (if provided).</td>
+<td>Finds an exponential random-censoring rate so the overall censoring
+fraction is approximately <code>target</code>, with an administrative
+floor at <code>admin_time</code> (if provided).</td>
 </tr>
 <tr class="even">
 <td><code>"explicit"</code></td>
@@ -378,8 +384,8 @@ competing risks.</td>
 </table>
 <blockquote>
 <p><strong>Note.</strong> No cause-specific or competing-risk censoring
-is generated here; the simulator’s “dependent” option is strictly
-<strong>covariate-dependent</strong> censoring under a single
+is generated here; the simulator’s <code>dependent</code> option is
+strictly <strong>covariate-dependent</strong> censoring under a single
 mechanism.</p>
 </blockquote>
 <div class="section level3">
@@ -408,12 +414,14 @@ mechanism.</p>
 <div class="section level4">
 <h4 id="explicit-covariate-dependent-censoring">Explicit <strong>covariate-dependent</strong> censoring<a class="anchor" aria-label="anchor" href="#explicit-covariate-dependent-censoring"></a>
 </h4>
-<p>The dependent block uses a <strong>log-rate</strong> model: [ _{c}(X)
-= (b) + X^,] where (b&gt;0) is the <em>baseline rate</em>.
-Implementation uses <code>base</code> as a <strong>rate</strong>, and
-<code>beta</code> on the <strong>log-rate</strong> scale. When
-<code>base</code> is supplied, the <strong>formula must not include an
-intercept</strong>.</p>
+<p>The dependent block uses a <strong>log-rate</strong> model:
+<math display="block" xmlns="http://www.w3.org/1998/Math/MathML"><semantics><mrow><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><msub><mi>λ</mi><mi>c</mi></msub><mo stretchy="false" form="prefix">(</mo><mi>X</mi><mo stretchy="false" form="postfix">)</mo><mo>=</mo><mrow><mi mathvariant="normal">log</mi><mo>⁡</mo></mrow><mo stretchy="false" form="prefix">(</mo><mi>b</mi><mo stretchy="false" form="postfix">)</mo><mo>+</mo><msup><mi>X</mi><mi>⊤</mi></msup><mi>β</mi><mo>,</mo></mrow><annotation encoding="application/x-tex">
+\log \lambda_c(X) = \log(b) + X^\top \beta,
+</annotation></semantics></math> where <code>b &gt; 0</code> is the
+<em>baseline rate</em>. Implementation uses <code>base</code> as a
+<strong>rate</strong>, and <code>beta</code> on the
+<strong>log-rate</strong> scale. When <code>base</code> is supplied, the
+<strong>formula must not include an intercept</strong>.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="va">cz_dep</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span></span>
 <span>  mode <span class="op">=</span> <span class="st">"explicit"</span>,</span>
@@ -1521,10 +1529,10 @@ The loader reattaches attributes when reading back.</p>
 <span id="cb24-139"><a href="#cb24-139" tabindex="-1"></a>  ..<span class="sc">$</span> event_time.effects.treatment<span class="sc">:</span> num <span class="sc">-</span><span class="fl">0.15</span></span>
 <span id="cb24-140"><a href="#cb24-140" tabindex="-1"></a> <span class="sc">$</span> files             <span class="sc">:</span>List of <span class="dv">4</span></span>
 <span id="cb24-141"><a href="#cb24-141" tabindex="-1"></a>  ..<span class="sc">$</span> txt  <span class="sc">:</span> chr <span class="cn">NA</span></span>
-<span id="cb24-142"><a href="#cb24-142" tabindex="-1"></a>  ..<span class="sc">$</span> csv  <span class="sc">:</span> chr <span class="st">"D:</span><span class="sc">\\</span><span class="st">Rtmp</span><span class="sc">\\</span><span class="st">Rtmpa4Rm7l/rmstss-manifest-demo/sc1_r1.csv"</span></span>
-<span id="cb24-143"><a href="#cb24-143" tabindex="-1"></a>  ..<span class="sc">$</span> rds  <span class="sc">:</span> chr <span class="st">"D:</span><span class="sc">\\</span><span class="st">Rtmp</span><span class="sc">\\</span><span class="st">Rtmpa4Rm7l/rmstss-manifest-demo/sc1_r1.rds"</span></span>
+<span id="cb24-142"><a href="#cb24-142" tabindex="-1"></a>  ..<span class="sc">$</span> csv  <span class="sc">:</span> chr <span class="st">"C:</span><span class="sc">\\</span><span class="st">Users</span><span class="sc">\\</span><span class="st">arnab</span><span class="sc">\\</span><span class="st">AppData</span><span class="sc">\\</span><span class="st">Local</span><span class="sc">\\</span><span class="st">Temp</span><span class="sc">\\</span><span class="st">Rtmp6nhqex/rmstss-manifest-demo/sc1_r1.csv"</span></span>
+<span id="cb24-143"><a href="#cb24-143" tabindex="-1"></a>  ..<span class="sc">$</span> rds  <span class="sc">:</span> chr <span class="st">"C:</span><span class="sc">\\</span><span class="st">Users</span><span class="sc">\\</span><span class="st">arnab</span><span class="sc">\\</span><span class="st">AppData</span><span class="sc">\\</span><span class="st">Local</span><span class="sc">\\</span><span class="st">Temp</span><span class="sc">\\</span><span class="st">Rtmp6nhqex/rmstss-manifest-demo/sc1_r1.rds"</span></span>
 <span id="cb24-144"><a href="#cb24-144" tabindex="-1"></a>  ..<span class="sc">$</span> rdata<span class="sc">:</span> chr <span class="cn">NA</span></span>
-<span id="cb24-145"><a href="#cb24-145" tabindex="-1"></a> <span class="sc">$</span> created_at        <span class="sc">:</span> chr <span class="st">"2026-01-26 21:45:57.923671"</span></span></code></pre></div>
+<span id="cb24-145"><a href="#cb24-145" tabindex="-1"></a> <span class="sc">$</span> created_at        <span class="sc">:</span> chr <span class="st">"2026-04-17 06:17:17.300443"</span></span></code></pre></div>
 <hr>
 </div>
 <div class="section level2">
@@ -1536,7 +1544,7 @@ The loader reattaches attributes when reading back.</p>
 <p><strong>Assumptions.</strong> The censoring hazard depends on
 observed covariates via a user-specified single mechanism. There are no
 competing risks. Datasets contain only <code>time</code>,
-<code>status</code>, treatment, and covariates—no dependent-censoring
+<code>status</code>, treatment, and covariates - no dependent-censoring
 indicators.</p>
 </blockquote>
 </div>
@@ -1551,7 +1559,7 @@ indicators.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>

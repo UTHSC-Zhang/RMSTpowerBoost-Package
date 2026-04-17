@@ -1,4 +1,4 @@
-#' @title Internal Factory for RMST Simulation Functions (Bootstrap)
+﻿#' @title Internal Factory for RMST Simulation Functions (Bootstrap)
 #' @description This is a non-exported helper function that sets up and returns
 #'   another function responsible for running the core bootstrap simulation logic. This
 #'   factory pattern helps reduce code duplication between the public-facing
@@ -109,8 +109,11 @@
 
       power <- if (length(finite_p_values) > 0) mean(finite_p_values < alpha) else 0
       valid_estimates <- estimates[is.finite(estimates)]
-      # Return estimates as RMST Ratio (exp(beta))
-      return(list(power = power, estimates = exp(valid_estimates)))
+      # Return estimates as RMST Ratio (exp(beta)); also expose raw draws for model_output
+      return(list(power         = power,
+                  estimates     = exp(valid_estimates),
+                  p_values      = p_values,
+                  raw_estimates = estimates))
    }
 
    # Return the fully configured simulation function
@@ -164,7 +167,6 @@
 #' @importFrom knitr kable
 #' @export
 #' @examples
-#' \dontrun{
 #' pilot_df_strat <- data.frame(
 #'  time = rexp(120, 0.15),
 #'  status = rbinom(120, 1, 0.6),
@@ -181,7 +183,6 @@
 #'  n_sim = 100 # Low n_sim for example
 #' )
 #' print(power_results$results_data)
-#' }
 MS.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
                           sample_sizes, linear_terms = NULL, L, n_sim = 1000,
                           alpha = 0.05, parallel.cores = 1) {
@@ -251,7 +252,34 @@ MS.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
       cat("No valid estimates were generated to create a summary.\n")
    }
 
-   return(list(results_data = results_df, results_plot = p, results_summary = results_summary))
+   best_out_power <- sim_outputs[[length(sim_outputs)]]
+   sim_draws_power <- if (!is.null(best_out_power$p_values)) {
+      data.frame(
+         replicate  = seq_along(best_out_power$p_values),
+         estimate   = best_out_power$raw_estimates,
+         std_error  = NA_real_,
+         p_value    = best_out_power$p_values,
+         stringsAsFactors = FALSE
+      )
+   } else NULL
+   model_output <- list(
+      coefficient_table   = NULL,
+      treatment_effect    = results_summary,
+      arm_specific_rmst   = NULL,
+      variance_components = NULL,
+      censoring_weights   = NULL,
+      diagnostics = list(
+         n_used         = nrow(pilot_data),
+         n_events       = sum(pilot_data[[status_var]]),
+         n_sim          = n_sim,
+         convergence_ok = TRUE,
+         singular_flag  = FALSE
+      ),
+      simulation_draws = sim_draws_power
+   )
+
+   return(list(results_data = results_df, results_plot = p,
+               results_summary = results_summary, model_output = model_output))
 }
 
 
@@ -301,7 +329,6 @@ MS.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
 #' @importFrom knitr kable
 #' @export
 #' @examples
-#' \dontrun{
 #' pilot_df_strat_effect <- data.frame(
 #'  time = c(rexp(60, 0.15), rexp(60, 0.08)), # Effect
 #'  status = rbinom(120, 1, 0.7),
@@ -317,7 +344,6 @@ MS.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
 #'  n_step = 50, patience = 2
 #' )
 #' print(ss_results$results_data)
-#' }
 MS.ss.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
                        target_power, linear_terms = NULL, L, n_sim = 1000,
                        alpha = 0.05, parallel.cores = 1, patience = 5,
@@ -443,5 +469,31 @@ MS.ss.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
       cat("No valid estimates were generated to create a summary.\n")
    }
 
-   return(list(results_data = results_df, results_plot = p, results_summary = results_summary))
+   sim_draws_ss <- if (!is.null(best_sim_output) && !is.null(best_sim_output$p_values)) {
+      data.frame(
+         replicate  = seq_along(best_sim_output$p_values),
+         estimate   = best_sim_output$raw_estimates,
+         std_error  = NA_real_,
+         p_value    = best_sim_output$p_values,
+         stringsAsFactors = FALSE
+      )
+   } else NULL
+   model_output <- list(
+      coefficient_table   = NULL,
+      treatment_effect    = results_summary,
+      arm_specific_rmst   = NULL,
+      variance_components = NULL,
+      censoring_weights   = NULL,
+      diagnostics = list(
+         n_used         = nrow(pilot_data),
+         n_events       = sum(pilot_data[[status_var]]),
+         n_sim          = n_sim,
+         convergence_ok = TRUE,
+         singular_flag  = FALSE
+      ),
+      simulation_draws = sim_draws_ss
+   )
+
+   return(list(results_data = results_df, results_plot = p,
+               results_summary = results_summary, model_output = model_output))
 }

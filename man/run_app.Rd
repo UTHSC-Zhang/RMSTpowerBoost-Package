@@ -21,7 +21,5 @@ A helper to launch the interactive Shiny application bundled with the package.
 App-specific dependencies are installed lazily when needed.
 }
 \examples{
-\dontrun{
   RMSTpowerBoost::run_app()
-}
 }

@@ -1,4 +1,4 @@
-# R/describe_generation.R
+﻿# R/describe_generation.R
 
 #' Summarize a generated dataset and its simulation mechanism
 #'
@@ -21,7 +21,6 @@
 #' }
 #' @export
 #' @examples
-#' \dontrun{
 #' sets <- load_recipe_sets("checks/manifest.rds")
 #' spec <- describe_generation(sets[[1]])
 #' spec$header
@@ -31,7 +30,6 @@
 #' spec$censoring
 #' spec$covariates
 #' spec$files
-#' }
 describe_generation <- function(set) {
    `%||%` <- function(x, y) if (is.null(x)) y else x
 
@@ -83,7 +81,7 @@ describe_generation <- function(set) {
          for (nm in names(effects$covariates)) rows[[nm]] <- effects$covariates[[nm]]
       }
 
-      # (B) formula + beta → model.matrix columns
+      # (B) formula + beta â†’ model.matrix columns
       if (!is.null(effects$formula) && !is.null(effects$beta)) {
          X0 <- if (!is.null(data)) data else data.frame()
          mm <- stats::model.matrix(stats::as.formula(effects$formula), data = X0)

@@ -106,7 +106,7 @@ test_that("recipe_grid expands paths and gen_covariates handles factors", {
   grid <- recipe_grid(rec, vary = list(n = c(10, 12), "event_time.effects.treatment" = c(-0.1, -0.2)))
   expect_equal(length(grid), 4)
 
-  X <- gen_covariates(5, list(defs = defs))
+  X <- RMSTpowerBoost::gen_covariates(5, list(defs = defs))
   expect_true(is.factor(X$cat))
   expect_true(is.ordered(X$ord))
 })
@@ -254,25 +254,25 @@ test_that("frailty guards and transform helper paths execute", {
 })
 
 test_that("internal helper error and edge branches are covered", {
-  expect_error(.parse_allocation("bad"), "allocation must be of the form")
-  expect_equal(names(.parse_allocation("2:1")), c("p0", "p1"))
+  expect_error(RMSTpowerBoost:::.parse_allocation("bad"), "allocation must be of the form")
+  expect_equal(names(RMSTpowerBoost:::.parse_allocation("2:1")), c("p0", "p1"))
 
-  expect_error(.rdraw(list(dist = "nope", params = list()), 5), "Unsupported covariate dist")
-  expect_equal(length(.rdraw(list(dist = "uniform", params = list(min = 0, max = 1)), 4)), 4)
+  expect_error(RMSTpowerBoost:::.rdraw(list(dist = "nope", params = list()), 5), "Unsupported covariate dist")
+  expect_equal(length(RMSTpowerBoost:::.rdraw(list(dist = "uniform", params = list(min = 0, max = 1)), 4)), 4)
 
   x <- data.frame(x1 = rnorm(5))
   eff <- list(intercept = 0, treatment = 0, covariates = list(unknown = 1))
-  expect_error(.build_lp(eff, x, arm = rep(0, 5)), "unknown covariate")
+  expect_error(RMSTpowerBoost:::.build_lp(eff, x, arm = rep(0, 5)), "unknown covariate")
 
-  expect_error(.sim_time("unsupported_model", list(), rep(0, 5), 5), "Unsupported model")
-  expect_error(.sim_pwexp(numeric(0), numeric(0), lp = rep(0, 3)), "must have length >= 1")
-  expect_error(.sim_pwexp(c(0.1, 0.2), numeric(0), lp = rep(0, 3)), "length\\(cuts\\) must be m-1")
+  expect_error(RMSTpowerBoost:::.sim_time("unsupported_model", list(), rep(0, 5), 5), "Unsupported model")
+  expect_error(RMSTpowerBoost:::.sim_pwexp(numeric(0), numeric(0), lp = rep(0, 3)), "must have length >= 1")
+  expect_error(RMSTpowerBoost:::.sim_pwexp(c(0.1, 0.2), numeric(0), lp = rep(0, 3)), "length\\(cuts\\) must be m-1")
 
-  ach <- .achieved_cens_exp(T_event = c(1, 2, 3), rate = 0, admin_time = 2)
+  ach <- RMSTpowerBoost:::.achieved_cens_exp(T_event = c(1, 2, 3), rate = 0, admin_time = 2)
   expect_true(is.numeric(ach))
   expect_true(is.finite(ach))
 
-  r_hi <- .solve_rate_for_target(T_event = c(1, 2, 3), target = 0.95, admin_time = Inf, tol = 1e-4)
+  r_hi <- RMSTpowerBoost:::.solve_rate_for_target(T_event = c(1, 2, 3), target = 0.95, admin_time = Inf, tol = 1e-4)
   expect_true(is.numeric(r_hi))
   expect_true(length(r_hi) == 1)
 })

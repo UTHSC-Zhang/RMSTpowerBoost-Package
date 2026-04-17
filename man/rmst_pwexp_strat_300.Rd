@@ -18,9 +18,7 @@ Columns:
 }
 }
 \examples{
-\dontrun{
 data(rmst_pwexp_strat_300)
 table(rmst_pwexp_strat_300$gender, rmst_pwexp_strat_300$arm)
-}
 }
 \keyword{datasets}

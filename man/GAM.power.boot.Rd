@@ -75,7 +75,6 @@ alternative to IPCW for direct RMST modeling.
 should be \code{1} for treatment, \code{0} for control.
 }
 \examples{
-\dontrun{
 pilot_df <- data.frame(
   time = rexp(100, 0.08),
   status = rbinom(100, 1, 0.7),
@@ -98,5 +97,4 @@ power_results <- GAM.power.boot(
 )
 print(power_results$results_data)
 print(power_results$results_plot)
-}
 }

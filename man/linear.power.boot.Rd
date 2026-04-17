@@ -66,7 +66,6 @@ be computationally intensive.
 should be \code{1} for treatment, \code{0} for control.
 }
 \examples{
-\dontrun{
 pilot_df <- data.frame(
   time = rexp(100, 0.1),
   status = rbinom(100, 1, 0.7),
@@ -88,5 +87,4 @@ power_results <- linear.power.boot(
 )
 print(power_results$results_data)
 print(power_results$results_plot)
-}
 }

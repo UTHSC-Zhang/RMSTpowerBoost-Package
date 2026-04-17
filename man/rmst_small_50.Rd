@@ -18,9 +18,7 @@ Columns:
 }
 }
 \examples{
-\dontrun{
 data(rmst_small_50)
 tapply(rmst_small_50$time, rmst_small_50$arm, median)
-}
 }
 \keyword{datasets}

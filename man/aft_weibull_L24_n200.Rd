@@ -11,9 +11,7 @@ A data frame with 200 rows and 5 variables.
 Columns: time, status, arm, age, gender.
 }
 \examples{
-\dontrun{
 data(aft_weibull_L24_n200)
 mean(aft_weibull_L24_n200$status == 0)
-}
 }
 \keyword{datasets}

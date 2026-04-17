@@ -18,7 +18,6 @@ data.frame of covariates
 Generate covariate matrix/data frame from a recipe
 }
 \examples{
-\dontrun{
 defs <- list(
   list(name="x", type="continuous", dist="normal", params=list(mean=0, sd=1)),
   list(name="z", type="categorical", dist="categorical",
@@ -26,5 +25,3 @@ defs <- list(
 )
 X <- gen_covariates(10, list(defs = defs))
 }
-}
-\keyword{internal}

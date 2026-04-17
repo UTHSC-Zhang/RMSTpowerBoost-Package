@@ -18,16 +18,14 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteIndexEntry{RMSTpowerBoost: Sample Size and Power Calculations for RMST-based Clinical Trials}
   %\VignetteDepends{RMSTpowerBoost, survival, dplyr, tidyr, knitr, ggplot2, mgcv, kableExtra}
-cache: true
+cache: false
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
    message = FALSE,
       # eval = FALSE,
-   cache = TRUE,
-  cache.lazy = FALSE,   
-  autodep = TRUE,  
+   cache = FALSE,
    warning = FALSE,
    comment = NA,
    fig.align = 'center',
@@ -253,7 +251,7 @@ power_boot_vet <- linear.power.boot(
   linear_terms = "karno",
   sample_sizes = c(150, 200, 250),
   L = 365,
-  n_sim = 200 
+  n_sim = 50 
 )
 ```
 
@@ -272,7 +270,7 @@ ss_boot_vet <- linear.ss.boot(
   target_power = 0.5,
   linear_terms = "karno",
   L = 180,
-  n_sim = 500, 
+  n_sim = 100, 
   patience = 5
 )
 ```
@@ -445,8 +443,8 @@ power_ms_boot <- MS.power.boot(
    strata_var = "strata",
    sample_sizes = c(100, 300, 500),
    L = 1825,
-   n_sim = 100, 
-   parallel.cores = 10 
+   n_sim = 30,
+   parallel.cores = 1
 )
 ```
 
@@ -469,11 +467,11 @@ ss_ms_boot <- MS.ss.boot(
    strata_var = "strata", 
    target_power = 0.75,
    L = 1825,
-   n_sim = 100,
+   n_sim = 30,
    n_start = 100,
    n_step = 50,
    patience = 4,
-   parallel.cores = 10
+   parallel.cores = 1
 )
 ```
 
@@ -538,8 +536,8 @@ power_gam <- GAM.power.boot(
    smooth_terms = "pgr", # Model pgr with a smooth term
    sample_sizes = c(50, 200, 400),
    L = 2825, # 5 years
-   n_sim = 500,
-   parallel.cores = 10
+   n_sim = 50,
+   parallel.cores = 1
 )
 
 print(power_gam$results_plot)
@@ -557,9 +555,9 @@ ss_gam <- GAM.ss.boot(
    arm_var = "arm",
    target_power = 0.95,
    L = 182, 
-   n_sim = 500, 
+   n_sim = 50,
    patience = 5,
-   parallel.cores = 10
+   parallel.cores = 1
 )
 ```
 
@@ -710,8 +708,8 @@ RMSTpowerBoost::run_app()
 -   **Interactive Data Generation**: Upload your pilot dataset in `.csv` format or generate data for analysis.
 -   **Visual Column Mapping**: Visually map the columns in your data to the required variables for the analysis (e.g., time, status, treatment arm).
 -   **Full Model Selection**: Choose the RMST model, calculation method (analytical or bootstrap), and the associated parameters through the interface.
--   **Rich Visualization**: Execute the analysis and view the results, including survival plots, power curves, and summary tables, all within the application.
--   **Downloadable Reports**: Generate and download a PDF report of the analysis.
+-   **Rich Visualization**: Execute the analysis and review the resulting data summary, Kaplan-Meier plot, analysis tables, and power curve within the application.
+-   **Downloadable Reports**: Export the completed analysis as either PDF or HTML.
 
 # Conclusion
 
@@ -722,4 +720,3 @@ In practice, these procedures depend on representative pilot data because effect
 Future development could extend simulation-based procedures for covariate-dependent censoring and add more model diagnostic tools for checking the adequacy of pilot-data assumptions.
 
 # References
-

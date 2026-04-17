@@ -1,4 +1,4 @@
-# Internal app dependency package list.
+﻿# Internal app dependency package list.
 # @noRd
 .app_dependency_packages <- function() {
    c(
@@ -89,9 +89,7 @@
 #' @export
 #'
 #' @examples
-#' \dontrun{
 #'   RMSTpowerBoost::run_app()
-#' }
 run_app <- function(install_missing = TRUE, repos = getOption("repos")) {
    .ensure_app_dependencies(install_missing = install_missing, repos = repos)
 

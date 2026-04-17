@@ -36,6 +36,7 @@ DC.power.analytical(
 A \code{list} with:
 \item{results_data}{A data.frame with \code{N_per_Arm} and \code{Power}.}
 \item{results_plot}{A ggplot object of the power curve.}
+\item{results_summary}{A data.frame summarizing the pilot arm effect.}
 }
 \description{
 Performs power analysis for an RMST model when the censoring mechanism

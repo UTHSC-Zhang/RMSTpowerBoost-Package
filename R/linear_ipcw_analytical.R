@@ -169,7 +169,57 @@ linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
       ) +
       ggplot2::ylim(0, 1) + ggplot2::theme_minimal()
 
-   return(list(results_data = results_df, results_plot = p, results_summary = results_summary))
+   model_output <- local({
+      cs <- summary(fit_lm)$coefficients
+      coef_tbl <- data.frame(
+         term      = rownames(cs),
+         estimate  = cs[, 1L],
+         std_error = cs[, 2L],
+         ci_lower  = cs[, 1L] - 1.96 * cs[, 2L],
+         ci_upper  = cs[, 1L] + 1.96 * cs[, 2L],
+         test_stat = cs[, 3L],
+         p_value   = cs[, 4L],
+         row.names = NULL,
+         stringsAsFactors = FALSE
+      )
+      trt_eff <- data.frame(
+         estimand  = "RMST Difference",
+         estimate  = beta_effect,
+         std_error = se_beta_n1,
+         ci_lower  = beta_effect - 1.96 * se_beta_n1,
+         ci_upper  = beta_effect + 1.96 * se_beta_n1,
+         stringsAsFactors = FALSE
+      )
+      arms <- sort(unique(fit_data[[arm_var]]))
+      arm_rmst <- do.call(rbind, lapply(arms, function(a) {
+         idx   <- fit_data[[arm_var]] == a
+         sub_w <- fit_weights[idx]
+         sub_y <- fit_data$Y_rmst[idx]
+         mu    <- if (sum(sub_w) > 0) stats::weighted.mean(sub_y, sub_w) else mean(sub_y)
+         data.frame(arm = a, rmst_estimate = mu, std_error = NA_real_,
+                    ci_lower = NA_real_, ci_upper = NA_real_,
+                    scale = "original", stringsAsFactors = FALSE)
+      }))
+      capped_frac <- if (is.finite(weight_cap))
+         mean(df$weights[df$is_event] >= weight_cap, na.rm = TRUE) else NA_real_
+      list(
+         coefficient_table   = coef_tbl,
+         treatment_effect    = trt_eff,
+         arm_specific_rmst   = arm_rmst,
+         variance_components = list(A_hat = A_hat, B_hat = B_hat,
+                                    V_hat_n = V_hat_n, se_effect_n1 = se_beta_n1),
+         censoring_weights   = list(
+            raw_summary     = stats::quantile(df$weights, c(0, .25, .5, .75, .99, 1), na.rm = TRUE),
+            cap_value       = weight_cap,
+            capped_fraction = capped_frac),
+         diagnostics         = list(n_used = nrow(fit_data), n_events = sum(df$is_event),
+                                    convergence_ok = TRUE, singular_flag = FALSE),
+         simulation_draws    = NULL
+      )
+   })
+
+   return(list(results_data = results_df, results_plot = p,
+               results_summary = results_summary, model_output = model_output))
 }
 
 # Sample Size Search ------------------------------------------------------
@@ -337,6 +387,56 @@ linear.ss.analytical <- function(pilot_data, time_var, status_var, arm_var,
    cat("\n--- Calculation Summary ---\n")
    print(knitr::kable(results_df, caption = "Required Sample Size"))
 
-   return(list(results_data = results_df, results_plot = p, results_summary = results_summary))
+   model_output <- local({
+      cs <- summary(fit_lm)$coefficients
+      coef_tbl <- data.frame(
+         term      = rownames(cs),
+         estimate  = cs[, 1L],
+         std_error = cs[, 2L],
+         ci_lower  = cs[, 1L] - 1.96 * cs[, 2L],
+         ci_upper  = cs[, 1L] + 1.96 * cs[, 2L],
+         test_stat = cs[, 3L],
+         p_value   = cs[, 4L],
+         row.names = NULL,
+         stringsAsFactors = FALSE
+      )
+      trt_eff <- data.frame(
+         estimand  = "RMST Difference",
+         estimate  = beta_effect,
+         std_error = se_beta_n1,
+         ci_lower  = beta_effect - 1.96 * se_beta_n1,
+         ci_upper  = beta_effect + 1.96 * se_beta_n1,
+         stringsAsFactors = FALSE
+      )
+      arms <- sort(unique(fit_data[[arm_var]]))
+      arm_rmst <- do.call(rbind, lapply(arms, function(a) {
+         idx   <- fit_data[[arm_var]] == a
+         sub_w <- fit_weights[idx]
+         sub_y <- fit_data$Y_rmst[idx]
+         mu    <- if (sum(sub_w) > 0) stats::weighted.mean(sub_y, sub_w) else mean(sub_y)
+         data.frame(arm = a, rmst_estimate = mu, std_error = NA_real_,
+                    ci_lower = NA_real_, ci_upper = NA_real_,
+                    scale = "original", stringsAsFactors = FALSE)
+      }))
+      capped_frac <- if (is.finite(weight_cap))
+         mean(df$weights[df$is_event] >= weight_cap, na.rm = TRUE) else NA_real_
+      list(
+         coefficient_table   = coef_tbl,
+         treatment_effect    = trt_eff,
+         arm_specific_rmst   = arm_rmst,
+         variance_components = list(A_hat = A_hat, B_hat = B_hat,
+                                    V_hat_n = V_hat_n, se_effect_n1 = se_beta_n1),
+         censoring_weights   = list(
+            raw_summary     = stats::quantile(df$weights, c(0, .25, .5, .75, .99, 1), na.rm = TRUE),
+            cap_value       = weight_cap,
+            capped_fraction = capped_frac),
+         diagnostics         = list(n_used = nrow(fit_data), n_events = sum(df$is_event),
+                                    convergence_ok = TRUE, singular_flag = FALSE),
+         simulation_draws    = NULL
+      )
+   })
+
+   return(list(results_data = results_df, results_plot = p,
+               results_summary = results_summary, model_output = model_output))
 }
 

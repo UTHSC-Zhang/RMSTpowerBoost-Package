@@ -29,7 +29,6 @@ process: model family, baseline parameters, linear predictor coefficients
 (intercept / treatment / covariates), treatment assignment, and censoring.
 }
 \examples{
-\dontrun{
 sets <- load_recipe_sets("checks/manifest.rds")
 spec <- describe_generation(sets[[1]])
 spec$header
@@ -39,5 +38,4 @@ spec$treatment
 spec$censoring
 spec$covariates
 spec$files
-}
 }

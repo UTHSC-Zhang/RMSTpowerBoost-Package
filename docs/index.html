@@ -5,14 +5,14 @@
 <meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<title>Sample Size Calculation Using RMST for Survival Data • RMSTpowerBoost</title>
+<title>Sample Size Calculation Using Restricted Mean Survival Time for Censored Data • RMSTpowerBoost</title>
 <script src="deps/jquery-3.6.0/jquery-3.6.0.min.js"></script><meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <link href="deps/bootstrap-5.3.1/bootstrap.min.css" rel="stylesheet">
 <script src="deps/bootstrap-5.3.1/bootstrap.bundle.min.js"></script><link href="deps/font-awesome-6.5.2/css/all.min.css" rel="stylesheet">
 <link href="deps/font-awesome-6.5.2/css/v4-shims.min.css" rel="stylesheet">
-<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Sample Size Calculation Using RMST for Survival Data">
-<meta name="description" content="A toolkit for designing studies with a restricted mean survival time (RMST) endpoint. This package provides functions to perform bootstrap-based power and sample size calculations for two-arm studies, implementing several modern, direct RMST modeling approaches from the biostatistical literature. Users can select a method based on their study's design and assumptions, including flexible additive models with splines (Zhang &amp; Schaubel, 2024), simple linear models with IPCW for independent censoring (Tian et al., 2014), efficient multiplicative models for high-dimensional stratification (Wang et al., 2019), and models for handling dependent censoring or competing risks (Wang &amp; Schaubel, 2018).">
-<meta property="og:description" content="A toolkit for designing studies with a restricted mean survival time (RMST) endpoint. This package provides functions to perform bootstrap-based power and sample size calculations for two-arm studies, implementing several modern, direct RMST modeling approaches from the biostatistical literature. Users can select a method based on their study's design and assumptions, including flexible additive models with splines (Zhang &amp; Schaubel, 2024), simple linear models with IPCW for independent censoring (Tian et al., 2014), efficient multiplicative models for high-dimensional stratification (Wang et al., 2019), and models for handling dependent censoring or competing risks (Wang &amp; Schaubel, 2018).">
+<script src="deps/headroom-0.11.0/headroom.min.js"></script><script src="deps/headroom-0.11.0/jQuery.headroom.min.js"></script><script src="deps/bootstrap-toc-1.0.1/bootstrap-toc.min.js"></script><script src="deps/clipboard.js-2.0.11/clipboard.min.js"></script><script src="deps/search-1.0.0/autocomplete.jquery.min.js"></script><script src="deps/search-1.0.0/fuse.min.js"></script><script src="deps/search-1.0.0/mark.min.js"></script><!-- pkgdown --><script src="pkgdown.js"></script><meta property="og:title" content="Sample Size Calculation Using Restricted Mean Survival Time for Censored Data">
+<meta name="description" content="A toolkit for designing studies with a restricted mean survival time (RMST) endpoint. This package provides functions to perform power and sample size calculations for two-arm studies, implementing several modern, direct RMST modeling approaches from the biostatistical literature. Users can select a method based on their study's design and assumptions, including flexible additive models with splines (Zhang &amp; Schaubel, 2024), simple linear models with IPCW for independent censoring (Tian et al., 2014), efficient multiplicative models for high-dimensional stratification (Wang et al., 2019), and analytic methods for covariate-dependent censoring under a single censoring mechanism (Wang &amp; Schaubel, 2018).">
+<meta property="og:description" content="A toolkit for designing studies with a restricted mean survival time (RMST) endpoint. This package provides functions to perform power and sample size calculations for two-arm studies, implementing several modern, direct RMST modeling approaches from the biostatistical literature. Users can select a method based on their study's design and assumptions, including flexible additive models with splines (Zhang &amp; Schaubel, 2024), simple linear models with IPCW for independent censoring (Tian et al., 2014), efficient multiplicative models for high-dimensional stratification (Wang et al., 2019), and analytic methods for covariate-dependent censoring under a single censoring mechanism (Wang &amp; Schaubel, 2018).">
 </head>
 <body>
     <a href="#main" class="visually-hidden-focusable">Skip to contents</a>
@@ -46,89 +46,56 @@
 </nav><div class="container template-home">
 <div class="row">
   <main id="main" class="col-md-9"><div class="section level1">
-<div class="page-header"><h1 id="rmstpowerboost-power-and-sample-size-calculations-for-rmst-based-trials">
-<strong>RMSTpowerBoost: Power and Sample Size Calculations for RMST-Based Trials</strong><a class="anchor" aria-label="anchor" href="#rmstpowerboost-power-and-sample-size-calculations-for-rmst-based-trials"></a>
+<div class="page-header"><h1 id="rmstpowerboost-power-and-sample-size-calculations-for-rmst-based-trials-codecov">
+<strong>RMSTpowerBoost: Power and Sample Size Calculations for RMST-Based Trials</strong> <a href="https://codecov.io/gh/UTHSC-Zhang/RMSTpowerBoost-Package" class="external-link"><img src="https://codecov.io/gh/UTHSC-Zhang/RMSTpowerBoost-Package/graph/badge.svg?token=MK7AIUQHBC" alt="codecov"></a>
+<a class="anchor" aria-label="anchor" href="#rmstpowerboost-power-and-sample-size-calculations-for-rmst-based-trials-codecov"></a>
 </h1></div>
-<hr>
 <div class="section level2">
-<h2 id="mag-overview">🔍 Overview<a class="anchor" aria-label="anchor" href="#mag-overview"></a>
+<h2 id="overview">Overview<a class="anchor" aria-label="anchor" href="#overview"></a>
 </h2>
-<p>As clinical trials and observational studies increasingly move beyond the restrictive <strong>proportional hazards (PH) assumption</strong>, researchers need flexible alternatives for analyzing time-to-event data. One such approach—<strong>Restricted Mean Survival Time (RMST)</strong>—has gained traction due to its clear clinical interpretation and robustness in non-PH settings.</p>
-<p>Yet, while RMST-based analysis is growing in popularity, tools for <strong>study design and power calculation</strong> under this framework have lagged behind.</p>
-<p><strong><code>RMSTpowerBoost</code> bridges that gap</strong>—offering a powerful suite of methods to design, simulate, and plan RMST-based trials, even under complex censoring mechanisms or nonlinear treatment effects. Whether you prefer point-and-click simplicity or script-based control, <code>RMSTpowerBoost</code> has you covered.</p>
-<hr>
+<p><code>RMSTpowerBoost</code> provides power and sample size tools for study designs that use restricted mean survival time (RMST). The package supports direct RMST modeling with analytical and bootstrap-based procedures for settings that include linear covariate adjustment, stratification, semiparametric additive effects, and covariate-dependent censoring.</p>
+<p>The package includes both an R interface and a Shiny application for interactive use.</p>
 </div>
 <div class="section level2">
-<h2 id="sparkles-key-features">✨ Key Features<a class="anchor" aria-label="anchor" href="#sparkles-key-features"></a>
+<h2 id="key-features">Key Features<a class="anchor" aria-label="anchor" href="#key-features"></a>
 </h2>
-<div class="section level3">
-<h3 id="white_check_mark-broad-model-support">✅ Broad Model Support<a class="anchor" aria-label="anchor" href="#white_check_mark-broad-model-support"></a>
-</h3>
-<p>Design studies under a range of realistic conditions:</p>
 <ul>
-<li>
-<p><strong>Non-Stratified Models</strong></p>
-<ul>
-<li>
-<em>Linear</em>: Simple, interpretable modeling.</li>
-<li>
-<em>GAM (Generalized Additive Models)</em>: Flexible for nonlinear covariate effects.</li>
+<li>Linear IPCW-based RMST power and sample size calculations.</li>
+<li>Additive and multiplicative stratified models for multi-center or highly stratified studies.</li>
+<li>Bootstrap-based semiparametric GAM procedures for nonlinear covariate effects.</li>
+<li>Analytical and simulation-based methods for covariate-dependent censoring under a single censoring mechanism.</li>
 </ul>
-</li>
-<li>
-<p><strong>Dependent Censoring Models</strong></p>
-<ul>
-<li>Account for censoring that’s related to baseline covariates.</li>
-</ul>
-</li>
-<li>
-<p><strong>Stratified Models</strong></p>
-<ul>
-<li>
-<em>Additive or Multiplicative</em>: Ideal for multi-center trials with center-specific treatment effects.</li>
-</ul>
-</li>
-</ul>
-</div>
-<div class="section level3">
-<h3 id="brain-dual-estimation-methods">🧠 Dual Estimation Methods<a class="anchor" aria-label="anchor" href="#brain-dual-estimation-methods"></a>
-</h3>
-<p>For many models, you can choose between:</p>
-<ul>
-<li>
-<strong>Analytical Approach</strong>: Based on asymptotic variance formulas. Fast and efficient for large-scale simulations.</li>
-<li>
-<strong>Bootstrap-Based Method</strong>: Simulation-driven, providing greater robustness, especially in smaller or complex datasets.</li>
-</ul>
-</div>
-<div class="section level3">
-<h3 id="computer_mouse-interactive-web-app">🖱️ Interactive Web App<a class="anchor" aria-label="anchor" href="#computer_mouse-interactive-web-app"></a>
-</h3>
-<p>No R experience? No problem. A full-featured <strong>Shiny web application</strong> is available, making advanced RMST-based design accessible through an intuitive graphical interface.</p>
-<hr>
-</div>
 </div>
 <div class="section level2">
-<h2 id="package-installation">📦 Installation<a class="anchor" aria-label="anchor" href="#package-installation"></a>
+<h2 id="installation">Installation<a class="anchor" aria-label="anchor" href="#installation"></a>
 </h2>
-<p>Install the latest development version directly from GitHub:</p>
+<p>Install the development version from GitHub:</p>
 <div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># If not already installed</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Install RMSTpowerBoost</span></span>
-<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"UTHSC-Zhang/RMSTpowerBoost-package"</span><span class="op">)</span></span></code></pre></div>
-<hr>
+<code class="sourceCode R"><span><span class="fu"><a href="https://rdrr.io/r/utils/install.packages.html" class="external-link">install.packages</a></span><span class="op">(</span><span class="st">"remotes"</span><span class="op">)</span></span>
+<span><span class="fu">remotes</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"UTHSC-Zhang/RMSTpowerBoost-Package"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
-<h2 id="globe_with_meridians-try-the-shiny-app">🌐 Try the Shiny App<a class="anchor" aria-label="anchor" href="#globe_with_meridians-try-the-shiny-app"></a>
+<h2 id="codecov-sunburst">Codecov Sunburst<a class="anchor" aria-label="anchor" href="#codecov-sunburst"></a>
 </h2>
-<p>Explore the tool without writing a single line of code:</p>
-<p>👉 <a href="https://arnab96.shinyapps.io/uthsc-app/" class="external-link"><strong>Launch the Interactive Web App</strong></a></p>
-<p>Perfect for teaching, preliminary analyses, or rapid prototyping.</p>
-<hr>
-<p>If you need to design a study using RMST, whether for a randomized trial, observational cohort, or simulation study, <code>RMSTpowerBoost</code> delivers both flexibility and precision—helping you move confidently beyond the hazard ratio.</p>
-<hr>
+<div class="float">
+<img src="https://codecov.io/gh/arnabaich96/RMSTpowerBoost-Package/graphs/sunburst.svg?token=5L9OGLTMU6" alt="Codecov Sunburst"><div class="figcaption">Codecov Sunburst</div>
+</div>
+</div>
+<div class="section level2">
+<h2 id="shiny-app">Shiny App<a class="anchor" aria-label="anchor" href="#shiny-app"></a>
+</h2>
+<p>Interactive web application:</p>
+<p><a href="https://arnab96.shinyapps.io/uthsc-app/" class="external-link">Launch the Shiny App</a></p>
+</div>
+<div class="section level2">
+<h2 id="local-app-sync--coverage-gate">Local App Sync + Coverage Gate<a class="anchor" aria-label="anchor" href="#local-app-sync--coverage-gate"></a>
+</h2>
+<p>Run this from the package repo root to sync app artifacts from <code>../RMSTpowerBoost-App</code>, validate the synced app, run tests, generate coverage artifacts, and enforce the <code>&gt;90%</code> overall/per-file gate:</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>Rscript tools<span class="sc">/</span>sync_app_from_repo.R ..<span class="sc">/</span>RMSTpowerBoost<span class="sc">-</span>App <span class="sc">&amp;&amp;</span> \</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>Rscript tools<span class="sc">/</span>validate_synced_app.R <span class="sc">&amp;&amp;</span> \</span>
+<span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>Rscript <span class="sc">-</span>e <span class="st">"testthat::test_local('.', reporter='summary')"</span> <span class="sc">&amp;&amp;</span> \</span>
+<span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>Rscript tools<span class="sc">/</span>generate_coverage_artifacts.R <span class="sc">&amp;&amp;</span> \</span>
+<span id="cb2-5"><a href="#cb2-5" tabindex="-1"></a>Rscript tools<span class="sc">/</span>check_coverage_thresholds.R</span></code></pre></div>
 </div>
 </div>
   </main><aside class="col-md-3"><div class="links">
@@ -143,7 +110,7 @@
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
 <li><a href="LICENSE.html">Full license</a></li>
-<li><small><a href="https://opensource.org/licenses/mit-license.php" class="external-link">MIT</a> + file <a href="LICENSE-text.html">LICENSE</a></small></li>
+<li><small><a href="https://www.r-project.org/Licenses/GPL-3" class="external-link">GPL-3</a></small></li>
 </ul>
 </div>
 
@@ -174,7 +141,7 @@
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer>

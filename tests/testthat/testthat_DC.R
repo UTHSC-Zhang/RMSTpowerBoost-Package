@@ -38,9 +38,10 @@ test_that("DC.power.analytical returns correct structure", {
    )
 
    expect_type(results, "list")
-   expect_named(results, c("results_data", "results_plot"))
+   expect_named(results, c("results_data", "results_plot", "results_summary"))
    expect_s3_class(results$results_data, "data.frame")
    expect_s3_class(results$results_plot, "ggplot")
+   expect_s3_class(results$results_summary, "data.frame")
    expect_true(all(results$results_data$Power >= 0 & results$results_data$Power <= 1))
 })
 

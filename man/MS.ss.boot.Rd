@@ -76,7 +76,6 @@ intensive.
 is a mandatory argument.
 }
 \examples{
-\dontrun{
 pilot_df_strat_effect <- data.frame(
  time = c(rexp(60, 0.15), rexp(60, 0.08)), # Effect
  status = rbinom(120, 1, 0.7),
@@ -92,5 +91,4 @@ ss_results <- MS.ss.boot(
  n_step = 50, patience = 2
 )
 print(ss_results$results_data)
-}
 }

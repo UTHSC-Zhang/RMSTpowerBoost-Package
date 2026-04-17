@@ -1,21 +1,19 @@
-
+﻿
 # R/load_sets.R
 # Read manifest + datasets back. No L/tau reattachment.
 
 #' Load datasets from a recipe-sets manifest
 #'
 #' Reads a \code{manifest.rds} created by \code{generate_recipe_sets()}, loads one
-#' dataset per row (preferring \code{rds} → \code{rdata} → \code{csv} → \code{txt}),
+#' dataset per row (preferring \code{rds} â†’ \code{rdata} â†’ \code{csv} â†’ \code{txt}),
 #' restores attribute \code{"achieved_censoring"}, and returns a named list
 #' of \code{list(data = <data.frame>, meta = <list>)}.
 #' @param manifest_path Path to \code{manifest.rds}.
 #' @return A named list where each element is \code{list(data=..., meta=...)}.
 #' @examples
-#' \dontrun{
 #' sets <- load_recipe_sets("checks/manifest.rds")
 #' names(sets)
 #' str(sets[[1]]$meta)
-#' }
 #' @export
 load_recipe_sets <- function(manifest_path) {
   man <- readRDS(manifest_path)

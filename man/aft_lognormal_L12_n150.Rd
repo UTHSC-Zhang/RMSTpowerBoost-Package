@@ -18,9 +18,7 @@ Columns:
 }
 }
 \examples{
-\dontrun{
 data(aft_lognormal_L12_n150)
 table(aft_lognormal_L12_n150$arm)
-}
 }
 \keyword{datasets}

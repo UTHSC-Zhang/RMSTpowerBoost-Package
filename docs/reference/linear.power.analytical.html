@@ -108,14 +108,15 @@ asymptotic variance estimator for the linear RMST model.</p>
     <p>This function implements the analytic power calculation for the direct linear
 regression model of the Restricted Mean Survival Time (RMST) proposed by Tian et al. (2014).
 The core of the method is a weighted linear model of the form
-$$E[Y_i|Z_i] = \beta_0 + \beta_1 Z_i$$
-where \(Y_i = \min(T_i, \L)\) is the event time truncated at \(\L\).</p>
+$$E[Y_i \mid A_i, \mathbf{Z}_i] = \alpha + \tau A_i + \mathbf{Z}_i^\top \boldsymbol{\gamma}$$
+where \(Y_i = \min(T_i, L)\) is the event time truncated at \(L\), \(A_i\) is the
+treatment indicator, and \(\tau\) is the treatment effect of interest.</p>
 <p>To handle right-censoring, the method uses Inverse Probability of Censoring
 Weighting (IPCW). The weight for an uncensored individual <code>i</code> is the inverse
 of the probability of remaining uncensored until their event time, \(w_i = \delta_i / \hat{G}(Y_i)\),
 where \(\hat{G}(t) = P(C &gt; t)\) is the Kaplan-Meier estimate of the censoring distribution.</p>
 <p>Power is calculated analytically based on the asymptotic properties of the
-coefficient estimators. The variance of the treatment effect estimator, \(\hat{\beta}\), is derived from a
+coefficient estimators. The variance of the treatment effect estimator, \(\hat{\tau}\), is derived from a
 robust sandwich variance estimator of the form \(A^{-1}B(A^{-1})'\). In this implementation,
 <code>A</code> is the scaled information matrix \((X'WX)/n\), and <code>B</code> is the empirical second moment of the
 influence functions, \((\sum \epsilon_i \epsilon_i')/n\), where \(\epsilon_i\) is the influence curve
@@ -162,7 +163,7 @@ given sample size, which in turn is used in the power formula.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
 </div>
 
     </footer></div>

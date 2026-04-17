@@ -14,14 +14,15 @@ Authors@R: c(
          )
 Description: A toolkit for designing studies with a restricted mean survival 
     time (RMST) endpoint. This package provides functions to perform 
-    bootstrap-based power and sample size calculations for two-arm studies,
-    implementing several modern, direct RMST modeling approaches from the 
-    biostatistical literature. Users can select a method based on their 
-    study's design and assumptions, including flexible additive models with 
-    splines (Zhang & Schaubel, 2024), simple linear models with IPCW for 
-    independent censoring (Tian et al., 2014), efficient multiplicative models 
-    for high-dimensional stratification (Wang et al., 2019), and models for 
-    handling dependent censoring or competing risks (Wang & Schaubel, 2018).
+    power and sample size calculations for two-arm studies, implementing
+    several modern, direct RMST modeling approaches from the biostatistical
+    literature. Users can select a method based on their study's design and
+    assumptions, including flexible additive models with splines
+    (Zhang & Schaubel, 2024), simple linear models with IPCW for
+    independent censoring (Tian et al., 2014), efficient multiplicative models
+    for high-dimensional stratification (Wang et al., 2019), and analytic
+    methods for covariate-dependent censoring under a single censoring
+    mechanism (Wang & Schaubel, 2018).
 License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)

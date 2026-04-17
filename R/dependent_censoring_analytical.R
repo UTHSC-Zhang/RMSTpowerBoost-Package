@@ -1,4 +1,4 @@
-# Power Calculation -------------------------------------------------------
+﻿# Power Calculation -------------------------------------------------------
 
 #' @title Analyze Power for RMST Model with Covariate-Dependent Censoring (Analytic)
 #' @description Performs power analysis for an RMST model when the censoring mechanism
@@ -29,6 +29,7 @@
 #' @return A `list` with:
 #' \item{results_data}{A data.frame with \code{N_per_Arm} and \code{Power}.}
 #' \item{results_plot}{A ggplot object of the power curve.}
+#' \item{results_summary}{A data.frame summarizing the pilot arm effect.}
 #' @export
 #' @importFrom stats pnorm qnorm lm as.formula complete.cases quantile model.matrix coef predict
 #' @importFrom survival Surv coxph basehaz
@@ -118,7 +119,62 @@ DC.power.analytical <- function(pilot_data,
       ggplot2::ylim(0, 1) +
       ggplot2::theme_minimal()
 
-   list(results_data = results_df, results_plot = p)
+   results_summary <- data.frame(
+      Statistic = "Assumed RMST Difference (from pilot)",
+      Value = beta_arm
+   )
+
+   model_output <- local({
+      cs <- summary(fit_wls)$coefficients
+      coef_tbl <- data.frame(
+         term      = rownames(cs),
+         estimate  = cs[, 1L],
+         std_error = cs[, 2L],
+         ci_lower  = cs[, 1L] - 1.96 * cs[, 2L],
+         ci_upper  = cs[, 1L] + 1.96 * cs[, 2L],
+         test_stat = cs[, 3L],
+         p_value   = cs[, 4L],
+         row.names = NULL,
+         stringsAsFactors = FALSE
+      )
+      trt_eff <- data.frame(
+         estimand  = "RMST Difference (DC-IPCW)",
+         estimate  = beta_arm,
+         std_error = se_beta_n1,
+         ci_lower  = beta_arm - 1.96 * se_beta_n1,
+         ci_upper  = beta_arm + 1.96 * se_beta_n1,
+         stringsAsFactors = FALSE
+      )
+      arms <- sort(unique(df[[arm_var]]))
+      arm_rmst <- do.call(rbind, lapply(arms, function(a) {
+         idx <- df[[arm_var]] == a
+         w_a <- df$w[idx]
+         y_a <- df$Y_rmst[idx]
+         mu  <- if (sum(w_a) > 0) stats::weighted.mean(y_a, w_a) else mean(y_a)
+         data.frame(arm = a, rmst_estimate = mu, std_error = NA_real_,
+                    ci_lower = NA_real_, ci_upper = NA_real_,
+                    scale = "original", stringsAsFactors = FALSE)
+      }))
+      capped_frac <- if (is.finite(cap))
+         mean(df$w[df$w > 0] >= cap, na.rm = TRUE) else NA_real_
+      list(
+         coefficient_table   = coef_tbl,
+         treatment_effect    = trt_eff,
+         arm_specific_rmst   = arm_rmst,
+         variance_components = list(A_hat = A_hat, B_hat = B_hat,
+                                    V_hat_n = Vn, se_effect_n1 = se_beta_n1),
+         censoring_weights   = list(
+            raw_summary     = stats::quantile(df$w, c(0, .25, .5, .75, .99, 1), na.rm = TRUE),
+            cap_value       = cap,
+            capped_fraction = capped_frac),
+         diagnostics         = list(n_used = n_pilot, n_events = sum(df[[status_var]]),
+                                    convergence_ok = TRUE, singular_flag = FALSE),
+         simulation_draws    = NULL
+      )
+   })
+
+   list(results_data = results_df, results_plot = p,
+        results_summary = results_summary, model_output = model_output)
 }
 
 
@@ -261,7 +317,58 @@ DC.ss.analytical <- function(pilot_data,
    cat("\n--- Calculation Summary ---\n")
    print(knitr::kable(results_df, caption = "Required Sample Size"))
 
+   results_summary_ss <- data.frame(
+      Statistic = "Assumed RMST Difference (from pilot)", Value = beta_arm)
+
+   model_output <- local({
+      cs <- summary(fit_wls)$coefficients
+      coef_tbl <- data.frame(
+         term      = rownames(cs),
+         estimate  = cs[, 1L],
+         std_error = cs[, 2L],
+         ci_lower  = cs[, 1L] - 1.96 * cs[, 2L],
+         ci_upper  = cs[, 1L] + 1.96 * cs[, 2L],
+         test_stat = cs[, 3L],
+         p_value   = cs[, 4L],
+         row.names = NULL,
+         stringsAsFactors = FALSE
+      )
+      trt_eff <- data.frame(
+         estimand  = "RMST Difference (DC-IPCW)",
+         estimate  = beta_arm,
+         std_error = se_beta_n1,
+         ci_lower  = beta_arm - 1.96 * se_beta_n1,
+         ci_upper  = beta_arm + 1.96 * se_beta_n1,
+         stringsAsFactors = FALSE
+      )
+      arms <- sort(unique(df[[arm_var]]))
+      arm_rmst <- do.call(rbind, lapply(arms, function(a) {
+         idx <- df[[arm_var]] == a
+         w_a <- df$w[idx]
+         y_a <- df$Y_rmst[idx]
+         mu  <- if (sum(w_a) > 0) stats::weighted.mean(y_a, w_a) else mean(y_a)
+         data.frame(arm = a, rmst_estimate = mu, std_error = NA_real_,
+                    ci_lower = NA_real_, ci_upper = NA_real_,
+                    scale = "original", stringsAsFactors = FALSE)
+      }))
+      capped_frac <- if (is.finite(cap))
+         mean(df$w[df$w > 0] >= cap, na.rm = TRUE) else NA_real_
+      list(
+         coefficient_table   = coef_tbl,
+         treatment_effect    = trt_eff,
+         arm_specific_rmst   = arm_rmst,
+         variance_components = list(A_hat = A_hat, B_hat = B_hat,
+                                    V_hat_n = Vn, se_effect_n1 = se_beta_n1),
+         censoring_weights   = list(
+            raw_summary     = stats::quantile(df$w, c(0, .25, .5, .75, .99, 1), na.rm = TRUE),
+            cap_value       = cap,
+            capped_fraction = capped_frac),
+         diagnostics         = list(n_used = n_pilot, n_events = sum(df[[status_var]]),
+                                    convergence_ok = TRUE, singular_flag = FALSE),
+         simulation_draws    = NULL
+      )
+   })
+
    list(results_data = results_df, results_plot = p,
-        results_summary = data.frame(Statistic = "Assumed RMST Difference (from pilot)",
-                                     Value = beta_arm))
+        results_summary = results_summary_ss, model_output = model_output)
 }

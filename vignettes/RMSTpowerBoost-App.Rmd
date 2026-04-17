@@ -16,138 +16,155 @@ vignette: >
   %\VignetteIndexEntry{User Guide for the RMSTpowerBoost Shiny Application}
   %\VignetteName{RMSTpowerBoost-App}
   %\VignetteDepends{RMSTpowerBoost}
-cache: true
+cache: false
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
- cache = TRUE,
-  cache.lazy = FALSE,   # materialize objects now (safer)
-  autodep = TRUE)
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  cache = FALSE
+)
 ```
 
 # Introduction
 
-This vignette describes the RMSTpowerBoost Shiny application. The app provides a graphical interface to the package's RMST-based power and sample size procedures.
+This vignette describes the current `RMSTpowerBoost` Shiny application. The app exposes the package's RMST-based design methods through a workflow-oriented interface for either uploaded pilot data or app-generated simulated data.
 
-The guide summarizes the main inputs, parameters, and outputs used in the application.
+# Workflow Overview
 
-# The User Workflow: A Quick Overview
+The application is organized as a staged workflow in the sidebar and a results workspace in the main panel.
 
-Using the application follows a logical, step-by-step process from left to right, top to bottom. The general workflow is:
-
-1.  **Setup & Model:** Upload your pilot data and select the appropriate statistical model for your study design.
-2.  **Column Mapping:** Tell the application which columns in your data correspond to key variables like time, event status, and treatment arm.
-3.  **Analysis Parameters:** Define the core parameters of your analysis, such as the truncation time (`L`), significance level (`alpha`), and whether you are calculating for **Power** or **Sample Size**.
-4.  **Run Analysis:** Click the main button to perform the calculations.
-5.  **Interpret Outputs:** Explore the results through interactive plots, summary tables, and detailed logs.
-6.  **Download Report:** Generate a PDF report of your analysis.
+1.  **Step 1. Data Source:** choose whether to generate a dataset inside the app or upload pilot data from disk.
+2.  **Step 2. Generation or Cleaning:** generated-data users define a simulation recipe; upload users resolve missingness through dropping and/or MICE imputation.
+3.  **Step 3. Model and Mapping:** select the RMST model and map the required columns.
+4.  **Step 4. Analysis:** choose the target quantity, calculation method, and tuning parameters, then run the analysis.
+5.  **Review outputs:** inspect the data, diagnostics, KM plot, analysis tables, and run log.
+6.  **Export results:** after a successful run, download an HTML or PDF report. Generated datasets can also be exported from the `Data` tab.
 
 -----
 
-# The Sidebar: Input Panels Explained
+# Sidebar Controls
 
-The sidebar on the left contains all the controls for setting up and running your analysis. It is organized into several panels.
+The sidebar is divided into numbered workflow sections.
 
-## 1\. Setup & Model
+## Step 1. Data Source
 
-This is the starting point of your analysis.
+- `Generate Data` opens an in-app recipe builder for synthetic pilot datasets.
+- `Upload Pilot Data` accepts `.csv`, `.txt`, `.tsv`, `.rds`, and `.RData` files.
+- Upload mode also exposes a downloadable template and a built-in test dataset loader.
+- Each step has explicit `Confirm` and `Reset` buttons; there is also a workflow-level `Reset` button at the top of the app.
 
-  * **Upload Pilot Data (.csv):** Click the "Browse..." button to upload a CSV file containing your pilot or historical study data. This data is essential, as the application will use it to estimate the treatment effect and data variability needed for the calculations.
-  * **Select RMST Model:** Choose the statistical model that best fits your trial's design and assumptions. The available models are:
-      * **`Linear IPCW Model`**: The standard model for single-center studies, assuming covariates have a linear effect on the RMST.
-      * **`Additive Stratified Model`**: For multi-center trials where the treatment is expected to add a *constant* amount of survival time across all strata (e.g., clinical sites).
-      * **`Multiplicative Stratified Model`**: For multi-center trials where the treatment is expected to have a *proportional* (multiplicative) effect on survival time across strata.
-      * **`Semiparametric (GAM) Model`**: For studies where a covariate (like age or a biomarker) is expected to have a complex, non-linear relationship with the RMST.
-      * **`Dependent Censoring Model`**: For studies where censoring may depend on measured covariates under a single censoring mechanism.
+## Step 2. Generation
 
-## 2\. Column Mapping
+When `Generate Data` is selected, the app opens a two-part generator:
 
-After uploading data and selecting a model, this panel appears. You must map the columns from your CSV file to the variables the model needs to run.
+- `1A. Covariate Builder` defines continuous or categorical covariates, their distributions, optional transforms, and coefficients.
+- `1B. Event Time Settings` sets the simulated sample size, allocation ratio, treatment effect, event-time model, target censoring, baseline parameters, and optional seed.
+- Generated datasets can later be downloaded in CSV, TXT, TSV, RDS, or RData format from the `Data` tab.
 
-  * **Time-to-Event:** Select the column that contains the time data (e.g., `time`, `futime`).
-  * **Status (1=event):** Select the column indicating event status. By convention, this column should contain `1` for an event and `0` for a censored observation.
-  * **Treatment Arm (1=treat):** Select the column for the treatment group. By convention, this should be `1` for the treatment arm and `0` for the control/placebo arm.
+## Step 2. MICE / Cleaning
 
-### Model-Specific Mapping
+When upload mode is used, the app inserts a cleaning stage before model fitting.
 
-Depending on the model you chose in the first panel, additional mapping options will appear:
+- Missing values can be handled by dropping rows/columns, MICE imputation, or a combined pipeline.
+- The cleaning panel records what was dropped, whether MICE ran, and whether unresolved missingness remains.
+- If cleaning still leaves missing values, the app directs the user to the `Run Log` tab rather than proceeding silently.
 
-  * **Stratification Variable:** This appears for `Additive Stratified`, `Multiplicative Stratified`, and `Semiparametric (GAM)` models. Select the column that identifies the strata (e.g., `center_id`, `region`).
-  * **Linear Covariates:** Select one or more columns to include as adjustment covariates in the model, assuming they have a linear effect.
-  * **Non-Linear (Smooth) Covariates:** This appears for the `Semiparametric (GAM) Model`. Select one or more covariates that you wish to model using a flexible, non-linear smooth function.
+## Step 3. Model and Mapping
 
-## 3\. Analysis Parameters
+The current model choices are:
 
-This panel contains the core settings for the calculation itself.
+- `Linear IPCW Model`
+- `Additive Stratified Model`
+- `Multiplicative Stratified Model`
+- `Semiparametric (GAM) Model`
+- `Dependent Censoring Model`
 
-  * **Target Quantity:**
-      * **`Power`**: Choose this if you want to calculate the statistical power for a given set of sample sizes.
-      * **`Sample Size`**: Choose this if you want to find the required sample size to achieve a specific target power.
-  * **Calculation Method:** (Only appears for `Linear IPCW` and `Multiplicative Stratified` models)
-      * **`Analytical`**: A fast method based on a direct mathematical formula.
-      * **`Bootstrap`**: A simulation-based method that is more computationally intensive.
-  * **Truncation Time (`L`):** The truncation time for the RMST calculation. This should be a clinically meaningful time point within the follow-up period of your study (e.g., `365` for 1-year RMST).
-  * **Analysis Inputs:** (This section changes based on your "Target Quantity" choice)
-      * If calculating for **Power**, you will see **Sample Sizes**. Enter a comma-separated list of sample sizes to test (e.g., `100, 150, 200`). For non-stratified models, this is per arm. For stratified models, it is per stratum.
-      * If calculating for **Sample Size**, you will see **Target Power**. Use the slider to set the desired power you want to achieve (e.g., 0.80 for 80% power).
-  * **Significance Level (`alpha`):** The Type I error rate, typically set to 0.05.
+After model selection, the app asks for the required column mappings. Depending on the model, this may include:
 
-## 4\. Bootstrap Options
+- time-to-event and event-status variables
+- treatment arm
+- stratification variable
+- linear covariates
+- smooth covariates for the GAM model
 
-This panel only appears if you have selected a model that uses the **Bootstrap** calculation method (either by choice or because it's the only method available, like for the GAM model).
+## Step 4. Analysis
 
-  * **Simulations:** The number of bootstrap simulations to run (`n_sim`). Higher numbers lead to more stable results but take longer. A value of `1000` is often recommended for final analyses.
-  * **Parallel Cores:** The number of CPU cores to use for the simulation. Using more than `1` can significantly speed up the calculation on multi-core computers.
-  * **Sample Size Search Parameters:** (Only appear when calculating for "Sample Size")
-      * **Start N:** The initial sample size to begin the search from.
-      * **End N:** The maximum sample size the search will go up to before stopping.
-      * **Step:** The amount to increase the sample size by at each iteration of the search.
+The analysis panel collects the study-design inputs:
 
-## Action Buttons
+- `Truncation Time`
+- `Target Quantity`: `Power` or `Sample Size`
+- `Significance Level (alpha)`
+- `Calculation Method`: `Analytical` or `Repeated`
 
-  * **Run Analysis:** The main button to start the calculation. It will be disabled until you have uploaded data and mapped the required columns.
-  * **Reset All:** Clears all inputs and resets the application to its initial state.
+Model compatibility matters:
+
+- `Repeated` is the simulation-based route used in the app for bootstrap-style calculations.
+- `Analytical` is available only where the underlying package implements an analytic method.
+- The GAM model requires `Repeated`; the app rejects analytical selection for GAM explicitly.
+
+The target-specific inputs then change automatically:
+
+- For `Power`, enter comma-separated sample sizes.
+- For `Sample Size`, set the target power.
+- Under `Repeated`, also provide the number of replications and an optional seed.
+
+Before the `Run` button appears, the app shows a readiness checklist confirming that data, mapping, and target inputs are complete.
 
 -----
 
-# The Main Panel: Interpreting Your Results
+# Main Panel Tabs
 
-After you click "Run Analysis," the results will be displayed in the main panel, which is organized into several tabs.
+The main panel is organized into the tabs shown in the shipped UI.
 
-### Data Preview Tab
+## Pipeline
 
-This tab shows a preview of your uploaded CSV data, allowing you to quickly verify that it was read correctly.
+This tab summarizes the current workflow state and is the landing page when the app opens or resets.
 
-### Plot Output Tab
+## Data
 
-This tab contains two key visualizations:
+- previews the active analysis dataset
+- shows missingness-related outputs
+- exposes generated-data export controls when the current dataset was created inside the app
 
-  * **Kaplan-Meier Survival Plot:** A survival plot generated from your pilot data, showing the survival probability over time for each treatment arm. This helps you visualize the underlying data that informs the calculation.
-  * **Power vs. Sample Size Curve:** This is the main graphical output.
-      * When calculating for **Power**, it plots the estimated power for each of the sample sizes you provided.
-      * When calculating for **Sample Size**, it shows the search path, plotting the calculated power at each step of the iterative search. It also includes a horizontal dashed line for your target power and a vertical dotted line for the required sample size.
+## Summary
 
-### Summary Tab
+- `Data Summary` reports basic structure and study characteristics
+- `Covariate Distributions` provides quick checks of scale, balance, and data quality
 
-This tab provides the key numerical results of your analysis.
+## KM Plot
 
-  * **Analysis Results:** The main results table.
-      * If calculating for **Power**, it shows each sample size and its corresponding calculated power.
-      * If calculating for **Sample Size**, it shows the target power and the final required sample size.
-  * **Analysis Summary:** A table summarizing the treatment effect (e.g., RMST Difference or RMST Ratio) as estimated from your pilot data. This is the effect size that the power calculation is based on.
-  * **Log-Rank Test Summary:** Provides the results of a log-rank test performed on your pilot data, offering a basic comparison of the survival curves.
+This tab displays exploratory Kaplan-Meier diagnostics derived from the current dataset.
 
-### Console Log Tab
+## Analysis
 
-This tab displays detailed messages and outputs generated during the calculation process. It is useful for understanding the steps the application is taking and for debugging in case of an error.
+This is the primary results tab. It includes:
 
-### Download Report Tab
+- `Key Results`
+- `Power and Sample Size Results`
+- `Analysis Summary`
+- `Power vs. Sample Size`
 
-This tab allows you to generate a PDF report of your analysis, which includes:
+For power calculations, the plot shows the estimated power at each requested sample size. For sample-size searches, it shows the search path together with the target-power reference line and the selected sample size.
 
-  * A summary of the pilot data and model used.
-  * The results of the power/sample size calculation.
-  * The Kaplan-Meier plot and power/sample size curve.
-  * The log-rank test summary.
+## Run Log
+
+This tab combines the data-cleaning log and the analysis log. It is the first place to inspect when validation fails, model fitting errors occur, or an imputation step leaves unresolved missingness.
+
+## About
+
+The `About` tab summarizes the app purpose and package context.
+
+-----
+
+# Export Behavior
+
+After a successful analysis run, the sidebar reveals two report downloads:
+
+- `PDF`
+- `HTML`
+
+If the local environment does not have a full PDF toolchain available, the app falls back to a diagnostic PDF rather than failing silently. HTML export is also available directly from the same download row.
 

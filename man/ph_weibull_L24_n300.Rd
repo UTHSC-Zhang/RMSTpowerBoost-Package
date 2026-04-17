@@ -11,9 +11,7 @@ A data frame with 300 rows and 5 variables.
 Columns: time, status, arm, age, gender.
 }
 \examples{
-\dontrun{
 data(ph_weibull_L24_n300)
 prop.table(table(ph_weibull_L24_n300$status))
-}
 }
 \keyword{datasets}

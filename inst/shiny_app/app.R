@@ -972,7 +972,7 @@ ui <- fluidPage(
             id = "step4_controls",
             h4("Step 4. Analysis"),
             fluidRow(
-              column(4, numericInput("L", tagList("Truncation TIme ", tags$span(icon("circle-info"), title = "Truncation TIme for RMST")), value = 365, min = 1)),
+              column(4, numericInput("L", tagList("Truncation Time ", tags$span(icon("circle-info"), title = "Truncation time for RMST")), value = 365, min = 1)),
               column(4, radioButtons("analysis_type", "Target Quantity", choices = c("Power", "Sample Size"), selected = "Power")),
               column(4, sliderInput("alpha", "Significance Level (alpha)", min = 0.01, max = 0.1, value = 0.05, step = 0.01))
             ),

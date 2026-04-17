@@ -70,7 +70,6 @@ Due to the nested simulation structure, this function can be very time-consuming
 should be \code{1} for treatment, \code{0} for control.
 }
 \examples{
-\dontrun{
 pilot_df_effect <- data.frame(
   time = c(rexp(50, 0.1), rexp(50, 0.05)), # Effect present
   status = rbinom(100, 1, 0.8),
@@ -91,5 +90,4 @@ ss_results <- linear.ss.boot(
 )
 print(ss_results$results_data)
 print(ss_results$results_plot)
-}
 }

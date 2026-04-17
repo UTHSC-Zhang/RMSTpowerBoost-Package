@@ -1,4 +1,4 @@
-# Power Calculation -------------------------------------------------------
+﻿# Power Calculation -------------------------------------------------------
 
 #' @title Analyze Power for a Multiplicative Stratified RMST Model (Analytic)
 #' @description Performs power analysis for a multiplicative, stratified RMST model using an
@@ -148,7 +148,65 @@ MS.power.analytical <- function(pilot_data, time_var, status_var, arm_var, strat
       ) +
       ggplot2::ylim(0, 1) + ggplot2::theme_minimal()
 
-   return(list(results_data = results_df, results_plot = p))
+   model_output <- local({
+      coef_tbl <- data.frame(
+         term      = rownames(beta_summary),
+         estimate  = beta_summary[, "Estimate"],
+         std_error = beta_summary[, "Std. Error"],
+         ci_lower  = beta_summary[, "Estimate"] - 1.96 * beta_summary[, "Std. Error"],
+         ci_upper  = beta_summary[, "Estimate"] + 1.96 * beta_summary[, "Std. Error"],
+         test_stat = beta_summary[, "t value"],
+         p_value   = beta_summary[, "Pr(>|t|)"],
+         row.names = NULL,
+         stringsAsFactors = FALSE
+      )
+      se_arm_pilot <- sqrt(V_hat[arm_var, arm_var] / nrow(fit_data))
+      trt_eff <- data.frame(
+         estimand  = c("log(RMST Ratio)", "RMST Ratio"),
+         estimate  = c(beta_effect, exp(beta_effect)),
+         std_error = c(se_arm_pilot, NA_real_),
+         ci_lower  = c(beta_effect - 1.96 * se_arm_pilot,
+                       exp(beta_effect - 1.96 * se_arm_pilot)),
+         ci_upper  = c(beta_effect + 1.96 * se_arm_pilot,
+                       exp(beta_effect + 1.96 * se_arm_pilot)),
+         stringsAsFactors = FALSE
+      )
+      pred_log <- predict(fit_log_lm, newdata = fit_data)
+      arms <- sort(unique(fit_data[[arm_var]]))
+      arm_rmst <- do.call(rbind, lapply(arms, function(a) {
+         idx <- fit_data[[arm_var]] == a
+         mu_log  <- mean(pred_log[idx], na.rm = TRUE)
+         mu_orig <- mean(exp(pred_log[idx]), na.rm = TRUE)
+         rbind(
+            data.frame(arm = a, rmst_estimate = mu_log,  std_error = NA_real_,
+                       ci_lower = NA_real_, ci_upper = NA_real_,
+                       scale = "log",      stringsAsFactors = FALSE),
+            data.frame(arm = a, rmst_estimate = mu_orig, std_error = NA_real_,
+                       ci_lower = NA_real_, ci_upper = NA_real_,
+                       scale = "original", stringsAsFactors = FALSE)
+         )
+      }))
+      capped_frac <- if (is.finite(weight_cap))
+         mean(df$weights[df$is_event] >= weight_cap, na.rm = TRUE) else NA_real_
+      full_rank <- isTRUE(fit_log_lm$rank == length(stats::coef(fit_log_lm)))
+      list(
+         coefficient_table   = coef_tbl,
+         treatment_effect    = trt_eff,
+         arm_specific_rmst   = arm_rmst,
+         variance_components = list(A_hat = NULL, B_hat = NULL,
+                                    V_hat_n = V_hat, se_effect_n1 = se_beta_n1),
+         censoring_weights   = list(
+            raw_summary     = stats::quantile(df$weights, c(0, .25, .5, .75, .99, 1), na.rm = TRUE),
+            cap_value       = weight_cap,
+            capped_fraction = capped_frac),
+         diagnostics         = list(n_used = nrow(fit_data), n_events = sum(df$is_event),
+                                    convergence_ok = full_rank, singular_flag = !full_rank),
+         simulation_draws    = NULL
+      )
+   })
+
+   return(list(results_data = results_df, results_plot = p,
+               results_summary = NULL, model_output = model_output))
 }
 
 # Sample Size Search ------------------------------------------------------
@@ -307,6 +365,64 @@ MS.ss.analytical <- function(pilot_data, time_var, status_var, arm_var, strata_v
    cat("\n--- Calculation Summary ---\n")
    print(knitr::kable(results_df, caption = "Required Sample Size"))
 
-   return(list(results_data = results_df, results_plot = p, results_summary = results_summary))
+   model_output <- local({
+      coef_tbl <- data.frame(
+         term      = rownames(beta_summary),
+         estimate  = beta_summary[, "Estimate"],
+         std_error = beta_summary[, "Std. Error"],
+         ci_lower  = beta_summary[, "Estimate"] - 1.96 * beta_summary[, "Std. Error"],
+         ci_upper  = beta_summary[, "Estimate"] + 1.96 * beta_summary[, "Std. Error"],
+         test_stat = beta_summary[, "t value"],
+         p_value   = beta_summary[, "Pr(>|t|)"],
+         row.names = NULL,
+         stringsAsFactors = FALSE
+      )
+      se_arm_pilot <- sqrt(V_hat[arm_var, arm_var] / nrow(fit_data))
+      trt_eff <- data.frame(
+         estimand  = c("log(RMST Ratio)", "RMST Ratio"),
+         estimate  = c(beta_effect, exp(beta_effect)),
+         std_error = c(se_arm_pilot, NA_real_),
+         ci_lower  = c(beta_effect - 1.96 * se_arm_pilot,
+                       exp(beta_effect - 1.96 * se_arm_pilot)),
+         ci_upper  = c(beta_effect + 1.96 * se_arm_pilot,
+                       exp(beta_effect + 1.96 * se_arm_pilot)),
+         stringsAsFactors = FALSE
+      )
+      pred_log <- predict(fit_log_lm, newdata = fit_data)
+      arms <- sort(unique(fit_data[[arm_var]]))
+      arm_rmst <- do.call(rbind, lapply(arms, function(a) {
+         idx <- fit_data[[arm_var]] == a
+         mu_log  <- mean(pred_log[idx], na.rm = TRUE)
+         mu_orig <- mean(exp(pred_log[idx]), na.rm = TRUE)
+         rbind(
+            data.frame(arm = a, rmst_estimate = mu_log,  std_error = NA_real_,
+                       ci_lower = NA_real_, ci_upper = NA_real_,
+                       scale = "log",      stringsAsFactors = FALSE),
+            data.frame(arm = a, rmst_estimate = mu_orig, std_error = NA_real_,
+                       ci_lower = NA_real_, ci_upper = NA_real_,
+                       scale = "original", stringsAsFactors = FALSE)
+         )
+      }))
+      capped_frac <- if (is.finite(weight_cap))
+         mean(df$weights[df$is_event] >= weight_cap, na.rm = TRUE) else NA_real_
+      full_rank <- isTRUE(fit_log_lm$rank == length(stats::coef(fit_log_lm)))
+      list(
+         coefficient_table   = coef_tbl,
+         treatment_effect    = trt_eff,
+         arm_specific_rmst   = arm_rmst,
+         variance_components = list(A_hat = NULL, B_hat = NULL,
+                                    V_hat_n = V_hat, se_effect_n1 = se_beta_n1),
+         censoring_weights   = list(
+            raw_summary     = stats::quantile(df$weights, c(0, .25, .5, .75, .99, 1), na.rm = TRUE),
+            cap_value       = weight_cap,
+            capped_fraction = capped_frac),
+         diagnostics         = list(n_used = nrow(fit_data), n_events = sum(df$is_event),
+                                    convergence_ok = full_rank, singular_flag = !full_rank),
+         simulation_draws    = NULL
+      )
+   })
+
+   return(list(results_data = results_df, results_plot = p,
+               results_summary = results_summary, model_output = model_output))
 }
 

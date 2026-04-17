@@ -1,4 +1,4 @@
-# Power Calculations -------------------------------------------------------
+﻿# Power Calculations -------------------------------------------------------
 #' @title Calculate Power for a Semiparametric Additive RMST Model via Simulation
 #' @description Performs a power analysis for given sample sizes using a flexible,
 #'   semiparametric additive model for the RMST based on pseudo-observations.
@@ -47,7 +47,6 @@
 #' @importFrom future.apply future_lapply
 #' @export
 #' @examples
-#' \dontrun{
 #' pilot_df <- data.frame(
 #'   time = rexp(100, 0.08),
 #'   status = rbinom(100, 1, 0.7),
@@ -70,7 +69,6 @@
 #' )
 #' print(power_results$results_data)
 #' print(power_results$results_plot)
-#' }
 GAM.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var = NULL,
                            sample_sizes, linear_terms = NULL, smooth_terms = NULL,
                            L, n_sim = 1000, alpha = 0.05,
@@ -185,8 +183,9 @@ GAM.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var
       finite_p_values <- p_values[is.finite(p_values)]
 
       all_sim_outputs[[i]] <- list(power = if (length(finite_p_values) > 0) mean(finite_p_values < alpha) else 0,
-                                   estimates = estimates,
-                                   std_errors = std_errors)
+                                   estimates  = estimates,
+                                   std_errors = std_errors,
+                                   p_values   = p_values)
    }
 
    power_values <- sapply(all_sim_outputs, `[[`, "power")
@@ -220,7 +219,26 @@ GAM.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var
       cat("No valid estimates were generated to create a summary.\n")
    }
 
-   return(list(results_data = results_df, results_plot = p, results_summary = results_summary))
+   best_out <- all_sim_outputs[[which.max(sample_sizes)]]
+   sim_draws <- data.frame(
+      replicate  = seq_along(best_out$estimates),
+      estimate   = best_out$estimates,
+      std_error  = best_out$std_errors,
+      p_value    = best_out$p_values
+   )
+   model_output <- list(
+      coefficient_table   = NULL,
+      treatment_effect    = results_summary,
+      arm_specific_rmst   = NULL,
+      variance_components = NULL,
+      censoring_weights   = NULL,
+      diagnostics         = list(n_used = nrow(pilot_data), n_events = sum(pilot_data[[status_var]]),
+                                 n_sim = n_sim, convergence_ok = TRUE, singular_flag = FALSE),
+      simulation_draws    = sim_draws
+   )
+
+   return(list(results_data = results_df, results_plot = p,
+               results_summary = results_summary, model_output = model_output))
 }
 
 
@@ -270,7 +288,6 @@ GAM.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var
 #' @importFrom future.apply future_lapply
 #' @export
 #' @examples
-#' \dontrun{
 #' pilot_df_effect <- data.frame(
 #'   time = c(stats::rexp(50, 0.1), stats::rexp(50, 0.04)), # Effect
 #'   status = stats::rbinom(100, 1, 0.9),
@@ -292,7 +309,6 @@ GAM.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var
 #' )
 #' print(ss_results$results_data)
 #' print(ss_results$results_plot)
-#' }
 GAM.ss.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var = NULL,
                         target_power,
                         linear_terms = NULL, smooth_terms = NULL,
@@ -427,7 +443,8 @@ GAM.ss.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var = 
       std_errors <- vapply(sim_results_list, `[[`, "std_error", FUN.VALUE = numeric(1))
       finite_p_values <- p_values[is.finite(p_values)]
       sim_output <- list(power = if (length(finite_p_values) > 0) mean(finite_p_values < alpha) else 0,
-                         estimates = estimates, std_errors = std_errors)
+                         estimates = estimates, std_errors = std_errors,
+                         p_values  = p_values)
 
       calculated_power <- if(is.finite(sim_output$power)) sim_output$power else 0
       search_results[[as.character(current_n)]] <- calculated_power
@@ -499,6 +516,24 @@ GAM.ss.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var = 
       cat("No valid estimates were generated to create a summary.\n")
    }
 
-   return(list(results_data = results_df, results_plot = p, results_summary = results_summary))
+   sim_draws <- if (!is.null(best_sim_output)) {
+      data.frame(replicate = seq_along(best_sim_output$estimates),
+                 estimate  = best_sim_output$estimates,
+                 std_error = best_sim_output$std_errors,
+                 p_value   = best_sim_output$p_values)
+   } else NULL
+   model_output <- list(
+      coefficient_table   = NULL,
+      treatment_effect    = results_summary,
+      arm_specific_rmst   = NULL,
+      variance_components = NULL,
+      censoring_weights   = NULL,
+      diagnostics         = list(n_used = nrow(pilot_data), n_events = sum(pilot_data[[status_var]]),
+                                 n_sim = n_sim, convergence_ok = TRUE, singular_flag = FALSE),
+      simulation_draws    = sim_draws
+   )
+
+   return(list(results_data = results_df, results_plot = p,
+               results_summary = results_summary, model_output = model_output))
 }
 

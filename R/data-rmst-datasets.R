@@ -1,4 +1,4 @@
-# R/data-aft-and-ph-examples.R
+﻿# R/data-aft-and-ph-examples.R
 
 #' Simulated dataset: AFT log-normal, L = 12, n = 150
 #'
@@ -15,10 +15,8 @@
 #' @name aft_lognormal_L12_n150
 #' @keywords datasets
 #' @examples
-#' \dontrun{
 #' data(aft_lognormal_L12_n150)
 #' table(aft_lognormal_L12_n150$arm)
-#' }
 NULL
 
 #' Simulated dataset: AFT Weibull, L = 24, n = 200
@@ -29,10 +27,8 @@ NULL
 #' @name aft_weibull_L24_n200
 #' @keywords datasets
 #' @examples
-#' \dontrun{
 #' data(aft_weibull_L24_n200)
 #' mean(aft_weibull_L24_n200$status == 0)
-#' }
 NULL
 
 #' Simulated dataset: PH piecewise-exponential, L = 18, n = 250
@@ -43,10 +39,8 @@ NULL
 #' @name ph_pwexp_L18_n250
 #' @keywords datasets
 #' @examples
-#' \dontrun{
 #' data(ph_pwexp_L18_n250)
 #' summary(ph_pwexp_L18_n250$time)
-#' }
 NULL
 
 #' Simulated dataset: PH Weibull, L = 24, n = 300
@@ -57,10 +51,8 @@ NULL
 #' @name ph_weibull_L24_n300
 #' @keywords datasets
 #' @examples
-#' \dontrun{
 #' data(ph_weibull_L24_n300)
 #' prop.table(table(ph_weibull_L24_n300$status))
-#' }
 NULL
 
 
@@ -81,10 +73,8 @@ NULL
 #' @name rmst_pwexp_strat_300
 #' @keywords datasets
 #' @examples
-#' \dontrun{
 #' data(rmst_pwexp_strat_300)
 #' table(rmst_pwexp_strat_300$gender, rmst_pwexp_strat_300$arm)
-#' }
 NULL
 
 
@@ -105,8 +95,6 @@ NULL
 #' @name rmst_small_50
 #' @keywords datasets
 #' @examples
-#' \dontrun{
 #' data(rmst_small_50)
 #' tapply(rmst_small_50$time, rmst_small_50$arm, median)
-#' }
 NULL

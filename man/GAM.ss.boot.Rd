@@ -77,7 +77,6 @@ other stopping criteria are satisfied.
 This function's methodology is bootstrap-based.
 }
 \examples{
-\dontrun{
 pilot_df_effect <- data.frame(
   time = c(stats::rexp(50, 0.1), stats::rexp(50, 0.04)), # Effect
   status = stats::rbinom(100, 1, 0.9),
@@ -99,5 +98,4 @@ ss_results <- GAM.ss.boot(
 )
 print(ss_results$results_data)
 print(ss_results$results_plot)
-}
 }

@@ -1,4 +1,4 @@
-#' @title Analyze Power for a Stratified Additive RMST Model (Analytic)
+﻿#' @title Analyze Power for a Stratified Additive RMST Model (Analytic)
 #' @description Performs power analysis for a stratified, additive RMST model using the
 #'   analytic variance estimator based on the method of Zhang & Schaubel (2024).
 #'
@@ -190,7 +190,63 @@ additive.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
       ) +
       ggplot2::ylim(0, 1) + ggplot2::theme_minimal()
 
-   return(list(results_data = results_df, results_plot = p))
+   model_output <- local({
+      se_all  <- sqrt(diag(V_hat_n) / n_pilot)
+      z_vals  <- as.numeric(beta_hat[, 1]) / se_all
+      p_vals  <- 2 * stats::pnorm(-abs(z_vals))
+      coef_tbl <- data.frame(
+         term      = covariates,
+         estimate  = as.numeric(beta_hat[, 1]),
+         std_error = se_all,
+         ci_lower  = as.numeric(beta_hat[, 1]) - 1.96 * se_all,
+         ci_upper  = as.numeric(beta_hat[, 1]) + 1.96 * se_all,
+         test_stat = z_vals,
+         p_value   = p_vals,
+         row.names = NULL,
+         stringsAsFactors = FALSE
+      )
+      trt_eff <- data.frame(
+         estimand  = "RMST Difference (additive)",
+         estimate  = beta_effect,
+         std_error = se_beta_n1 / sqrt(n_pilot),
+         ci_lower  = beta_effect - 1.96 * se_beta_n1 / sqrt(n_pilot),
+         ci_upper  = beta_effect + 1.96 * se_beta_n1 / sqrt(n_pilot),
+         stringsAsFactors = FALSE
+      )
+      strat_col <- mu0_hats[[strata_var]]
+      mu0_vec   <- mu0_hats$mu0_hat
+      arm_rmst <- do.call(rbind, c(
+         lapply(seq_along(strat_col), function(i)
+            data.frame(arm = 0, stratum = as.character(strat_col[i]),
+                       rmst_estimate = mu0_vec[i],
+                       std_error = NA_real_, ci_lower = NA_real_, ci_upper = NA_real_,
+                       scale = "original", stringsAsFactors = FALSE)),
+         lapply(seq_along(strat_col), function(i)
+            data.frame(arm = 1, stratum = as.character(strat_col[i]),
+                       rmst_estimate = mu0_vec[i] + beta_effect,
+                       std_error = NA_real_, ci_lower = NA_real_, ci_upper = NA_real_,
+                       scale = "original", stringsAsFactors = FALSE))
+      ))
+      capped_frac <- if (is.finite(weight_cap))
+         mean(df$weights[df$is_event] >= weight_cap, na.rm = TRUE) else NA_real_
+      list(
+         coefficient_table   = coef_tbl,
+         treatment_effect    = trt_eff,
+         arm_specific_rmst   = arm_rmst,
+         variance_components = list(A_hat = A_hat, B_hat = B_hat,
+                                    V_hat_n = V_hat_n, se_effect_n1 = se_beta_n1),
+         censoring_weights   = list(
+            raw_summary     = stats::quantile(df$weights, c(0, .25, .5, .75, .99, 1), na.rm = TRUE),
+            cap_value       = weight_cap,
+            capped_fraction = capped_frac),
+         diagnostics         = list(n_used = n_pilot, n_events = sum(df$is_event),
+                                    convergence_ok = TRUE, singular_flag = FALSE),
+         simulation_draws    = NULL
+      )
+   })
+
+   return(list(results_data = results_df, results_plot = p,
+               results_summary = NULL, model_output = model_output))
 }
 
 
@@ -403,6 +459,62 @@ additive.ss.analytical <- function(pilot_data, time_var, status_var, arm_var, st
    cat("\n--- Calculation Summary ---\n")
    print(knitr::kable(results_df, caption = "Required Sample Size"))
 
-   return(list(results_data = results_df, results_plot = p, results_summary = results_summary))
+   model_output <- local({
+      se_all  <- sqrt(diag(V_hat_n) / n_pilot)
+      z_vals  <- as.numeric(beta_hat[, 1]) / se_all
+      p_vals  <- 2 * stats::pnorm(-abs(z_vals))
+      coef_tbl <- data.frame(
+         term      = covariates,
+         estimate  = as.numeric(beta_hat[, 1]),
+         std_error = se_all,
+         ci_lower  = as.numeric(beta_hat[, 1]) - 1.96 * se_all,
+         ci_upper  = as.numeric(beta_hat[, 1]) + 1.96 * se_all,
+         test_stat = z_vals,
+         p_value   = p_vals,
+         row.names = NULL,
+         stringsAsFactors = FALSE
+      )
+      trt_eff <- data.frame(
+         estimand  = "RMST Difference (additive)",
+         estimate  = beta_effect,
+         std_error = se_beta_n1 / sqrt(n_pilot),
+         ci_lower  = beta_effect - 1.96 * se_beta_n1 / sqrt(n_pilot),
+         ci_upper  = beta_effect + 1.96 * se_beta_n1 / sqrt(n_pilot),
+         stringsAsFactors = FALSE
+      )
+      strat_col <- mu0_hats[[strata_var]]
+      mu0_vec   <- mu0_hats$mu0_hat
+      arm_rmst <- do.call(rbind, c(
+         lapply(seq_along(strat_col), function(i)
+            data.frame(arm = 0, stratum = as.character(strat_col[i]),
+                       rmst_estimate = mu0_vec[i],
+                       std_error = NA_real_, ci_lower = NA_real_, ci_upper = NA_real_,
+                       scale = "original", stringsAsFactors = FALSE)),
+         lapply(seq_along(strat_col), function(i)
+            data.frame(arm = 1, stratum = as.character(strat_col[i]),
+                       rmst_estimate = mu0_vec[i] + beta_effect,
+                       std_error = NA_real_, ci_lower = NA_real_, ci_upper = NA_real_,
+                       scale = "original", stringsAsFactors = FALSE))
+      ))
+      capped_frac <- if (is.finite(weight_cap))
+         mean(df$weights[df$is_event] >= weight_cap, na.rm = TRUE) else NA_real_
+      list(
+         coefficient_table   = coef_tbl,
+         treatment_effect    = trt_eff,
+         arm_specific_rmst   = arm_rmst,
+         variance_components = list(A_hat = A_hat, B_hat = B_hat,
+                                    V_hat_n = V_hat_n, se_effect_n1 = se_beta_n1),
+         censoring_weights   = list(
+            raw_summary     = stats::quantile(df$weights, c(0, .25, .5, .75, .99, 1), na.rm = TRUE),
+            cap_value       = weight_cap,
+            capped_fraction = capped_frac),
+         diagnostics         = list(n_used = n_pilot, n_events = sum(df$is_event),
+                                    convergence_ok = TRUE, singular_flag = FALSE),
+         simulation_draws    = NULL
+      )
+   })
+
+   return(list(results_data = results_df, results_plot = p,
+               results_summary = results_summary, model_output = model_output))
 }
 

@@ -1,4 +1,4 @@
-
+﻿
 # R/recipe_sim.R
 # Core list-only simulation engine. No YAML. No L/tau anywhere (analysis horizon is external).
 
@@ -163,19 +163,17 @@ validate_recipe <- function(recipe) {
 }
 
 #' Generate covariate matrix/data frame from a recipe
-#' @keywords internal
 #' @param n sample size
 #' @param covariates list(defs = list(...))
 #' @return data.frame of covariates
 #' @examples
-#' \dontrun{
 #' defs <- list(
 #'   list(name="x", type="continuous", dist="normal", params=list(mean=0, sd=1)),
 #'   list(name="z", type="categorical", dist="categorical",
 #'        params=list(prob=c(0.3,0.7), labels=c("A","B")))
 #' )
 #' X <- gen_covariates(10, list(defs = defs))
-#' }
+#' @export
 gen_covariates <- function(n, covariates) {
   defs <- covariates$defs %||% list()
   if (!length(defs)) return(data.frame())
@@ -351,16 +349,17 @@ gen_covariates <- function(n, covariates) {
 # ---------- Censoring ----------
 
 .achieved_cens_exp <- function(T_event, rate, admin_time = Inf) {
-  n <- length(T_event)
   admin <- if (is.null(admin_time) || !is.finite(admin_time)) Inf else admin_time
-  if (is.na(rate) || rate <= 0) {
-    C_rand <- rep(Inf, n)
-  } else {
-    C_rand <- stats::rexp(n, rate = rate)
-  }
-  C <- pmin(C_rand, admin)
-  status <- as.integer(T_event <= C)
-  mean(status == 0, na.rm = TRUE)
+  t <- as.numeric(T_event)
+  if (!length(t)) return(NA_real_)
+  if (is.na(rate) || rate <= 0) return(mean(t > admin, na.rm = TRUE))
+
+  # With fixed event times T_event and exponential censoring C ~ Exp(rate),
+  # P(censored | T_event = t) is deterministic:
+  #   if t <= admin: P(C < t) = 1 - exp(-rate * t)
+  #   if t > admin : censoring is guaranteed by the administrative cutoff.
+  cens_prob <- ifelse(t <= admin, 1 - exp(-rate * t), 1)
+  mean(cens_prob, na.rm = TRUE)
 }
 
 .solve_rate_for_target <- function(T_event, target, admin_time = Inf, tol = 0.002) {
@@ -398,12 +397,21 @@ gen_covariates <- function(n, covariates) {
 simulate_from_recipe <- function(recipe, seed = NULL) {
   if (!is.list(recipe)) stop("`recipe` must be a list (no YAML paths).")
   recipe <- validate_recipe(recipe)
-  if (!is.null(seed)) {
-    old <- .Random.seed; on.exit({ if (exists("old")) .Random.seed <<- old }, add = TRUE)
-    set.seed(seed)
-  } else if (!is.null(recipe$seed)) {
-    old <- .Random.seed; on.exit({ if (exists("old")) .Random.seed <<- old }, add = TRUE)
-    set.seed(recipe$seed)
+  seed_value <- seed %||% recipe$seed
+  if (!is.null(seed_value)) {
+    had_seed <- exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+    if (had_seed) {
+      old_seed <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+    }
+    on.exit({
+      has_current_seed <- exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
+      if (had_seed) {
+        assign(".Random.seed", old_seed, envir = .GlobalEnv)
+      } else if (has_current_seed) {
+        rm(".Random.seed", envir = .GlobalEnv)
+      }
+    }, add = TRUE)
+    set.seed(seed_value)
   }
   n <- recipe$n
 
