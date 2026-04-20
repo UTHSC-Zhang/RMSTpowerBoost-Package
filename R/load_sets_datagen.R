@@ -5,7 +5,7 @@
 #' Load datasets from a recipe-sets manifest
 #'
 #' Reads a \code{manifest.rds} created by \code{generate_recipe_sets()}, loads one
-#' dataset per row (preferring \code{rds} â†’ \code{rdata} â†’ \code{csv} â†’ \code{txt}),
+#' dataset per row (preferring \code{rds} to \code{rdata} to \code{csv} to \code{txt}),
 #' restores attribute \code{"achieved_censoring"}, and returns a named list
 #' of \code{list(data = <data.frame>, meta = <list>)}.
 #' @param manifest_path Path to \code{manifest.rds}.

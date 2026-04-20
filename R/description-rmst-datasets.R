@@ -90,7 +90,7 @@ describe_generation <- function(set) {
          for (nm in names(effects$covariates)) rows[[nm]] <- effects$covariates[[nm]]
       }
 
-      # (B) formula + beta â†’ model.matrix columns
+      # (B) formula + beta to model.matrix columns
       if (!is.null(effects$formula) && !is.null(effects$beta)) {
          X0 <- if (!is.null(data)) data else data.frame()
          mm <- stats::model.matrix(stats::as.formula(effects$formula), data = X0)

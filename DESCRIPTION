@@ -23,6 +23,7 @@ Description: Tools for RMST-based study design and analysis planning. Provides
     <doi:10.1007/s10985-017-9391-6>.
 License: GPL-3
 Encoding: UTF-8
+Language: en-US
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Imports:

@@ -1,7 +1,7 @@
-# rmst-interface.R â€” High-level wrappers rmst.power() and rmst.ss()
+# rmst-interface.R - High-level wrappers rmst.power() and rmst.ss()
 # with formula interface, routing logic, and S3 methods.
 
-# â”€â”€ Internal helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Internal helpers
 
 #' Parse a Surv-based formula into components
 #' @noRd
@@ -178,7 +178,7 @@
   base
 }
 
-# â”€â”€ rmst.power â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# rmst.power
 
 #' Power analysis for RMST-based models via formula interface
 #'
@@ -273,7 +273,7 @@ rmst.power <- function(formula,
   )
 }
 
-# â”€â”€ rmst.ss â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# rmst.ss
 
 #' Sample size estimation for RMST-based models via formula interface
 #'
@@ -371,7 +371,7 @@ rmst.ss <- function(formula,
   )
 }
 
-# â”€â”€ S3 methods â€” print â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# S3 methods - print
 
 .rmst_model_label <- function(meta) {
   m  <- meta$model
@@ -458,7 +458,7 @@ print.rmst_ss <- function(x, ...) {
   invisible(x)
 }
 
-# â”€â”€ S3 methods â€” summary â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# S3 methods - summary
 
 #' Summarize an rmst_power result
 #'
@@ -538,7 +538,7 @@ summary.rmst_ss <- function(object, ...) {
   )
 }
 
-# â”€â”€ S3 methods â€” print.summary â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# S3 methods - print.summary
 
 .print_summary_rmst <- function(x, result_field, result_label) {
   cat("\u2500\u2500 Model Information ", strrep("\u2500", 42L), "\n", sep = "")
@@ -626,7 +626,7 @@ print.summary.rmst_ss <- function(x, ...) {
   .print_summary_rmst(x, "ss_results", "Sample Size Result")
 }
 
-# â”€â”€ S3 methods â€” plot â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# S3 methods - plot
 
 #' Plot an rmst_power result
 #'

@@ -1,0 +1,11 @@
+# Generated site and report outputs
+^docs/
+^pkgdown/
+^coverage/
+
+# Build / project metadata
+^\.Rproj\.user/
+^\.github/
+
+# renv internals and staging
+^renv/staging/

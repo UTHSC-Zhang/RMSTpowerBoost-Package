@@ -34,7 +34,7 @@ recipe_quick_ph(
 \item{covariates}{List of covariate definitions. Use \code{\link{covar_continuous}},
 \code{\link{covar_binary}}, or \code{\link{covar_categorical}}. Default \code{list()}.}
 
-\item{target_censoring}{Target overall censoring fraction (0â€“1). Default \code{0.25}.}
+\item{target_censoring}{Target overall censoring fraction (0-1). Default \code{0.25}.}
 
 \item{allocation}{Treatment allocation ratio string, e.g. \code{"1:1"} (default)
 or \code{"1:2"}.}

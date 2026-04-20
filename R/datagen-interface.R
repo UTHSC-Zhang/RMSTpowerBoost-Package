@@ -1,7 +1,7 @@
-# datagen-interface.R â€” Convenient data generation wrappers
+# datagen-interface.R - Convenient data generation wrappers
 # Provides covariate helpers, recipe_quick_ph(), rmst.sim(), and S3 methods.
 
-# â”€â”€ Internal helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Internal helper
 
 .rmst_sim_model_label <- function(model) {
   switch(model,
@@ -16,7 +16,7 @@
   )
 }
 
-# â”€â”€ Covariate helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Covariate helpers
 
 #' Continuous covariate definition
 #'
@@ -98,7 +98,7 @@ covar_categorical <- function(name, probs, labels = NULL) {
        params = list(prob = probs, labels = labs))
 }
 
-# â”€â”€ recipe_quick_ph â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# recipe_quick_ph
 
 #' Quick PH recipe builder
 #'
@@ -120,7 +120,7 @@ covar_categorical <- function(name, probs, labels = NULL) {
 #' @param treat_effect Numeric log-hazard ratio for the treatment arm.
 #' @param covariates List of covariate definitions. Use \code{\link{covar_continuous}},
 #'   \code{\link{covar_binary}}, or \code{\link{covar_categorical}}. Default \code{list()}.
-#' @param target_censoring Target overall censoring fraction (0â€“1). Default \code{0.25}.
+#' @param target_censoring Target overall censoring fraction (0-1). Default \code{0.25}.
 #' @param allocation Treatment allocation ratio string, e.g. \code{"1:1"} (default)
 #'   or \code{"1:2"}.
 #' @param seed Optional integer seed.
@@ -163,7 +163,7 @@ recipe_quick_ph <- function(n,
   ))
 }
 
-# â”€â”€ rmst.sim â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# rmst.sim
 
 #' Simulate survival data for RMST analysis
 #'
@@ -190,7 +190,7 @@ recipe_quick_ph <- function(n,
 #'   \code{\link{covar_continuous}}, \code{\link{covar_binary}}, or
 #'   \code{\link{covar_categorical}}, or supplied as raw named lists in the
 #'   existing recipe format. Default \code{list()} (no covariates).
-#' @param target_censoring Target overall censoring fraction (0â€“1). Default \code{0.25}.
+#' @param target_censoring Target overall censoring fraction (0-1). Default \code{0.25}.
 #' @param allocation Treatment allocation ratio string, e.g. \code{"1:1"} (default).
 #' @param L Optional numeric truncation time. Stored as an attribute on the
 #'   returned object for downstream use by \code{\link{rmst.power}} /
@@ -278,7 +278,7 @@ rmst.sim <- function(n,
   out
 }
 
-# â”€â”€ S3 methods â€” print â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# S3 methods - print
 
 #' @export
 print.rmst_simdata <- function(x, ...) {
@@ -312,7 +312,7 @@ print.rmst_simdata <- function(x, ...) {
   invisible(x)
 }
 
-# â”€â”€ S3 methods â€” summary â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# S3 methods - summary
 
 #' @export
 summary.rmst_simdata <- function(object, ...) {

@@ -35,7 +35,7 @@ models; log-hazard ratio for PH models. Default \code{0}.}
 \code{\link{covar_categorical}}, or supplied as raw named lists in the
 existing recipe format. Default \code{list()} (no covariates).}
 
-\item{target_censoring}{Target overall censoring fraction (0â€“1). Default \code{0.25}.}
+\item{target_censoring}{Target overall censoring fraction (0-1). Default \code{0.25}.}
 
 \item{allocation}{Treatment allocation ratio string, e.g. \code{"1:1"} (default).}
 
