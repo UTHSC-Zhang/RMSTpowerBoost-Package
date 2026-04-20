@@ -28,10 +28,4 @@ Interactive web application:
 
 [Launch the Shiny App](https://arnab96.shinyapps.io/uthsc-app/)
 
-## Coverage
 
-To regenerate the coverage report:
-
-```r
-Rscript tools/generate_coverage_artifacts.R
-```
