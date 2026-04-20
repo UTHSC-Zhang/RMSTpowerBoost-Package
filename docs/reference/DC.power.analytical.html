@@ -17,7 +17,8 @@ depends on observed covariates."></head><body>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/RMSTpowerBoost-Main.html">R Package</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/index.html">Overview</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/RMSTpowerBoost-Main.html">R Package</a></li>
 <li class="nav-item"><a class="nav-link" href="../articles/RMSTpowerBoost-DataGen.html">Data Generation</a></li>
 <li class="nav-item"><a class="nav-link" href="../articles/RMSTpowerBoost-App.html">Application</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><a class="external-link nav-link" href="https://github.com/UTHSC-Zhang/RMSTpowerBoost-Package/issues">Issues</a></li>
@@ -59,35 +60,35 @@ depends on observed covariates.</p>
 
 
 <dl><dt id="arg-pilot-data">pilot_data<a class="anchor" aria-label="anchor" href="#arg-pilot-data"></a></dt>
-<dd><p>A <code>data.frame</code> with pilot data.</p></dd>
+<dd><p>A <code>data.frame</code> with pilot study data.</p></dd>
 
 
 <dt id="arg-time-var">time_var<a class="anchor" aria-label="anchor" href="#arg-time-var"></a></dt>
-<dd><p>Name of the time-to-event variable.</p></dd>
+<dd><p>A character string for the time-to-event variable.</p></dd>
 
 
 <dt id="arg-status-var">status_var<a class="anchor" aria-label="anchor" href="#arg-status-var"></a></dt>
-<dd><p>Name of the primary event indicator (1=event, 0=censored).</p></dd>
+<dd><p>A character string for the event status variable (1=event, 0=censored).</p></dd>
 
 
 <dt id="arg-arm-var">arm_var<a class="anchor" aria-label="anchor" href="#arg-arm-var"></a></dt>
-<dd><p>Name of the treatment indicator (1=treatment, 0=control).</p></dd>
+<dd><p>A character string for the treatment arm variable (1=treatment, 0=control).</p></dd>
 
 
 <dt id="arg-sample-sizes">sample_sizes<a class="anchor" aria-label="anchor" href="#arg-sample-sizes"></a></dt>
-<dd><p>Numeric vector of per-arm sample sizes for power.</p></dd>
+<dd><p>A numeric vector of sample sizes <em>per arm</em> to calculate power for.</p></dd>
 
 
 <dt id="arg-linear-terms">linear_terms<a class="anchor" aria-label="anchor" href="#arg-linear-terms"></a></dt>
-<dd><p>Optional character vector of additional covariate names (used in both models).</p></dd>
+<dd><p>Optional character vector of additional covariate names.</p></dd>
 
 
 <dt id="arg-l">L<a class="anchor" aria-label="anchor" href="#arg-l"></a></dt>
-<dd><p>RMST truncation time.</p></dd>
+<dd><p>The numeric value for the RMST truncation time.</p></dd>
 
 
 <dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
-<dd><p>Two-sided Type I error.</p></dd>
+<dd><p>The significance level (Type I error rate).</p></dd>
 
 </dl></div>
     <div class="section level2">

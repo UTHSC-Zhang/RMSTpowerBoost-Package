@@ -26,7 +26,6 @@ renv/
 
 # top level directories
 tools/
-checks/
 docs/
 
 
@@ -46,10 +45,16 @@ docs/
 ^\.vscode$
 ^renv$
 ^renv\.lock$
-^checks$
 ^tools$
 ^coverage$
 ^coverage\.html$
 ^codecov\.yml$
 ^lib$
 ^RMSTpowerBoost-Package\.code-workspace$
+
+# Artifact files
+^\.Rhistory$
+^tests/testthat/Rplots\.pdf$
+
+# renv: .Rprofile must not ship in CRAN packages
+^\.Rprofile$

@@ -44,6 +44,7 @@
 #' @importFrom future.apply future_lapply
 #' @export
 #' @examples
+#' \donttest{
 #' pilot_df <- data.frame(
 #'   time = rexp(100, 0.08),
 #'   status = rbinom(100, 1, 0.7),
@@ -66,6 +67,7 @@
 #' )
 #' print(power_results$results_data)
 #' print(power_results$results_plot)
+#' }
 GAM.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var = NULL,
                            sample_sizes, linear_terms = NULL, smooth_terms = NULL,
                            L, n_sim = 1000, alpha = 0.05,
@@ -256,8 +258,8 @@ GAM.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var
 #' @param time_var A character string for the time-to-event variable.
 #' @param status_var A character string for the event status variable.
 #' @param arm_var A character string for the treatment arm variable.
-#' @param target_power A single numeric value for the target power.
 #' @param strata_var An optional string for a stratification variable.
+#' @param target_power A single numeric value for the target power.
 #' @param linear_terms Optional character vector of covariates with a linear effect.
 #' @param smooth_terms Optional character vector of covariates with a non-linear effect.
 #' @param L The numeric truncation time for RMST.
@@ -283,6 +285,7 @@ GAM.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var
 #' @importFrom future.apply future_lapply
 #' @export
 #' @examples
+#' \donttest{
 #' pilot_df_effect <- data.frame(
 #'   time = c(stats::rexp(50, 0.1), stats::rexp(50, 0.04)), # Effect
 #'   status = stats::rbinom(100, 1, 0.9),
@@ -304,6 +307,7 @@ GAM.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var
 #' )
 #' print(ss_results$results_data)
 #' print(ss_results$results_plot)
+#' }
 GAM.ss.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var = NULL,
                         target_power,
                         linear_terms = NULL, smooth_terms = NULL,

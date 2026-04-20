@@ -18,15 +18,12 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteIndexEntry{RMSTpowerBoost: Sample Size and Power Calculations for RMST-based Clinical Trials}
   %\VignetteDepends{RMSTpowerBoost, survival, dplyr, tidyr, knitr, ggplot2, mgcv, kableExtra}
-cache: false
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(
    message = FALSE,
-      # eval = FALSE,
    cache = TRUE,
-   cache.path = "cache/RMSTpowerBoost-Main/",
    warning = FALSE,
    comment = NA,
    fig.align = 'center',
@@ -44,7 +41,7 @@ library(RMSTpowerBoost)
 
 # Introduction
 
-Clinical trials with time-to-event endpoints often rely on hazard-based methods such as the proportional hazards (PH) model and the hazard ratio (HR). The HR can be hard to interpret when treatment effects vary over time, and the proportional hazards assumption is often doubtful in practice.
+Clinical trials with time-to-event endpoints often rely on hazard-based methods such as the proportional hazards (PH) model and the hazard ratio (HR). The HR can be hard to interpret when treatment effects vary over time, and the proportional hazards assumption is frequently violated in practice.
 
 The **Restricted Mean Survival Time (RMST)** is the expected event-free time up to a pre-specified follow-up point, $L$ [@royston2013; @uno2014]. It yields a treatment contrast on the time scale, such as an average gain of several months over a clinically relevant horizon.
 
@@ -238,7 +235,7 @@ ss_results_vet$results_plot +
 
 ## Bootstrap Methods
 
-Passing `type = "boot"` to `rmst.power()` or `rmst.ss()` switches to a simulation-based approach. This method repeatedly resamples from the reference data, fits the model on each sample, and calculates power as the proportion of simulations where the treatment effect is significant. While computationally intensive, it relies less on closed-form large-sample approximations.
+Passing `type = "boot"` to `rmst.power()` or `rmst.ss()` switches to a simulation-based approach. This method repeatedly resamples from the reference data, fits the model on each sample, and calculates power as the proportion of simulations where the treatment effect is significant. It relies less on closed-form large-sample approximations at the cost of greater computation time.
 
 ### Power and Sample Size Calculation (bootstrap)
 
@@ -503,7 +500,7 @@ When a covariate is expected to have a non-linear effect on the outcome, standar
 
 These functions use a bootstrap simulation approach combined with a GAM. The method involves two main steps:
 
-1.  **Jackknife Pseudo-Observations**: The time-to-event outcome is first converted into **jackknife pseudo-observations** for the RMST. This technique, explored in the statistical literature for RMST estimation [@andersen2004; @parner2010], creates a continuous, uncensored variable that represents each subject's contribution to the RMST. This makes the outcome suitable for use in a standard regression framework.
+1.  **Jackknife Pseudo-Observations**: The time-to-event outcome is first converted into **jackknife pseudo-observations** for the RMST. This technique [@andersen2004; @parner2010] creates a continuous, uncensored variable that represents each subject's contribution to the RMST. This makes the outcome suitable for use in a standard regression framework.
 
 2.  **GAM Fitting**: A GAM is then fitted to these pseudo-observations. The model has the form:
     $$\mathbb{E}[\text{pseudo}_i] = \beta_0 + \beta_{\text{effect}} \cdot \text{Treatment}_i + \sum_{k=1}^{q} f_k(\text{Covariate}_{ik})$$
@@ -726,6 +723,6 @@ RMSTpowerBoost::run_app()
 
 In practice, these procedures depend on representative reference data because effect sizes and variance components are estimated from that dataset. Bootstrap-based methods can also require substantial computation.
 
-Future development could extend simulation-based procedures for covariate-dependent censoring and add more model diagnostic tools for checking the adequacy of reference-data assumptions.
+Future development could extend simulation-based procedures for covariate-dependent censoring and add model diagnostic tools for assessing reference-data assumptions.
 
 # References

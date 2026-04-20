@@ -11,7 +11,16 @@
 #' @param manifest_path Path to \code{manifest.rds}.
 #' @return A named list where each element is \code{list(data=..., meta=...)}.
 #' @examples
-#' sets <- load_recipe_sets("checks/manifest.rds")
+#' covs <- list(covar_continuous("x", mean = 0, sd = 1))
+#' rec <- recipe_quick_aft(
+#'   n = 20, model = "aft_lognormal",
+#'   baseline = list(mu = 2.7, sigma = 0.6),
+#'   treat_effect = -0.2, covariates = covs,
+#'   target_censoring = 0.2, seed = 123
+#' )
+#' out <- file.path(tempdir(), "rmst_load_recipe_sets")
+#' generate_recipe_sets(rec, out_dir = out, formats = "rds", n_reps = 1)
+#' sets <- load_recipe_sets(file.path(out, "manifest.rds"))
 #' names(sets)
 #' str(sets[[1]]$meta)
 #' @export

@@ -1,5 +1,3 @@
-<!-- Generated from vignettes/index.Rmd. Edit that file instead. -->
-
 # RMSTpowerBoost
 
 `RMSTpowerBoost` provides power and sample size tools for study designs that
@@ -41,16 +39,10 @@ Interactive web application:
 
 - <https://arnab96.shinyapps.io/uthsc-app/>
 
-## Development
+## Coverage
 
-Run this from the package repo root to sync app artifacts from
-`../RMSTpowerBoost-App`, validate the synced app, run tests, generate coverage
-artifacts, and enforce the `>90%` overall/per-file gate:
+To regenerate the coverage report:
 
 ```r
-Rscript tools/sync_app_from_repo.R ../RMSTpowerBoost-App && \
-Rscript tools/validate_synced_app.R && \
-Rscript -e "testthat::test_local('.', reporter='summary')" && \
-Rscript tools/generate_coverage_artifacts.R && \
-Rscript tools/check_coverage_thresholds.R
+Rscript tools/generate_coverage_artifacts.R
 ```

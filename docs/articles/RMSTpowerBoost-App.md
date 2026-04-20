@@ -1,0 +1,181 @@
+# User Guide for the RMSTpowerBoost Shiny Application
+
+## Introduction
+
+This vignette documents the `RMSTpowerBoost` Shiny application. The app
+supports analyses based on uploaded pilot data or data generated inside
+the app.
+
+## Workflow Overview
+
+The sidebar holds the setup and analysis controls, and the main panel
+shows the resulting outputs.
+
+1.  **Step 1. Data Source:** choose whether to generate a dataset inside
+    the app or upload pilot data from disk.
+2.  **Step 2. Generation or Cleaning:** generated-data users define a
+    simulation recipe; upload users resolve missingness through dropping
+    and/or MICE imputation.
+3.  **Step 3. Model and Mapping:** select the RMST model and map the
+    required columns.
+4.  **Step 4. Analysis:** choose the target quantity, calculation
+    method, and tuning parameters, then run the analysis.
+5.  **Review outputs:** inspect the data, diagnostics, KM plot, analysis
+    tables, and run log.
+6.  **Export results:** after a successful run, download an HTML or PDF
+    report. Generated datasets can also be exported from the `Data` tab.
+
+------------------------------------------------------------------------
+
+## Sidebar Controls
+
+The sidebar is divided into numbered workflow sections.
+
+### Step 1. Data Source
+
+- `Generate Data` opens an in-app recipe builder for synthetic pilot
+  datasets.
+- `Upload Pilot Data` accepts `.csv`, `.txt`, `.tsv`, `.rds`, and
+  `.RData` files.
+- Upload mode also exposes a downloadable template and a built-in test
+  dataset loader.
+- Each step has explicit `Confirm` and `Reset` buttons; there is also a
+  `Reset` button for the full app at the top.
+
+### Step 2. Generation
+
+When `Generate Data` is selected, the app opens a two-part generator:
+
+- `1A. Covariate Builder` defines continuous or categorical covariates,
+  their distributions, optional transforms, and coefficients.
+- `1B. Event Time Settings` sets the simulated sample size, allocation
+  ratio, treatment effect, event-time model, target censoring, baseline
+  parameters, and optional seed.
+- Generated datasets can later be downloaded in CSV, TXT, TSV, RDS, or
+  RData format from the `Data` tab.
+
+### Step 2. MICE / Cleaning
+
+When upload mode is used, the app inserts a cleaning stage before model
+fitting.
+
+- Missing values can be handled by dropping rows/columns, MICE
+  imputation, or a combined pipeline.
+- The cleaning panel records what was dropped, whether MICE ran, and
+  whether unresolved missingness remains.
+- If cleaning still leaves missing values, the app directs the user to
+  the `Run Log` tab rather than proceeding silently.
+
+### Step 3. Model and Mapping
+
+The current model choices are:
+
+- `Linear IPCW Model`
+- `Additive Stratified Model`
+- `Multiplicative Stratified Model`
+- `Semiparametric (GAM) Model`
+- `Dependent Censoring Model`
+
+After model selection, the app asks for the required column mappings.
+Depending on the model, this may include:
+
+- time-to-event and event-status variables
+- treatment arm
+- stratification variable
+- linear covariates
+- smooth covariates for the GAM model
+
+### Step 4. Analysis
+
+The analysis panel collects the study-design inputs:
+
+- `Truncation Time`
+- `Target Quantity`: `Power` or `Sample Size`
+- `Significance Level (alpha)`
+- `Calculation Method`: `Analytical` or `Repeated`
+
+Model compatibility matters:
+
+- `Repeated` is the simulation-based route used in the app for
+  bootstrap-style calculations.
+- `Analytical` is available only where the underlying package implements
+  an analytic method.
+- The GAM model requires `Repeated`; the app rejects analytical
+  selection for GAM explicitly.
+
+The target-specific inputs then change automatically:
+
+- For `Power`, enter comma-separated sample sizes.
+- For `Sample Size`, set the target power.
+- Under `Repeated`, also provide the number of replications and an
+  optional seed.
+
+Before the `Run` button appears, the app shows a readiness checklist
+confirming that data, mapping, and target inputs are complete.
+
+------------------------------------------------------------------------
+
+## Main Panel Tabs
+
+The main panel contains the tabs listed below.
+
+### Pipeline
+
+This tab summarizes the current app state and is the landing page when
+the app opens or resets.
+
+### Data
+
+- previews the active analysis dataset
+- shows missingness-related outputs
+- exposes generated-data export controls when the current dataset was
+  created inside the app
+
+### Summary
+
+- `Data Summary` reports basic structure and study characteristics
+- `Covariate Distributions` provides quick checks of scale, balance, and
+  data quality
+
+### KM Plot
+
+This tab displays exploratory Kaplan-Meier diagnostics derived from the
+current dataset.
+
+### Analysis
+
+This is the primary results tab. It includes:
+
+- `Key Results`
+- `Power and Sample Size Results`
+- `Analysis Summary`
+- `Power vs. Sample Size`
+
+For power calculations, the plot shows the estimated power at each
+requested sample size. For sample-size searches, it shows the search
+path together with the target-power reference line and the selected
+sample size.
+
+### Run Log
+
+This tab combines the data-cleaning log and the analysis log. It is the
+first place to inspect when validation fails, model fitting errors
+occur, or an imputation step leaves unresolved missingness.
+
+### About
+
+The `About` tab gives a short overview of the app and the package.
+
+------------------------------------------------------------------------
+
+## Export Behavior
+
+After a successful analysis run, the sidebar reveals two report
+downloads:
+
+- `PDF`
+- `HTML`
+
+If the local environment does not have a full PDF toolchain available,
+the app falls back to a diagnostic PDF rather than failing silently.
+HTML export is also available directly from the same download row.

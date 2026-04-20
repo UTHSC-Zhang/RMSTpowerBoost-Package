@@ -16,7 +16,6 @@ vignette: >
   %\VignetteIndexEntry{User Guide for the RMSTpowerBoost Shiny Application}
   %\VignetteName{RMSTpowerBoost-App}
   %\VignetteDepends{RMSTpowerBoost}
-cache: false
 ---
 
 ```{r setup, include=FALSE}
@@ -24,8 +23,7 @@ knitr::opts_chunk$set(
   echo = TRUE,
   message = FALSE,
   warning = FALSE,
-  cache = FALSE,
-  cache.path = "cache/RMSTpowerBoost-App/"
+  cache = FALSE
 )
 ```
 

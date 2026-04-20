@@ -210,6 +210,7 @@
 #'   \code{\link{summary.rmst_power}}, \code{\link{plot.rmst_power}}
 #'
 #' @examples
+#' data(aft_lognormal_L12_n150, package = "RMSTpowerBoost")
 #' r <- rmst.power(Surv(time, status) ~ age,
 #'                 data = aft_lognormal_L12_n150,
 #'                 arm  = "arm",
@@ -304,6 +305,7 @@ rmst.power <- function(formula,
 #'   \code{\link{summary.rmst_ss}}, \code{\link{plot.rmst_ss}}
 #'
 #' @examples
+#' data(aft_lognormal_L12_n150, package = "RMSTpowerBoost")
 #' r <- rmst.ss(Surv(time, status) ~ age,
 #'              data         = aft_lognormal_L12_n150,
 #'              arm          = "arm",

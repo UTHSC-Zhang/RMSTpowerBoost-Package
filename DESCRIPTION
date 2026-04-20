@@ -1,6 +1,6 @@
 Package: RMSTpowerBoost
 Type: Package
-Title: Sample Size Calculation Using Restricted Mean Survival Time for Censored Data
+Title: Power and Sample Size for RMST-Based Survival Trials
 Version: 1.0.2
 Authors@R: c(
   person(given = "Arnab", family = "Aich",
@@ -25,16 +25,17 @@ License: GPL-3
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
-Imports: 
+Imports:
     survival,
     mgcv,
     ggplot2,
     stats,
+    utils,
     dplyr,
     magrittr,
     future,
     future.apply,
-    knitr,
+    knitr
 Suggests:
     roxygen2,
     shiny,
@@ -47,15 +48,13 @@ Suggests:
     rmarkdown,
     mice,
     tidyr,
-    yaml,
-    jsonlite,
-    bibtex,
-    testthat (>= 3.0.0),
-    here
+    purrr,
+    tibble,
+    htmltools,
+    tinytex,
+    testthat (>= 3.0.0)
 Config/testthat/edition: 3
-VignetteBuilder: knitr,
-                 rmarkdown
-Depends: 
-    R (>= 4.1.0)
-URL: https://uthsc-zhang.github.io/RMSTpowerBoost-Package,
+VignetteBuilder: knitr
+Depends: R (>= 4.1.0)
+URL: https://uthsc-zhang.github.io/RMSTpowerBoost-Package/,
 BugReports: https://github.com/UTHSC-Zhang/RMSTpowerBoost-Package/issues

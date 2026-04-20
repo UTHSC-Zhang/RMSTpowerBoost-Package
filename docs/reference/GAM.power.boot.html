@@ -17,7 +17,8 @@ semiparametric additive model for the RMST based on pseudo-observations."></head
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/RMSTpowerBoost-Main.html">R Package</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/index.html">Overview</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/RMSTpowerBoost-Main.html">R Package</a></li>
 <li class="nav-item"><a class="nav-link" href="../articles/RMSTpowerBoost-DataGen.html">Data Generation</a></li>
 <li class="nav-item"><a class="nav-link" href="../articles/RMSTpowerBoost-App.html">Application</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><a class="external-link nav-link" href="https://github.com/UTHSC-Zhang/RMSTpowerBoost-Package/issues">Issues</a></li>
@@ -142,7 +143,8 @@ should be <code>1</code> for treatment, <code>0</code> for control.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">pilot_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="va">pilot_df</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">0.08</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  status <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">1</span>, <span class="fl">0.7</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  arm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">1</span>, each <span class="op">=</span> <span class="fl">50</span><span class="op">)</span>,</span></span>
@@ -166,7 +168,7 @@ should be <code>1</code> for treatment, <code>0</code> for control.</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Model: pseudo_obs ~ arm + age</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Simulating for n = 100 /arm ...</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Simulating for n = 150 /arm ...</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Total simulation time: 57.21 seconds</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Total simulation time: 45.56 seconds</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> --- Simulation Summary ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -175,16 +177,17 @@ should be <code>1</code> for treatment, <code>0</code> for control.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> |Statistic            |      Value|</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> |:--------------------|----------:|</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> |Mean RMST Difference |  0.2837699|</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> |Mean Standard Error  |  0.6255794|</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> |95% CI Lower         | -1.0747207|</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> |95% CI Upper         |  1.6422605|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |Mean RMST Difference | -1.6634763|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |Mean Standard Error  |  0.6459969|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |95% CI Lower         | -3.2260579|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |95% CI Upper         | -0.1008947|</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">power_results</span><span class="op">$</span><span class="va">results_data</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   N_per_Group Power</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1         100  0.08</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2         150  0.08</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1         100  0.64</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2         150  0.72</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">power_results</span><span class="op">$</span><span class="va">results_plot</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="GAM.power.boot-1.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

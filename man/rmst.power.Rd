@@ -57,6 +57,7 @@ An object of class \code{c("rmst_power", "list")} with elements
 Routes a formula-based call to the matching RMST power routine.
 }
 \examples{
+data(aft_lognormal_L12_n150, package = "RMSTpowerBoost")
 r <- rmst.power(Surv(time, status) ~ age,
                 data = aft_lognormal_L12_n150,
                 arm  = "arm",

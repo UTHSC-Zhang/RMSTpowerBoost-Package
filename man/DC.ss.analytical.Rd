@@ -21,25 +21,25 @@ DC.ss.analytical(
 \arguments{
 \item{pilot_data}{A \code{data.frame} containing pilot study data.}
 
-\item{time_var}{Time variable.}
+\item{time_var}{A character string for the time-to-event variable.}
 
-\item{status_var}{Event indicator (1=event, 0=censored).}
+\item{status_var}{A character string for the event status variable (1=event, 0=censored).}
 
-\item{arm_var}{Treatment indicator (1/0).}
+\item{arm_var}{A character string for the treatment arm variable (1=treatment, 0=control).}
 
-\item{target_power}{Desired power.}
+\item{target_power}{A single numeric value for the desired power.}
 
-\item{linear_terms}{Optional covariates used in both models.}
+\item{linear_terms}{Optional character vector of additional covariate names.}
 
-\item{L}{RMST truncation time.}
+\item{L}{The numeric value for the RMST truncation time.}
 
-\item{alpha}{Two-sided Type I error.}
+\item{alpha}{The significance level (Type I error rate).}
 
-\item{n_start}{Starting per-arm N.}
+\item{n_start}{The starting sample size \emph{per arm} for the search.}
 
-\item{n_step}{Step size for search.}
+\item{n_step}{The increment in sample size at each step of the search.}
 
-\item{max_n_per_arm}{Maximum per-arm N to search.}
+\item{max_n_per_arm}{The maximum sample size \emph{per arm} to search.}
 }
 \value{
 A \code{list} with:

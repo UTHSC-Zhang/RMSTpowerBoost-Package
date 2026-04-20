@@ -71,6 +71,7 @@ less than \code{alpha}.
 is a mandatory argument.
 }
 \examples{
+\donttest{
 pilot_df_strat <- data.frame(
  time = rexp(120, 0.15),
  status = rbinom(120, 1, 0.6),
@@ -87,4 +88,5 @@ power_results <- MS.power.boot(
  n_sim = 100 # Low n_sim for example
 )
 print(power_results$results_data)
+}
 }

@@ -17,14 +17,14 @@
 #' Note: This implementation models a single censoring process and does not
 #' handle competing risks.
 #'
-#' @param pilot_data A `data.frame` with pilot data.
-#' @param time_var Name of the time-to-event variable.
-#' @param status_var Name of the primary event indicator (1=event, 0=censored).
-#' @param arm_var Name of the treatment indicator (1=treatment, 0=control).
-#' @param sample_sizes Numeric vector of per-arm sample sizes for power.
-#' @param linear_terms Optional character vector of additional covariate names (used in both models).
-#' @param L RMST truncation time.
-#' @param alpha Two-sided Type I error.
+#' @param pilot_data A `data.frame` with pilot study data.
+#' @param time_var A character string for the time-to-event variable.
+#' @param status_var A character string for the event status variable (1=event, 0=censored).
+#' @param arm_var A character string for the treatment arm variable (1=treatment, 0=control).
+#' @param sample_sizes A numeric vector of sample sizes *per arm* to calculate power for.
+#' @param linear_terms Optional character vector of additional covariate names.
+#' @param L The numeric value for the RMST truncation time.
+#' @param alpha The significance level (Type I error rate).
 #'
 #' @return A `list` with:
 #' \item{results_data}{A data.frame with \code{N_per_Arm} and \code{Power}.}
@@ -194,16 +194,16 @@ DC.power.analytical <- function(pilot_data,
 #' handle competing risks.
 #'
 #' @param pilot_data A `data.frame` containing pilot study data.
-#' @param time_var Time variable.
-#' @param status_var Event indicator (1=event, 0=censored).
-#' @param arm_var Treatment indicator (1/0).
-#' @param target_power Desired power.
-#' @param linear_terms Optional covariates used in both models.
-#' @param L RMST truncation time.
-#' @param alpha Two-sided Type I error.
-#' @param n_start Starting per-arm N.
-#' @param n_step Step size for search.
-#' @param max_n_per_arm Maximum per-arm N to search.
+#' @param time_var A character string for the time-to-event variable.
+#' @param status_var A character string for the event status variable (1=event, 0=censored).
+#' @param arm_var A character string for the treatment arm variable (1=treatment, 0=control).
+#' @param target_power A single numeric value for the desired power.
+#' @param linear_terms Optional character vector of additional covariate names.
+#' @param L The numeric value for the RMST truncation time.
+#' @param alpha The significance level (Type I error rate).
+#' @param n_start The starting sample size *per arm* for the search.
+#' @param n_step The increment in sample size at each step of the search.
+#' @param max_n_per_arm The maximum sample size *per arm* to search.
 #'
 #' @return A `list` with:
 #' \item{results_data}{data.frame with \code{Target_Power} and \code{Required_N_per_Arm}.}

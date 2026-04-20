@@ -65,6 +65,7 @@ An object of class \code{c("rmst_ss", "list")} with elements
 Routes a formula-based call to the matching RMST sample-size routine.
 }
 \examples{
+data(aft_lognormal_L12_n150, package = "RMSTpowerBoost")
 r <- rmst.ss(Surv(time, status) ~ age,
              data         = aft_lognormal_L12_n150,
              arm          = "arm",

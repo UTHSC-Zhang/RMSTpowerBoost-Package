@@ -17,7 +17,8 @@ using a flexible, semiparametric additive model for the RMST."></head><body>
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/RMSTpowerBoost-Main.html">R Package</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/index.html">Overview</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/RMSTpowerBoost-Main.html">R Package</a></li>
 <li class="nav-item"><a class="nav-link" href="../articles/RMSTpowerBoost-DataGen.html">Data Generation</a></li>
 <li class="nav-item"><a class="nav-link" href="../articles/RMSTpowerBoost-App.html">Application</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><a class="external-link nav-link" href="https://github.com/UTHSC-Zhang/RMSTpowerBoost-Package/issues">Issues</a></li>
@@ -156,7 +157,8 @@ the same bootstrap procedure described in <code>GAM.power.boot</code>.</p>
 
     <div class="section level2">
     <h2 id="ref-examples">Examples<a class="anchor" aria-label="anchor" href="#ref-examples"></a></h2>
-    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="va">pilot_df_effect</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
+    <div class="sourceCode"><pre class="sourceCode r"><code><span class="r-in"><span><span class="co"># \donttest{</span></span></span>
+<span class="r-in"><span><span class="va">pilot_df_effect</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/data.frame.html" class="external-link">data.frame</a></span><span class="op">(</span></span></span>
 <span class="r-in"><span>  time <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="fl">50</span>, <span class="fl">0.1</span><span class="op">)</span>, <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Exponential.html" class="external-link">rexp</a></span><span class="op">(</span><span class="fl">50</span>, <span class="fl">0.04</span><span class="op">)</span><span class="op">)</span>, <span class="co"># Effect</span></span></span>
 <span class="r-in"><span>  status <span class="op">=</span> <span class="fu">stats</span><span class="fu">::</span><span class="fu"><a href="https://rdrr.io/r/stats/Binomial.html" class="external-link">rbinom</a></span><span class="op">(</span><span class="fl">100</span>, <span class="fl">1</span>, <span class="fl">0.9</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>  arm <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/rep.html" class="external-link">rep</a></span><span class="op">(</span><span class="fl">0</span><span class="op">:</span><span class="fl">1</span>, each <span class="op">=</span> <span class="fl">50</span><span class="op">)</span></span></span>
@@ -177,9 +179,9 @@ the same bootstrap procedure described in <code>GAM.power.boot</code>.</p>
 <span class="r-in"><span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> --- Searching for Sample Size (Method: Additive GAM for RMST) ---</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Model: pseudo_obs ~ arm</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 100/arm, Calculating Power... Power = 0.97</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 100/arm, Calculating Power... Power = 0.94</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> Success: Target power reached at N = 100/arm.</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Total simulation time: 27.09 seconds</span>
+<span class="r-msg co"><span class="r-pr">#&gt;</span> Total simulation time: 19.89 seconds</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> --- Simulation Summary ---</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
@@ -188,10 +190,10 @@ the same bootstrap procedure described in <code>GAM.power.boot</code>.</p>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> |Statistic            |     Value|</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> |:--------------------|---------:|</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> |Mean RMST Difference | 3.0782888|</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> |Mean Standard Error  | 0.7594263|</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> |95% CI Lower         | 1.4525190|</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> |95% CI Upper         | 4.7040586|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |Mean RMST Difference | 2.7453092|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |Mean Standard Error  | 0.7675185|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |95% CI Lower         | 1.3124725|</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> |95% CI Upper         | 4.1781458|</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">ss_results</span><span class="op">$</span><span class="va">results_data</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Target_Power Required_N_per_Group</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1          0.8                  100</span>
@@ -199,6 +201,7 @@ the same bootstrap procedure described in <code>GAM.power.boot</code>.</p>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> `geom_line()`: Each group consists of only one observation.</span>
 <span class="r-msg co"><span class="r-pr">#&gt;</span> <span style="color: #00BBBB;">ℹ</span> Do you need to adjust the <span style="color: #00BB00;">group</span> aesthetic?</span>
 <span class="r-plt img"><img src="GAM.ss.boot-1.png" alt="" width="700" height="433"></span>
+<span class="r-in"><span><span class="co"># }</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>

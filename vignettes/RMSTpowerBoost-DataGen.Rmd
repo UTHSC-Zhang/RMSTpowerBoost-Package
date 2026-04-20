@@ -23,9 +23,6 @@ is_pkgdown <- identical(Sys.getenv("IN_PKGDOWN"), "true")
 knitr::opts_chunk$set(
   collapse = TRUE,
   cache = FALSE,
-  cache.path = "cache/RMSTpowerBoost-DataGen/",
-  cache.lazy = FALSE,
-  autodep = TRUE,
   comment = NA,
   fig.width = 6, fig.height = 4,
   warning = FALSE, message = FALSE
@@ -65,7 +62,7 @@ rmst.power(Surv(time, status) ~ age + sex + x,
            sample_sizes = c(100, 200, 300), L = 36)
 ```
 
-For designs requiring explicit covariate-dependent censoring, stratified assignment, or frailty, use the full recipe system described below.
+For designs requiring explicit covariate-dependent censoring or stratified assignment, use the full recipe system described below.
 
 ---
 

@@ -17,7 +17,8 @@ using the same IPCW-based analytic variance as DC.power.analytical."></head><bod
     </button>
 
     <div id="navbar" class="collapse navbar-collapse ms-3">
-      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/RMSTpowerBoost-Main.html">R Package</a></li>
+      <ul class="navbar-nav me-auto"><li class="nav-item"><a class="nav-link" href="../articles/index.html">Overview</a></li>
+<li class="nav-item"><a class="nav-link" href="../articles/RMSTpowerBoost-Main.html">R Package</a></li>
 <li class="nav-item"><a class="nav-link" href="../articles/RMSTpowerBoost-DataGen.html">Data Generation</a></li>
 <li class="nav-item"><a class="nav-link" href="../articles/RMSTpowerBoost-App.html">Application</a></li>
       </ul><ul class="navbar-nav"><li class="nav-item"><a class="external-link nav-link" href="https://github.com/UTHSC-Zhang/RMSTpowerBoost-Package/issues">Issues</a></li>
@@ -66,43 +67,43 @@ using the same IPCW-based analytic variance as <code>DC.power.analytical</code>.
 
 
 <dt id="arg-time-var">time_var<a class="anchor" aria-label="anchor" href="#arg-time-var"></a></dt>
-<dd><p>Time variable.</p></dd>
+<dd><p>A character string for the time-to-event variable.</p></dd>
 
 
 <dt id="arg-status-var">status_var<a class="anchor" aria-label="anchor" href="#arg-status-var"></a></dt>
-<dd><p>Event indicator (1=event, 0=censored).</p></dd>
+<dd><p>A character string for the event status variable (1=event, 0=censored).</p></dd>
 
 
 <dt id="arg-arm-var">arm_var<a class="anchor" aria-label="anchor" href="#arg-arm-var"></a></dt>
-<dd><p>Treatment indicator (1/0).</p></dd>
+<dd><p>A character string for the treatment arm variable (1=treatment, 0=control).</p></dd>
 
 
 <dt id="arg-target-power">target_power<a class="anchor" aria-label="anchor" href="#arg-target-power"></a></dt>
-<dd><p>Desired power.</p></dd>
+<dd><p>A single numeric value for the desired power.</p></dd>
 
 
 <dt id="arg-linear-terms">linear_terms<a class="anchor" aria-label="anchor" href="#arg-linear-terms"></a></dt>
-<dd><p>Optional covariates used in both models.</p></dd>
+<dd><p>Optional character vector of additional covariate names.</p></dd>
 
 
 <dt id="arg-l">L<a class="anchor" aria-label="anchor" href="#arg-l"></a></dt>
-<dd><p>RMST truncation time.</p></dd>
+<dd><p>The numeric value for the RMST truncation time.</p></dd>
 
 
 <dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
-<dd><p>Two-sided Type I error.</p></dd>
+<dd><p>The significance level (Type I error rate).</p></dd>
 
 
 <dt id="arg-n-start">n_start<a class="anchor" aria-label="anchor" href="#arg-n-start"></a></dt>
-<dd><p>Starting per-arm N.</p></dd>
+<dd><p>The starting sample size <em>per arm</em> for the search.</p></dd>
 
 
 <dt id="arg-n-step">n_step<a class="anchor" aria-label="anchor" href="#arg-n-step"></a></dt>
-<dd><p>Step size for search.</p></dd>
+<dd><p>The increment in sample size at each step of the search.</p></dd>
 
 
 <dt id="arg-max-n-per-arm">max_n_per_arm<a class="anchor" aria-label="anchor" href="#arg-max-n-per-arm"></a></dt>
-<dd><p>Maximum per-arm N to search.</p></dd>
+<dd><p>The maximum sample size <em>per arm</em> to search.</p></dd>
 
 </dl></div>
     <div class="section level2">

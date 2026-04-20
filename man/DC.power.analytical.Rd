@@ -16,21 +16,21 @@ DC.power.analytical(
 )
 }
 \arguments{
-\item{pilot_data}{A \code{data.frame} with pilot data.}
+\item{pilot_data}{A \code{data.frame} with pilot study data.}
 
-\item{time_var}{Name of the time-to-event variable.}
+\item{time_var}{A character string for the time-to-event variable.}
 
-\item{status_var}{Name of the primary event indicator (1=event, 0=censored).}
+\item{status_var}{A character string for the event status variable (1=event, 0=censored).}
 
-\item{arm_var}{Name of the treatment indicator (1=treatment, 0=control).}
+\item{arm_var}{A character string for the treatment arm variable (1=treatment, 0=control).}
 
-\item{sample_sizes}{Numeric vector of per-arm sample sizes for power.}
+\item{sample_sizes}{A numeric vector of sample sizes \emph{per arm} to calculate power for.}
 
-\item{linear_terms}{Optional character vector of additional covariate names (used in both models).}
+\item{linear_terms}{Optional character vector of additional covariate names.}
 
-\item{L}{RMST truncation time.}
+\item{L}{The numeric value for the RMST truncation time.}
 
-\item{alpha}{Two-sided Type I error.}
+\item{alpha}{The significance level (Type I error rate).}
 }
 \value{
 A \code{list} with:

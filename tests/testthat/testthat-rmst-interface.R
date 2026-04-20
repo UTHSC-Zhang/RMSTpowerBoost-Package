@@ -32,7 +32,7 @@
 }
 
 pilot   <- .iface_pilot(50L)
-pilot_s <- .iface_pilot(60L, with_strata = TRUE)
+pilot_s <- .iface_pilot(200L, with_strata = TRUE)
 dc_dat  <- .dc_pilot(200L)
 
 # ── .parse_rmst_formula ───────────────────────────────────────────────────────

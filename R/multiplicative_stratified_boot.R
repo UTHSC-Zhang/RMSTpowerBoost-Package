@@ -167,6 +167,7 @@
 #' @importFrom knitr kable
 #' @export
 #' @examples
+#' \donttest{
 #' pilot_df_strat <- data.frame(
 #'  time = rexp(120, 0.15),
 #'  status = rbinom(120, 1, 0.6),
@@ -183,6 +184,7 @@
 #'  n_sim = 100 # Low n_sim for example
 #' )
 #' print(power_results$results_data)
+#' }
 MS.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
                           sample_sizes, linear_terms = NULL, L, n_sim = 1000,
                           alpha = 0.05, parallel.cores = 1) {
@@ -329,6 +331,7 @@ MS.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
 #' @importFrom knitr kable
 #' @export
 #' @examples
+#' \donttest{
 #' pilot_df_strat_effect <- data.frame(
 #'  time = c(rexp(60, 0.15), rexp(60, 0.08)), # Effect
 #'  status = rbinom(120, 1, 0.7),
@@ -344,6 +347,7 @@ MS.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
 #'  n_step = 50, patience = 2
 #' )
 #' print(ss_results$results_data)
+#' }
 MS.ss.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
                        target_power, linear_terms = NULL, L, n_sim = 1000,
                        alpha = 0.05, parallel.cores = 1, patience = 5,
