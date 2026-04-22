@@ -58,3 +58,6 @@ docs/
 
 # renv: .Rprofile must not ship in CRAN packages
 ^\.Rprofile$
+
+# renv helper file should not ship in CRAN packages
+^\.renvignore$

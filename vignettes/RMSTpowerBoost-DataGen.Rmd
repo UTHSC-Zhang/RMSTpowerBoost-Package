@@ -18,11 +18,40 @@ vignette: >
 ---
 
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, purl=FALSE}
 is_pkgdown <- identical(Sys.getenv("IN_PKGDOWN"), "true")
+
+cache_root <- Sys.getenv("RMSTPOWERBOOST_VIGNETTE_CACHE", unset = "")
+if (!nzchar(cache_root)) {
+  # R CMD build renders vignettes in a temporary copy; local builds need a stable cache path.
+  cache_root <- if (nzchar(Sys.getenv("_R_CHECK_PACKAGE_NAME_"))) {
+    "cache"
+  } else {
+    file.path(tools::R_user_dir("RMSTpowerBoost", "cache"), "vignettes")
+  }
+}
+cache_path <- file.path(cache_root, "RMSTpowerBoost-DataGen", "html")
+dir.create(cache_path, recursive = TRUE, showWarnings = FALSE)
+cache_path <- paste0(normalizePath(cache_path, winslash = "/", mustWork = FALSE), "/")
+
+pkg_root <- if (file.exists("../DESCRIPTION") && dir.exists("../R")) ".." else "."
+pkg_version <- read.dcf(file.path(pkg_root, "DESCRIPTION"))[1, "Version"]
+r_files <- list.files(file.path(pkg_root, "R"), pattern = "[.]R$",
+                      recursive = TRUE, full.names = TRUE)
+cache_extra <- paste(
+  getRversion(),
+  pkg_version,
+  paste(unname(tools::md5sum(r_files)), collapse = ""),
+  sep = "-"
+)
+
 knitr::opts_chunk$set(
   collapse = TRUE,
-  cache = FALSE,
+  cache = TRUE,
+  cache.path = cache_path,
+  cache.extra = cache_extra,
+  cache.lazy = FALSE,
+  purl = FALSE,
   comment = NA,
   fig.width = 6, fig.height = 4,
   warning = FALSE, message = FALSE

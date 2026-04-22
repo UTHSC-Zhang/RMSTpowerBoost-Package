@@ -18,12 +18,13 @@ vignette: >
   %\VignetteDepends{RMSTpowerBoost}
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, purl=FALSE}
 knitr::opts_chunk$set(
   echo = TRUE,
   message = FALSE,
   warning = FALSE,
-  cache = FALSE
+  cache = FALSE,
+  purl = FALSE
 )
 ```
 
@@ -166,4 +167,3 @@ After a successful analysis run, the sidebar reveals two report downloads:
 - `HTML`
 
 If the local environment does not have a full PDF toolchain available, the app falls back to a diagnostic PDF rather than failing silently. HTML export is also available directly from the same download row.
-

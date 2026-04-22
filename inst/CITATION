@@ -1,0 +1,13 @@
+citHeader("To cite RMSTpowerBoost in publications, please use:")
+
+bibentry(
+  bibtype = "Manual",
+  key = "RMSTpowerBoost",
+  title = "{RMSTpowerBoost}: Power and Sample Size for Restricted Mean Survival Time Based Clinical Trials",
+  author = c(
+    person(given = "Arnab", family = "Aich"),
+    person(given = "Yuan", family = "Zhang")
+  ),
+  year = "2026",
+  note = sprintf("R package version %s", meta$Version)
+)

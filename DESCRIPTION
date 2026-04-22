@@ -1,7 +1,7 @@
 Package: RMSTpowerBoost
 Type: Package
-Title: Power and Sample Size for RMST-Based Survival Trials
-Version: 1.0.2
+Title: Power and Sample Size for Restricted Mean Survival Time Based Clinical Trials
+Version: 1.0.3
 Authors@R: c(
   person(given = "Arnab", family = "Aich",
          role = c("aut", "cre"),
@@ -12,18 +12,18 @@ Authors@R: c(
          email = "yzhang@uthsc.edu",
          comment = c(ORCID = "0000-0001-7626-9514"))
          )
-Description: Tools for RMST-based study design and analysis planning. Provides
-    power and sample size calculations for two-arm studies using direct RMST
-    modeling approaches from the biostatistical literature, including
-    semiparametric additive models with splines from Zhang and Schaubel (2024)
-    <doi:10.1002/bimj.202200371>, linear IPCW-based models from Tian, Zhao,
-    and Wei (2014) <doi:10.1093/biostatistics/kxt050>, multiplicative
-    stratified models from Wang et al. (2019) <doi:10.1002/sim.8356>, and
-    covariate-dependent censoring methods from Wang and Schaubel (2018)
-    <doi:10.1007/s10985-017-9391-6>.
+Description: Tools for Restricted Mean Survival Time based study design and 
+    analysis planning. Provides power and sample size calculations for two-arm studies using direct 
+    modeling approaches from the literature, including
+    semiparametric additive models, 
+    linear Inverse Probability Weighting based models 
+    from Wei (2014) <doi:10.1093/biostatistics/kxt050>, 
+    multiplicative stratified models from 
+    Wang (2019) <doi:10.1002/sim.8356>, and
+    covariate-dependent censoring methods from 
+    Wang (2018) <doi:10.1007/s10985-017-9391-6>.
 License: GPL-3
 Encoding: UTF-8
-Language: en-US
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.3
 Imports:
