@@ -1,10 +1,10 @@
 # RMSTpowerBoost
 
-`RMSTpowerBoost` provides power and sample size tools for study designs that
-use restricted mean survival time (RMST). The package supports direct RMST
-modeling with analytical and bootstrap-based procedures for settings that
-include linear covariate adjustment, stratification, semiparametric additive
-effects, and covariate-dependent censoring.
+`RMSTpowerBoost` provides power and sample size tools for study designs that 
+use restricted mean survival time (RMST) as a summary metric of time-to-event 
+outcomes. The package supports covariate adjustment with analytical and 
+simulation-based procedures for settings that include nonproportional hazards, 
+stratification or multi-center effects, and dependent censoring.
 
 The package includes both an R interface and a Shiny application.
 
