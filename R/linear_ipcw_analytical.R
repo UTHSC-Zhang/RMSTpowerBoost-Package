@@ -34,6 +34,7 @@
 #' @param linear_terms An optional character vector of other covariate names to include in the model.
 #' @param L The numeric value for the RMST truncation time.
 #' @param alpha The significance level for the power calculation (Type I error rate).
+#' @param verbose Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.
 #'
 #' @return A `list` containing:
 #' \item{results_data}{A `data.frame` with the specified sample sizes and their corresponding calculated power.}
@@ -64,10 +65,11 @@
 #' print(power_results$results_data)
 #' print(power_results$results_plot)
 linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
-                                    sample_sizes, linear_terms = NULL, L, alpha = 0.05) {
+                                    sample_sizes, linear_terms = NULL, L, alpha = 0.05,
+                                    verbose = FALSE) {
 
    # --- 1. Estimate Nuisance Parameters from Pilot Data ---
-   cat("--- Estimating parameters from pilot data for analytic calculation... ---\n")
+   .rmst_verbose_message(verbose, "--- Estimating parameters from pilot data for analytic calculation... ---")
 
    core_vars <- c(time_var, status_var, arm_var)
    all_vars <- c(core_vars, linear_terms)
@@ -78,7 +80,7 @@ linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
    factor_arm_str <- paste0("factor(", arm_var, ")")
    model_rhs <- paste(c(factor_arm_str, linear_terms), collapse = " + ")
    model_formula <- stats::as.formula(paste("Y_rmst ~", model_rhs))
-   message("Model: Y_rmst ~ ", model_rhs)
+   .rmst_verbose_message(verbose, "Model: Y_rmst ~ ", model_rhs)
 
    # Prepare data for IPCW
    df$Y_rmst <- pmin(df[[time_var]], L)
@@ -116,7 +118,7 @@ linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
    beta_effect <- beta_hat[arm_coeff_name]
 
    # --- 2. Calculate Asymptotic Sandwich Variance Components ---
-   cat("--- Calculating asymptotic variance... ---\n")
+   .rmst_verbose_message(verbose, "--- Calculating asymptotic variance... ---")
    X <- stats::model.matrix(model_formula, data = df)
 
    A_hat <- crossprod(X * sqrt(df$weights), X * sqrt(df$weights)) / n_pilot
@@ -141,7 +143,7 @@ linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
    se_beta_n1 <- sqrt(var_beta_n1)
 
    # --- 4. Calculate Power for Each Sample Size ---
-   cat("--- Calculating power for specified sample sizes... ---\n")
+   .rmst_verbose_message(verbose, "--- Calculating power for specified sample sizes... ---")
    z_alpha <- stats::qnorm(1 - alpha / 2)
    power_values <- sapply(sample_sizes, function(n_per_arm) {
       total_n <- n_per_arm * 2
@@ -248,6 +250,7 @@ linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
 #' @param n_start The starting sample size *per arm* for the search.
 #' @param n_step The increment in sample size at each step of the search.
 #' @param max_n_per_arm The maximum sample size *per arm* to search up to.
+#' @param verbose Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.
 #'
 #' @return A `list` containing:
 #' \item{results_data}{A `data.frame` with the target power and the required sample size per arm.}
@@ -278,10 +281,11 @@ linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
 #' print(ss_results$results_plot)
 linear.ss.analytical <- function(pilot_data, time_var, status_var, arm_var,
                                  target_power, linear_terms = NULL, L, alpha = 0.05,
-                                 n_start = 50, n_step = 25, max_n_per_arm = 2000) {
+                                 n_start = 50, n_step = 25, max_n_per_arm = 2000,
+                                 verbose = FALSE) {
 
    # --- 1. Estimate Parameters and Variance from Pilot Data (One Time) ---
-   cat("--- Estimating parameters from pilot data for analytic search... ---\n")
+   .rmst_verbose_message(verbose, "--- Estimating parameters from pilot data for analytic search... ---")
    # This part is identical to the power function above
    core_vars <- c(time_var, status_var, arm_var)
    all_vars <- c(core_vars, linear_terms)
@@ -291,7 +295,7 @@ linear.ss.analytical <- function(pilot_data, time_var, status_var, arm_var,
    factor_arm_str <- paste0("factor(", arm_var, ")")
    model_rhs <- paste(c(factor_arm_str, linear_terms), collapse = " + ")
    model_formula <- stats::as.formula(paste("Y_rmst ~", model_rhs))
-   message("Model: Y_rmst ~ ", model_rhs)
+   .rmst_verbose_message(verbose, "Model: Y_rmst ~ ", model_rhs)
 
    df$Y_rmst <- pmin(df[[time_var]], L)
    df$is_censored <- df[[status_var]] == 0
@@ -338,7 +342,7 @@ linear.ss.analytical <- function(pilot_data, time_var, status_var, arm_var,
    se_beta_n1 <- sqrt(var_beta_n1)
 
    # --- 2. Iterative Search for Sample Size using Analytic Formula ---
-   cat("--- Searching for Sample Size (Method: Analytic) ---\n")
+   .rmst_verbose_message(verbose, "--- Searching for Sample Size (Method: Analytic) ---")
    current_n <- n_start
    search_path <- list()
    final_n <- NA_integer_
@@ -351,7 +355,7 @@ linear.ss.analytical <- function(pilot_data, time_var, status_var, arm_var,
       if (!is.finite(calculated_power)) calculated_power <- 0
 
       search_path[[as.character(current_n)]] <- calculated_power
-      cat(paste0("  N = ", current_n, "/arm, Calculated Power = ", round(calculated_power, 3), "\n"))
+      .rmst_verbose_message(verbose, "  N = ", current_n, "/arm, calculated power = ", round(calculated_power, 3))
 
       if (calculated_power >= target_power) {
          final_n <- current_n
@@ -384,8 +388,7 @@ linear.ss.analytical <- function(pilot_data, time_var, status_var, arm_var,
          x = "Sample Size Per Arm", y = "Calculated Power"
       ) + ggplot2::theme_minimal()
 
-   cat("\n--- Calculation Summary ---\n")
-   print(knitr::kable(results_df, caption = "Required Sample Size"))
+   .rmst_verbose_message(verbose, "Calculation summary available in returned results_data.")
 
    model_output <- local({
       cs <- summary(fit_lm)$coefficients

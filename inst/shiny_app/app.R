@@ -40,6 +40,19 @@ if (!requireNamespace("RMSTpowerBoost", quietly = TRUE)) {
 `%||%` <- function(x,y) if (is.null(x)) y else x
 
 # ------------------ Helpers ------------------
+package_version_table <- function(pkgs) {
+  available <- vapply(pkgs, requireNamespace, logical(1), quietly = TRUE)
+  pkgs <- pkgs[available]
+  if (!length(pkgs)) {
+    return(data.frame(Package = character(0), Version = character(0)))
+  }
+  data.frame(
+    Package = pkgs,
+    Version = vapply(pkgs, function(pkg) as.character(utils::packageVersion(pkg)), character(1)),
+    stringsAsFactors = FALSE
+  )[order(pkgs), , drop = FALSE]
+}
+
 coerce_time_positive <- function(x, field_name = "time") {
   xn <- suppressWarnings(as.numeric(x))
   bad <- is.na(xn) | !is.finite(xn) | xn <= 0
@@ -1108,7 +1121,6 @@ repeated_power_from_pilot <- function(pilot_df, time_var, status_var, arm_var,
   names(df)[match(c(time_var, status_var, arm_var), names(df))] <- c("time","status","arm")
   df$arm <- as.factor(df$arm)
   if (nlevels(df$arm) != 2L) stop("Repeated method currently expects exactly 2 arms.")
-  if (!is.null(seed) && is.finite(seed)) set.seed(as.integer(seed))
   
   if (!is.null(strata_var)) {
     names(df)[names(df) == strata_var] <- "stratum"
@@ -2202,7 +2214,7 @@ server <- function(input, output, session) {
       cat("Beta vector:\n"); print(beta_vec)
     })
     rv$console_buf <- c(rv$console_buf, buf)
-    dat <- tryCatch({ simulate_from_recipe(rec, seed = rec$seed) }, error = function(e) { showNotification(paste("Simulation failed:", e$message), type = "error"); NULL })
+    dat <- tryCatch({ simulate_from_recipe(rec) }, error = function(e) { showNotification(paste("Simulation failed:", e$message), type = "error"); NULL })
     if (is.null(dat)) return()
     rv$data_df <- dat
     rv$data_df_raw_upload <- NULL
@@ -3283,9 +3295,7 @@ server <- function(input, output, session) {
               r_version = R.version.string,
               package_versions = {
                 pk <- c("shiny","bslib","plotly","survival","dplyr","tidyr","purrr","stringr","rmarkdown")
-                ip <- as.data.frame(utils::installed.packages(), stringsAsFactors = FALSE)
-                ip <- ip[ip$Package %in% pk, c("Package","Version"), drop = FALSE]
-                ip[order(ip$Package), , drop = FALSE]
+                package_version_table(pk)
               },
               session_info = paste(capture.output(utils::sessionInfo()), collapse = "\n")
             )
@@ -3341,9 +3351,7 @@ server <- function(input, output, session) {
               r_version = R.version.string,
               package_versions = {
                 pk <- c("shiny","bslib","plotly","survival","dplyr","tidyr","purrr","stringr","rmarkdown")
-                ip <- as.data.frame(utils::installed.packages(), stringsAsFactors = FALSE)
-                ip <- ip[ip$Package %in% pk, c("Package","Version"), drop = FALSE]
-                ip[order(ip$Package), , drop = FALSE]
+                package_version_table(pk)
               },
               session_info = paste(capture.output(utils::sessionInfo()), collapse = "\n")
             )

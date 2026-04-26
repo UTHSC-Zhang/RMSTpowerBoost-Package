@@ -101,7 +101,7 @@
 #' @noRd
 .build_args_power <- function(parsed, arm, sample_sizes, L, strata_var, alpha,
                                n_sim, parallel.cores, route, data,
-                               strata_type, dep_cens) {
+                               strata_type, dep_cens, verbose) {
   base <- list(
     pilot_data   = data,
     time_var     = parsed$time_var,
@@ -109,7 +109,8 @@
     arm_var      = arm,
     sample_sizes = sample_sizes,
     L            = L,
-    alpha        = alpha
+    alpha        = alpha,
+    verbose      = verbose
   )
   lt <- parsed$linear_terms
   if (!is.null(lt)) base$linear_terms <- lt
@@ -139,7 +140,7 @@
 #' @noRd
 .build_args_ss <- function(parsed, arm, target_power, L, strata_var, alpha,
                             n_sim, parallel.cores, route, data,
-                            n_start, n_step, max_n, patience) {
+                            n_start, n_step, max_n, patience, verbose) {
   base <- list(
     pilot_data   = data,
     time_var     = parsed$time_var,
@@ -147,7 +148,8 @@
     arm_var      = arm,
     target_power = target_power,
     L            = L,
-    alpha        = alpha
+    alpha        = alpha,
+    verbose      = verbose
   )
   lt <- parsed$linear_terms
   if (!is.null(lt)) base$linear_terms <- lt
@@ -201,6 +203,8 @@
 #' @param alpha Significance level. Default \code{0.05}.
 #' @param n_sim Number of bootstrap replicates (boot methods only). Default \code{1000}.
 #' @param parallel.cores Number of cores for parallel processing. Default \code{1}.
+#' @param verbose Logical; if \code{TRUE}, emit progress messages from the underlying calculation.
+#'   Default \code{FALSE}.
 #'
 #' @return An object of class \code{c("rmst_power", "list")} with elements
 #'   \code{results_data}, \code{results_plot}, \code{results_summary},
@@ -232,7 +236,8 @@ rmst.power <- function(formula,
                        type        = c("analytical", "boot"),
                        alpha       = 0.05,
                        n_sim       = 1000L,
-                       parallel.cores = 1L) {
+                       parallel.cores = 1L,
+                       verbose = FALSE) {
   mc         <- match.call()
   type       <- match.arg(type)
   strata_type <- match.arg(strata_type)
@@ -242,7 +247,8 @@ rmst.power <- function(formula,
   route      <- .rmst_route(dep_cens, has_smooth, strata_var, strata_type, type)
 
   args <- .build_args_power(parsed, arm, sample_sizes, L, strata_var, alpha,
-                             n_sim, parallel.cores, route, data, strata_type, dep_cens)
+                             n_sim, parallel.cores, route, data, strata_type, dep_cens,
+                             verbose)
   raw  <- do.call(route$fn_power, args)
 
   n_col <- if (route$model %in% c("multiplicative", "GAM") && !is.null(strata_var))
@@ -296,6 +302,8 @@ rmst.power <- function(formula,
 #' @param n_step Search increment. Default \code{25}.
 #' @param max_n Maximum sample size to try. Default \code{2000}.
 #' @param patience Number of consecutive non-improving steps before stopping. Default \code{5}.
+#' @param verbose Logical; if \code{TRUE}, emit progress messages from the underlying calculation.
+#'   Default \code{FALSE}.
 #'
 #' @return An object of class \code{c("rmst_ss", "list")} with elements
 #'   \code{results_data}, \code{results_plot}, \code{results_summary},
@@ -329,7 +337,8 @@ rmst.ss <- function(formula,
                     n_start     = 50L,
                     n_step      = 25L,
                     max_n       = 2000L,
-                    patience    = 5L) {
+                    patience    = 5L,
+                    verbose = FALSE) {
   mc          <- match.call()
   type        <- match.arg(type)
   strata_type <- match.arg(strata_type)
@@ -340,7 +349,7 @@ rmst.ss <- function(formula,
 
   args <- .build_args_ss(parsed, arm, target_power, L, strata_var, alpha,
                           n_sim, parallel.cores, route, data,
-                          n_start, n_step, max_n, patience)
+                          n_start, n_step, max_n, patience, verbose)
   raw  <- do.call(route$fn_ss, args)
 
   n_col <- if (route$model %in% c("multiplicative", "GAM") && !is.null(strata_var))

@@ -16,7 +16,8 @@ rmst.power(
   type = c("analytical", "boot"),
   alpha = 0.05,
   n_sim = 1000L,
-  parallel.cores = 1L
+  parallel.cores = 1L,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -47,6 +48,9 @@ when the requested type is unavailable for the chosen model.}
 \item{n_sim}{Number of bootstrap replicates (boot methods only). Default \code{1000}.}
 
 \item{parallel.cores}{Number of cores for parallel processing. Default \code{1}.}
+
+\item{verbose}{Logical; if \code{TRUE}, emit progress messages from the underlying calculation.
+Default \code{FALSE}.}
 }
 \value{
 An object of class \code{c("rmst_power", "list")} with elements

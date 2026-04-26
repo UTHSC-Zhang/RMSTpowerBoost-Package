@@ -39,7 +39,8 @@ recipe_quick_ph(
 \item{allocation}{Treatment allocation ratio string, e.g. \code{"1:1"} (default)
 or \code{"1:2"}.}
 
-\item{seed}{Optional integer seed.}
+\item{seed}{Optional seed retained as recipe/provenance metadata. It does not
+set the random-number generator.}
 }
 \value{
 A recipe list suitable for \code{\link{simulate_from_recipe}}.
@@ -55,7 +56,8 @@ r <- recipe_quick_ph(100, "ph_weibull",
        treat_effect = -0.5,
        covariates = list(covar_continuous("age")),
        target_censoring = 0.30)
-dat <- simulate_from_recipe(r, seed = 1)
+set.seed(1)
+dat <- simulate_from_recipe(r)
 
 }
 \seealso{

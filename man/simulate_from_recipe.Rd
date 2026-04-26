@@ -9,7 +9,9 @@ simulate_from_recipe(recipe, seed = NULL)
 \arguments{
 \item{recipe}{A validated recipe list (use \code{validate_recipe()}).}
 
-\item{seed}{Optional integer seed to override recipe$seed.}
+\item{seed}{Optional integer retained as recipe/provenance metadata; it does
+not set the random-number generator. Call \code{set.seed()} before this
+function for reproducible simulation.}
 }
 \value{
 A data.frame with columns \code{time}, \code{status}, \code{arm} (if treatment present),
@@ -23,5 +25,6 @@ covs <- list(list(name="x", type="continuous", dist="normal", params=list(mean=0
 rec <- recipe_quick_aft(120, "aft_lognormal",
         baseline=list(mu=2.2, sigma=0.5), treat_effect=-0.2,
         covariates=covs, target_censoring=0.25)
-dat <- simulate_from_recipe(rec, seed = 11)
+set.seed(11)
+dat <- simulate_from_recipe(rec)
 }

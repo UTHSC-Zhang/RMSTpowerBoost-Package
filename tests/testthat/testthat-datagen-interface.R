@@ -110,7 +110,8 @@ test_that("recipe_quick_ph ph_exponential simulates correct nrow", {
   r   <- recipe_quick_ph(50L, "ph_exponential",
                          baseline = list(rate = 0.2),
                          treat_effect = -0.3, seed = 2L)
-  dat <- simulate_from_recipe(r, seed = 2L)
+  set.seed(2L)
+  dat <- simulate_from_recipe(r)
   expect_true(is.data.frame(dat))
   expect_equal(nrow(dat), 50L)
 })
@@ -122,7 +123,8 @@ test_that("recipe_quick_ph ph_weibull includes covariate column in output", {
                        covariates = list(covar_continuous("age", mean = 60, sd = 10)),
                        seed = 3L)
   expect_identical(r$event_time$model, "ph_weibull")
-  dat <- simulate_from_recipe(r, seed = 3L)
+  set.seed(3L)
+  dat <- simulate_from_recipe(r)
   expect_true("age" %in% names(dat))
 })
 
@@ -131,7 +133,8 @@ test_that("recipe_quick_ph ph_gompertz produces finite event times", {
                          baseline = list(shape = 0.05, rate = 0.1),
                          treat_effect = -0.2, seed = 4L)
   expect_identical(r$event_time$model, "ph_gompertz")
-  dat <- simulate_from_recipe(r, seed = 4L)
+  set.seed(4L)
+  dat <- simulate_from_recipe(r)
   expect_true(all(is.finite(dat$time)))
   expect_equal(nrow(dat), 40L)
 })
@@ -140,7 +143,8 @@ test_that("recipe_quick_ph cox_pwexp generates data of correct size", {
   r   <- recipe_quick_ph(50L, "cox_pwexp",
                          baseline = list(rates = c(0.1, 0.2), cuts = 5),
                          treat_effect = -0.3, seed = 5L)
-  dat <- simulate_from_recipe(r, seed = 5L)
+  set.seed(5L)
+  dat <- simulate_from_recipe(r)
   expect_equal(nrow(dat), 50L)
 })
 
@@ -157,7 +161,8 @@ test_that("recipe_quick_ph passes binary covariate to generated data", {
                          treat_effect = 0,
                          covariates = list(covar_binary("sex")),
                          seed = 6L)
-  dat <- simulate_from_recipe(r, seed = 6L)
+  set.seed(6L)
+  dat <- simulate_from_recipe(r)
   expect_true("sex" %in% names(dat))
 })
 
@@ -241,9 +246,11 @@ test_that("rmst.sim includes covariate columns from all helper types", {
   expect_true(all(c("age", "female", "stage") %in% names(df)))
 })
 
-test_that("rmst.sim seed produces reproducible output", {
+test_that("rmst.sim uses caller RNG state for reproducible output", {
+  set.seed(99L)
   df1 <- rmst.sim(n = 50L, model = "aft_lognormal",
                   baseline = list(mu = 2, sigma = 0.5), seed = 99L)
+  set.seed(99L)
   df2 <- rmst.sim(n = 50L, model = "aft_lognormal",
                   baseline = list(mu = 2, sigma = 0.5), seed = 99L)
   expect_identical(df1$time,   df2$time)

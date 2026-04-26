@@ -20,7 +20,8 @@ rmst.ss(
   n_start = 50L,
   n_step = 25L,
   max_n = 2000L,
-  patience = 5L
+  patience = 5L,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -55,6 +56,9 @@ rmst.ss(
 \item{max_n}{Maximum sample size to try. Default \code{2000}.}
 
 \item{patience}{Number of consecutive non-improving steps before stopping. Default \code{5}.}
+
+\item{verbose}{Logical; if \code{TRUE}, emit progress messages from the underlying calculation.
+Default \code{FALSE}.}
 }
 \value{
 An object of class \code{c("rmst_ss", "list")} with elements

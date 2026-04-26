@@ -15,7 +15,8 @@ linear.ss.analytical(
   alpha = 0.05,
   n_start = 50,
   n_step = 25,
-  max_n_per_arm = 2000
+  max_n_per_arm = 2000,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -40,6 +41,8 @@ linear.ss.analytical(
 \item{n_step}{The increment in sample size at each step of the search.}
 
 \item{max_n_per_arm}{The maximum sample size \emph{per arm} to search up to.}
+
+\item{verbose}{Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.}
 }
 \value{
 A \code{list} containing:

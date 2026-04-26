@@ -14,7 +14,8 @@
   L,
   alpha,
   n_sim,
-  parallel.cores = 10
+  parallel.cores = 10,
+  verbose = FALSE
 )
 }
 \value{

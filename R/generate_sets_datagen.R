@@ -45,8 +45,9 @@
 #' @param out_dir Directory to write datasets and \code{manifest.rds} (created if missing).
 #' @param formats Character vector subset of \code{c("txt","csv","rds","rdata")}.
 #' @param n_reps Integer; number of replicates per scenario.
-#' @param seed_base Optional integer; per-rep seed computed as
-#'   \code{seed_base + scenario_id*1000 + rep}.
+#' @param seed_base Optional integer retained in the manifest as per-replicate
+#'   provenance metadata computed as \code{seed_base + scenario_id*1000 + rep}.
+#'   It does not set the random-number generator.
 #' @param filename_template Base filename (no extension) with placeholders:
 #'   \code{"{scenario_id}"}, \code{"{rep}"} and any dotted path used in \code{vary}.
 #' @return Invisibly returns the manifest \code{data.frame} and writes \code{manifest.rds}.
@@ -108,7 +109,8 @@ generate_recipe_sets <- function(base_recipe,
     levels_decl <- decl_levels(r)
     for (rep in seq_len(n_reps)) {
       seed_use <- if (!is.null(seed_base)) as.integer(seed_base + sc_id * 1000 + rep) else NULL
-      dat <- simulate_from_recipe(r, seed = seed_use)
+      r$seed <- seed_use
+      dat <- simulate_from_recipe(r)
 
       if (length(levels_decl)) for (nm in names(levels_decl)) if (!is.null(dat[[nm]]))
         dat[[nm]] <- factor(dat[[nm]], levels = levels_decl[[nm]])

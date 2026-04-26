@@ -134,7 +134,8 @@ test_that("load/rebuild manifest covers csv branch, no-path branch, and vary tok
     target_censoring = 0.1,
     allocation = "1:1"
   )
-  d1 <- RMSTpowerBoost::simulate_from_recipe(rec, seed = 1)
+  set.seed(1)
+  d1 <- RMSTpowerBoost::simulate_from_recipe(rec)
   saveRDS(d1, file.path(td, "sc1_r1_n10.rds"))
   rb <- RMSTpowerBoost::rebuild_manifest(
     rec,
@@ -170,7 +171,8 @@ test_that("rebuild_manifest covers missing-dir, no-match, and file-format branch
     "no files matched"
   )
 
-  dat <- RMSTpowerBoost::simulate_from_recipe(rec, seed = 5)
+  set.seed(5)
+  dat <- RMSTpowerBoost::simulate_from_recipe(rec)
   fmt_dir <- tempfile("rmst_fmt_rebuild_")
   dir.create(fmt_dir, recursive = TRUE, showWarnings = FALSE)
 

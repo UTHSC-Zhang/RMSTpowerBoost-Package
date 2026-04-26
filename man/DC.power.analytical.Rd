@@ -12,7 +12,8 @@ DC.power.analytical(
   sample_sizes,
   linear_terms = NULL,
   L,
-  alpha = 0.05
+  alpha = 0.05,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -31,6 +32,8 @@ DC.power.analytical(
 \item{L}{The numeric value for the RMST truncation time.}
 
 \item{alpha}{The significance level (Type I error rate).}
+
+\item{verbose}{Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.}
 }
 \value{
 A \code{list} with:

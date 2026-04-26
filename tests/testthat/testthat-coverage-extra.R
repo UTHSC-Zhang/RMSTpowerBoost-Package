@@ -66,7 +66,8 @@ test_that("explicit censoring path and pwexp simulator work", {
       dependent = list(formula = "~ x", beta = c(0, 0.5), base = 0.05)
     )
   )
-  dat <- simulate_from_recipe(rec, seed = 99)
+  set.seed(99)
+  dat <- simulate_from_recipe(rec)
   expect_true(is.data.frame(dat))
   expect_true(is.finite(attr(dat, "achieved_censoring")))
 

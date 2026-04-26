@@ -4,3 +4,10 @@
 #' @importFrom stats uniroot setNames
 #' @importFrom utils head tail
 NULL
+
+# @noRd
+.rmst_verbose_message <- function(verbose, ...) {
+   if (isTRUE(verbose)) {
+      message(..., appendLF = TRUE)
+   }
+}

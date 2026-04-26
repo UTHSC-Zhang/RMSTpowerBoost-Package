@@ -13,7 +13,8 @@ linear.power.boot(
   linear_terms = NULL,
   L,
   n_sim = 1000,
-  alpha = 0.05
+  alpha = 0.05,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -34,6 +35,8 @@ linear.power.boot(
 \item{n_sim}{The number of bootstrap simulations to run for each sample size.}
 
 \item{alpha}{The significance level (Type I error rate).}
+
+\item{verbose}{Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.}
 }
 \value{
 A \code{list} containing:

@@ -7,7 +7,8 @@
 #' @return A function that takes `n_per_stratum` and runs the simulation.
 #' @keywords internal
 .get_internal_simulation_runner <- function(pilot_data, time_var, status_var, arm_var, strata_var,
-                                            linear_terms, L, alpha, n_sim, parallel.cores=10) {
+                                            linear_terms, L, alpha, n_sim, parallel.cores=10,
+                                            verbose = FALSE) {
 
    # --- Data Preparation & Model Formula ---
    core_vars <- c(time_var, status_var, arm_var, strata_var)
@@ -20,7 +21,7 @@
    all_terms <- c(strata_var, paste0(strata_var, ":", arm_var), linear_terms)
    model_rhs <- paste(all_terms[!sapply(all_terms, is.null)], collapse = " + ")
    model_formula <- as.formula(paste("log_pseudo_obs ~", model_rhs))
-   message("Model: log(pseudo_obs) ~ ", model_rhs)
+   .rmst_verbose_message(verbose, "Model: log(pseudo_obs) ~ ", model_rhs)
    # Robust pattern to find interaction terms like 'stratumA:arm1', 'stratumB:arm1'
    test_term_pattern <- paste0(":", arm_var, "1$")
 
@@ -153,6 +154,7 @@
 #' @param n_sim Number of bootstrap simulations.
 #' @param alpha The significance level.
 #' @param parallel.cores Number of cores for parallel processing.
+#' @param verbose Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.
 #'
 #' @return A `list` containing:
 #' \item{results_data}{A `data.frame` of sample sizes and corresponding powers.}
@@ -187,7 +189,7 @@
 #' }
 MS.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
                           sample_sizes, linear_terms = NULL, L, n_sim = 1000,
-                          alpha = 0.05, parallel.cores = 1) {
+                          alpha = 0.05, parallel.cores = 1, verbose = FALSE) {
    # --- Input Validation ---
    if (is.null(sample_sizes)) stop("You must provide the 'sample_sizes' argument.")
    if (!is.numeric(sample_sizes) || any(!is.finite(sample_sizes)) ||
@@ -205,15 +207,16 @@ MS.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
       pilot_data = pilot_data,
       time_var = time_var, status_var = status_var, arm_var = arm_var,
       strata_var = strata_var, linear_terms = linear_terms, L = L,
-      alpha = alpha, n_sim = n_sim, parallel.cores = parallel.cores
+      alpha = alpha, n_sim = n_sim, parallel.cores = parallel.cores,
+      verbose = verbose
    )
 
    # --- Main Execution ---
-   cat("--- Calculating Power (Method: Multiplicative Stratified RMST Model) ---\n")
+   .rmst_verbose_message(verbose, "--- Calculating Power (Method: Multiplicative Stratified RMST Model) ---")
    start_time <- proc.time()
 
    sim_outputs <- lapply(sample_sizes, function(n) {
-      cat(paste0("Simulating for n = ", n, "/stratum...\n"))
+      .rmst_verbose_message(verbose, "Simulating for n = ", n, "/stratum...")
       sim_function(n)
    })
 
@@ -246,12 +249,9 @@ MS.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
    # --- Final Output ---
    end_time <- proc.time()
    elapsed_time <- round((end_time - start_time)["elapsed"], 2)
-   message(paste("Total simulation time:", elapsed_time, "seconds"))
-   cat("\n--- Simulation Summary ---\n")
-   if (!is.null(results_summary)) {
-      print(knitr::kable(results_summary, caption = "Estimated Treatment Effect (RMST Ratio)"))
-   } else {
-      cat("No valid estimates were generated to create a summary.\n")
+   .rmst_verbose_message(verbose, "Total simulation time: ", elapsed_time, " seconds")
+   if (isTRUE(verbose) && is.null(results_summary)) {
+      .rmst_verbose_message(verbose, "No valid estimates were generated to create a summary.")
    }
 
    best_out_power <- sim_outputs[[length(sim_outputs)]]
@@ -317,6 +317,7 @@ MS.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
 #' @param n_start Starting sample size per stratum for the search.
 #' @param n_step Increment for the sample size search.
 #' @param max_n_per_arm Maximum sample size per stratum to try.
+#' @param verbose Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.
 #'
 #' @return A `list` containing:
 #' \item{results_data}{A `data.frame` with the target power and required N.}
@@ -351,7 +352,8 @@ MS.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
 MS.ss.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
                        target_power, linear_terms = NULL, L, n_sim = 1000,
                        alpha = 0.05, parallel.cores = 1, patience = 5,
-                       n_start = 50, n_step = 25, max_n_per_arm = 2000) {
+                       n_start = 50, n_step = 25, max_n_per_arm = 2000,
+                       verbose = FALSE) {
    # --- Input Validation ---
    if (is.null(target_power) || length(target_power) != 1 || !is.numeric(target_power)) {
       stop("You must provide a single numeric value for 'target_power'.")
@@ -382,11 +384,12 @@ MS.ss.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
       pilot_data = pilot_data,
       time_var = time_var, status_var = status_var, arm_var = arm_var,
       strata_var = strata_var, linear_terms = linear_terms, L = L,
-      alpha = alpha, n_sim = n_sim, parallel.cores = parallel.cores
+      alpha = alpha, n_sim = n_sim, parallel.cores = parallel.cores,
+      verbose = verbose
    )
 
    # --- Main Execution ---
-   cat("--- Searching for Sample Size (Method: Multiplicative Stratified RMST Model) ---\n")
+   .rmst_verbose_message(verbose, "--- Searching for Sample Size (Method: Multiplicative Stratified RMST Model) ---")
    start_time <- proc.time()
 
    search_path <- list()
@@ -398,15 +401,15 @@ MS.ss.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
    best_sim_output <- NULL
 
    while (current_n <= max_n_per_arm) {
-      cat(paste0("  N = ", current_n, "/stratum, Calculating Power..."))
+      .rmst_verbose_message(verbose, "  N = ", current_n, "/stratum, calculating power...")
       sim_output <- sim_function(current_n)
       calculated_power <- if(is.finite(sim_output$power)) sim_output$power else 0
 
       search_path[[as.character(current_n)]] <- calculated_power
-      cat(paste0(" Power = ", round(calculated_power, 3), "\n"))
+      .rmst_verbose_message(verbose, "  Power = ", round(calculated_power, 3))
 
       if (calculated_power >= target_power) {
-         message("Success: Target power reached at N = ", current_n, "/stratum.")
+         .rmst_verbose_message(verbose, "Success: Target power reached at N = ", current_n, "/stratum.")
          best_sim_output <- sim_output
          final_n <- current_n
          break
@@ -465,12 +468,9 @@ MS.ss.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var,
    # --- Final Output ---
    end_time <- proc.time()
    elapsed_time <- round((end_time - start_time)["elapsed"], 2)
-   message(paste("Total simulation time:", elapsed_time, "seconds"))
-   cat("\n--- Simulation Summary ---\n")
-   if (!is.null(results_summary)) {
-      print(knitr::kable(results_summary, caption = "Estimated Treatment Effect (RMST Ratio)"))
-   } else {
-      cat("No valid estimates were generated to create a summary.\n")
+   .rmst_verbose_message(verbose, "Total simulation time: ", elapsed_time, " seconds")
+   if (isTRUE(verbose) && is.null(results_summary)) {
+      .rmst_verbose_message(verbose, "No valid estimates were generated to create a summary.")
    }
 
    sim_draws_ss <- if (!is.null(best_sim_output) && !is.null(best_sim_output$p_values)) {

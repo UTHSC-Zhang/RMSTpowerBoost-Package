@@ -19,7 +19,8 @@ MS.ss.boot(
   patience = 5,
   n_start = 50,
   n_step = 25,
-  max_n_per_arm = 2000
+  max_n_per_arm = 2000,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -52,6 +53,8 @@ MS.ss.boot(
 \item{n_step}{Increment for the sample size search.}
 
 \item{max_n_per_arm}{Maximum sample size per stratum to try.}
+
+\item{verbose}{Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.}
 }
 \value{
 A \code{list} containing:

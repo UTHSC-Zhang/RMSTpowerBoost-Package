@@ -19,7 +19,8 @@ test_that("AFT lognormal simulation returns valid data and attributes", {
       allocation = "1:1",
       seed = 42
    )
-   dat <- simulate_from_recipe(rec, seed = 42)
+   set.seed(42)
+   dat <- simulate_from_recipe(rec)
 
    expect_true(is.data.frame(dat))
    expect_true(all(c("time","status") %in% names(dat)))
@@ -51,7 +52,8 @@ test_that("PH Weibull with gamma frailty simulates positive times", {
       censoring = list(mode="target_overall", target=0.25, admin_time=36)
    ))
 
-   dat <- simulate_from_recipe(rec, seed = 31415)
+   set.seed(31415)
+   dat <- simulate_from_recipe(rec)
    expect_true(nrow(dat) == 300)
    expect_true(all(is.finite(dat$time)) && all(dat$time > 0))
    expect_true(mean(dat$status == 1L) > 0)

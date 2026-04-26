@@ -20,7 +20,8 @@ GAM.ss.boot(
   patience = 5,
   n_start = 50,
   n_step = 25,
-  max_n_per_arm = 2000
+  max_n_per_arm = 2000,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -55,6 +56,8 @@ GAM.ss.boot(
 \item{n_step}{The increment in sample size at each step of the search.}
 
 \item{max_n_per_arm}{The maximum sample size per arm/stratum to search up to.}
+
+\item{verbose}{Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.}
 }
 \value{
 A \code{list} containing:

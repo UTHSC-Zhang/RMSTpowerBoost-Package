@@ -30,6 +30,7 @@
 #' @param L The numeric truncation time for RMST.
 #' @param n_sim The number of bootstrap simulations to run for each sample size.
 #' @param alpha The significance level (Type I error rate).
+#' @param verbose Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.
 #'
 #' @return A `list` containing:
 #' \item{results_data}{A `data.frame` of sample sizes and corresponding estimated power.}
@@ -64,7 +65,8 @@
 #' print(power_results$results_data)
 #' print(power_results$results_plot)
 linear.power.boot <- function(pilot_data, time_var, status_var, arm_var,
-                              sample_sizes,linear_terms = NULL, L, n_sim = 1000, alpha = 0.05)
+                              sample_sizes,linear_terms = NULL, L, n_sim = 1000, alpha = 0.05,
+                              verbose = FALSE)
 {
 
    start_time <- proc.time()
@@ -80,15 +82,15 @@ linear.power.boot <- function(pilot_data, time_var, status_var, arm_var,
    model_formula <- as.formula(paste("Y_rmst ~", model_rhs))
 
    # --- Run simulation ---
-   cat("--- Calculating Power (Method: Linear RMST with IPCW) ---\n")
-   message("Model: Y_rmst ~ ", model_rhs)
+   .rmst_verbose_message(verbose, "--- Calculating Power (Method: Linear RMST with IPCW) ---")
+   .rmst_verbose_message(verbose, "Model: Y_rmst ~ ", model_rhs)
    results_summary <- NULL
 
    all_sim_outputs <- vector("list", length(sample_sizes))
 
    for (i in seq_along(sample_sizes)) {
       n_per_arm <- sample_sizes[i]
-      cat("Simulating for n =", n_per_arm, "per arm...\n")
+      .rmst_verbose_message(verbose, "Simulating for n = ", n_per_arm, " per arm...")
 
       p_values <- rep(NA_real_, n_sim)
       estimates <- rep(NA_real_, n_sim)
@@ -160,13 +162,10 @@ linear.power.boot <- function(pilot_data, time_var, status_var, arm_var,
 
    end_time <- proc.time()
    elapsed_time <- round((end_time - start_time)["elapsed"], 2)
-   message(paste("Total simulation time:", elapsed_time, "seconds"))
+   .rmst_verbose_message(verbose, "Total simulation time: ", elapsed_time, " seconds")
 
-   cat("\n--- Simulation Summary ---\n")
-   if (!is.null(results_summary)) {
-      print(knitr::kable(results_summary, caption = "Estimated Treatment Effect (RMST Difference)"))
-   } else {
-      cat("No valid estimates were generated to create a summary.\n")
+   if (isTRUE(verbose) && is.null(results_summary)) {
+      .rmst_verbose_message(verbose, "No valid estimates were generated to create a summary.")
    }
 
    best_out <- all_sim_outputs[[which.max(sample_sizes)]]
@@ -222,6 +221,7 @@ linear.power.boot <- function(pilot_data, time_var, status_var, arm_var,
 #' @param n_start The starting sample size *per arm* for the search.
 #' @param n_step The increment in sample size at each step of the search.
 #' @param max_n_per_arm The maximum sample size *per arm* to search up to.
+#' @param verbose Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.
 #'
 #' @return A `list` containing:
 #' \item{results_data}{A `data.frame` with the target power and the final required sample size per arm.}
@@ -258,7 +258,8 @@ linear.ss.boot <- function(pilot_data, time_var, status_var, arm_var,
                            target_power,
                            linear_terms = NULL, L, n_sim = 1000, alpha = 0.05,
                            patience = 5,
-                           n_start = 50, n_step = 25, max_n_per_arm = 2000) {
+                           n_start = 50, n_step = 25, max_n_per_arm = 2000,
+                           verbose = FALSE) {
 
    start_time <- proc.time()
    if (is.null(target_power) || length(target_power) != 1 || !is.numeric(target_power)) {
@@ -274,11 +275,11 @@ linear.ss.boot <- function(pilot_data, time_var, status_var, arm_var,
    model_formula <- as.formula(paste("Y_rmst ~", model_rhs))
 
    # --- Run simulation ---
-   cat("--- Searching for Sample Size (Method: Linear RMST with IPCW) ---\n")
-   message("Model: Y_rmst ~ ", model_rhs)
+   .rmst_verbose_message(verbose, "--- Searching for Sample Size (Method: Linear RMST with IPCW) ---")
+   .rmst_verbose_message(verbose, "Model: Y_rmst ~ ", model_rhs)
 
    # Initialize variables for the search
-   cat(paste0("\n--- Searching for N for ", target_power * 100, "% Power ---\n"))
+   .rmst_verbose_message(verbose, "Searching for N for ", target_power * 100, "% power.")
    current_n <- n_start
    max_power_so_far <- -1
    stagnation_counter <- 0
@@ -334,10 +335,10 @@ linear.ss.boot <- function(pilot_data, time_var, status_var, arm_var,
 
       calculated_power <- if(is.finite(sim_output$power)) sim_output$power else 0
       search_results[[as.character(current_n)]] <- calculated_power
-      cat(paste0("  N = ", current_n, "/arm, Calculated Power = ", round(calculated_power, 3), "\n"))
+      .rmst_verbose_message(verbose, "  N = ", current_n, "/arm, calculated power = ", round(calculated_power, 3))
 
       if (calculated_power >= target_power) {
-         message("Success: Target power reached at N = ", current_n, "/arm.")
+         .rmst_verbose_message(verbose, "Success: Target power reached at N = ", current_n, "/arm.")
          best_sim_output <- sim_output
          final_n <- current_n
          break
@@ -392,13 +393,10 @@ linear.ss.boot <- function(pilot_data, time_var, status_var, arm_var,
 
    end_time <- proc.time()
    elapsed_time <- round((end_time - start_time)["elapsed"], 2)
-   message(paste("Total simulation time:", elapsed_time, "seconds"))
+   .rmst_verbose_message(verbose, "Total simulation time: ", elapsed_time, " seconds")
 
-   cat("\n--- Simulation Summary ---\n")
-   if (!is.null(results_summary)) {
-      print(knitr::kable(results_summary, caption = "Estimated Treatment Effect (RMST Difference)"))
-   } else {
-      cat("No valid estimates were generated to create a summary.\n")
+   if (isTRUE(verbose) && is.null(results_summary)) {
+      .rmst_verbose_message(verbose, "No valid estimates were generated to create a summary.")
    }
 
    sim_draws <- if (!is.null(best_sim_output)) {

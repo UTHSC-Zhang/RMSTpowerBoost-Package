@@ -123,7 +123,8 @@ covar_categorical <- function(name, probs, labels = NULL) {
 #' @param target_censoring Target overall censoring fraction (0-1). Default \code{0.25}.
 #' @param allocation Treatment allocation ratio string, e.g. \code{"1:1"} (default)
 #'   or \code{"1:2"}.
-#' @param seed Optional integer seed.
+#' @param seed Optional seed retained as recipe/provenance metadata. It does not
+#'   set the random-number generator.
 #'
 #' @return A recipe list suitable for \code{\link{simulate_from_recipe}}.
 #'
@@ -133,7 +134,8 @@ covar_categorical <- function(name, probs, labels = NULL) {
 #'        treat_effect = -0.5,
 #'        covariates = list(covar_continuous("age")),
 #'        target_censoring = 0.30)
-#' dat <- simulate_from_recipe(r, seed = 1)
+#' set.seed(1)
+#' dat <- simulate_from_recipe(r)
 #'
 #' @seealso \code{\link{recipe_quick_aft}}, \code{\link{rmst.sim}},
 #'   \code{\link{simulate_from_recipe}}
@@ -195,7 +197,9 @@ recipe_quick_ph <- function(n,
 #' @param L Optional numeric truncation time. Stored as an attribute on the
 #'   returned object for downstream use by \code{\link{rmst.power}} /
 #'   \code{\link{rmst.ss}}. Does not affect data generation.
-#' @param seed Optional integer seed for reproducibility.
+#' @param seed Optional seed retained as recipe/provenance metadata. It does not
+#'   set the random-number generator; call \code{set.seed()} before \code{rmst.sim()}
+#'   for reproducible simulation.
 #'
 #' @return A \code{data.frame} of class \code{c("rmst_simdata", "data.frame")}
 #'   with columns \code{time}, \code{status}, \code{arm} (when treatment is

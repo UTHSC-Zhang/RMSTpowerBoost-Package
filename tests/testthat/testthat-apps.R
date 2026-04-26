@@ -27,9 +27,11 @@ test_that("analytical functions return structured outputs", {
   set.seed(101)
   pilot <- make_pilot_data(n = 80, stratified = TRUE)
 
-  lin_power <- linear.power.analytical(
-    pilot_data = pilot, time_var = "time", status_var = "status", arm_var = "arm",
-    sample_sizes = c(10, 20), linear_terms = "age", L = 5
+  expect_silent(
+    lin_power <- linear.power.analytical(
+      pilot_data = pilot, time_var = "time", status_var = "status", arm_var = "arm",
+      sample_sizes = c(10, 20), linear_terms = "age", L = 5
+    )
   )
   expect_named(lin_power, c("results_data", "results_plot", "results_summary", "model_output"))
   expect_s3_class(lin_power$results_plot, "ggplot")
@@ -101,9 +103,11 @@ test_that("bootstrap functions return expected structures", {
   )
   expect_true(is.data.frame(add_ss$results_data))
 
-  lin_power <- linear.power.boot(
-    pilot_data = pilot, time_var = "time", status_var = "status", arm_var = "arm",
-    sample_sizes = c(8), linear_terms = "age", L = 5, n_sim = 2, alpha = 0.1
+  expect_silent(
+    lin_power <- linear.power.boot(
+      pilot_data = pilot, time_var = "time", status_var = "status", arm_var = "arm",
+      sample_sizes = c(8), linear_terms = "age", L = 5, n_sim = 2, alpha = 0.1
+    )
   )
   expect_true(is.data.frame(lin_power$results_data))
 
@@ -202,6 +206,17 @@ test_that(".app_dependency_packages exposes the canonical app dependency list", 
   expect_true(length(deps) > 0)
   expect_true(all(c("shiny", "shinyjs", "bslib", "DT", "plotly", "rmarkdown", "mice") %in% deps))
   expect_identical(anyDuplicated(deps), 0L)
+})
+
+test_that("bundled Shiny app does not scan all installed packages", {
+  app_path <- file.path("inst", "shiny_app", "app.R")
+  if (!file.exists(app_path)) {
+    app_path <- file.path("..", "..", "inst", "shiny_app", "app.R")
+  }
+  skip_if(!file.exists(app_path))
+  app_src <- readLines(app_path, warn = FALSE)
+  expect_false(any(grepl("installed\\.packages\\s*\\(", app_src)))
+  expect_true(any(grepl("packageVersion\\s*\\(", app_src)))
 })
 
 test_that(".get_missing_app_dependencies returns a character vector consistent with requireNamespace", {

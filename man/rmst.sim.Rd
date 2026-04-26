@@ -43,7 +43,9 @@ existing recipe format. Default \code{list()} (no covariates).}
 returned object for downstream use by \code{\link{rmst.power}} /
 \code{\link{rmst.ss}}. Does not affect data generation.}
 
-\item{seed}{Optional integer seed for reproducibility.}
+\item{seed}{Optional seed retained as recipe/provenance metadata. It does not
+set the random-number generator; call \code{set.seed()} before \code{rmst.sim()}
+for reproducible simulation.}
 }
 \value{
 A \code{data.frame} of class \code{c("rmst_simdata", "data.frame")}

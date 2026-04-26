@@ -30,6 +30,7 @@
 #' @param linear_terms An optional character vector of other covariate names.
 #' @param L The numeric value for the RMST truncation time.
 #' @param alpha The significance level (Type I error rate).
+#' @param verbose Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.
 #'
 #' @return A `list` containing:
 #' \item{results_data}{A `data.frame` with sample sizes and corresponding powers.}
@@ -56,9 +57,10 @@
 #' )
 #' print(power_results$results_data)
 MS.power.analytical <- function(pilot_data, time_var, status_var, arm_var, strata_var,
-                                sample_sizes, linear_terms = NULL, L, alpha = 0.05) {
+                                sample_sizes, linear_terms = NULL, L, alpha = 0.05,
+                                verbose = FALSE) {
    # --- 1. Estimate Parameters from Pilot Data ---
-   cat("--- Estimating parameters from pilot data (log-linear approximation)... ---\n")
+   .rmst_verbose_message(verbose, "--- Estimating parameters from pilot data (log-linear approximation)... ---")
 
    core_vars <- c(time_var, status_var, arm_var, strata_var)
    covariates <- c(arm_var, linear_terms)
@@ -108,7 +110,7 @@ MS.power.analytical <- function(pilot_data, time_var, status_var, arm_var, strat
    fit_weights <- fit_data$w_delta
 
    log_model_formula <- stats::as.formula(paste("log(Y_rmst) ~", paste(covariates, collapse=" + "), "+", strata_var))
-   message("Approximation Model: ", deparse(log_model_formula))
+   .rmst_verbose_message(verbose, "Approximation Model: ", deparse(log_model_formula))
 
    if(nrow(fit_data) < (length(covariates) + length(unique(fit_data[[strata_var]])))) {
       stop("Not enough data points to fit the approximation model after filtering.", call. = FALSE)
@@ -125,7 +127,7 @@ MS.power.analytical <- function(pilot_data, time_var, status_var, arm_var, strat
    se_beta_n1 <- sqrt(var_beta_n1)
 
    # --- 3. Calculate Power ---
-   cat("--- Calculating power for specified sample sizes... ---\n")
+   .rmst_verbose_message(verbose, "--- Calculating power for specified sample sizes... ---")
    z_alpha <- stats::qnorm(1 - alpha / 2)
    power_values <- sapply(sample_sizes, function(n_per_stratum) {
       n_strata <- length(unique(df[[strata_var]]))
@@ -233,6 +235,7 @@ MS.power.analytical <- function(pilot_data, time_var, status_var, arm_var, strat
 #' @param n_start The starting sample size *per stratum* for the search.
 #' @param n_step The increment in sample size at each step of the search.
 #' @param max_n_per_arm The maximum sample size *per stratum* to search up to.
+#' @param verbose Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.
 #'
 #' @return A `list` containing:
 #' \item{results_data}{A `data.frame` with the target power and required sample size.}
@@ -261,10 +264,11 @@ MS.power.analytical <- function(pilot_data, time_var, status_var, arm_var, strat
 #' print(ss_results$results_data)
 MS.ss.analytical <- function(pilot_data, time_var, status_var, arm_var, strata_var,
                              target_power, linear_terms = NULL, L, alpha = 0.05,
-                             n_start = 50, n_step = 25, max_n_per_arm = 2000) {
+                             n_start = 50, n_step = 25, max_n_per_arm = 2000,
+                             verbose = FALSE) {
 
    # --- 1. Estimate Parameters and Variance from Pilot Data (One Time) ---
-   cat("--- Estimating parameters from pilot data (log-linear approximation)... ---\n")
+   .rmst_verbose_message(verbose, "--- Estimating parameters from pilot data (log-linear approximation)... ---")
 
    core_vars <- c(time_var, status_var, arm_var, strata_var)
    covariates <- c(arm_var, linear_terms)
@@ -316,7 +320,7 @@ MS.ss.analytical <- function(pilot_data, time_var, status_var, arm_var, strata_v
    se_beta_n1 <- sqrt(var_beta_n1)
 
    # --- 2. Iterative Search for Sample Size ---
-   cat("--- Searching for Sample Size (Method: Analytic/Approximation) ---\n")
+   .rmst_verbose_message(verbose, "--- Searching for Sample Size (Method: Analytic/Approximation) ---")
    current_n <- n_start
    search_path <- list()
    final_n <- NA_integer_
@@ -330,7 +334,7 @@ MS.ss.analytical <- function(pilot_data, time_var, status_var, arm_var, strata_v
       if (!is.finite(calculated_power)) calculated_power <- 0
 
       search_path[[as.character(current_n)]] <- calculated_power
-      cat(paste0("  N = ", current_n, "/stratum, Calculated Power = ", round(calculated_power, 3), "\n"))
+      .rmst_verbose_message(verbose, "  N = ", current_n, "/stratum, calculated power = ", round(calculated_power, 3))
 
       if (calculated_power >= target_power) {
          final_n <- current_n
@@ -360,8 +364,7 @@ MS.ss.analytical <- function(pilot_data, time_var, status_var, arm_var, strata_v
          x = "Sample Size Per Stratum", y = "Calculated Power"
       ) + ggplot2::theme_minimal()
 
-   cat("\n--- Calculation Summary ---\n")
-   print(knitr::kable(results_df, caption = "Required Sample Size"))
+   .rmst_verbose_message(verbose, "Calculation summary available in returned results_data.")
 
    model_output <- local({
       coef_tbl <- data.frame(

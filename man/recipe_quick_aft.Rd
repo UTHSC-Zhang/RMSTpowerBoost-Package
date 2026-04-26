@@ -30,7 +30,8 @@ recipe_quick_aft(
 
 \item{allocation}{Allocation ratio string (e.g., "1:1").}
 
-\item{seed}{Optional seed.}
+\item{seed}{Optional seed retained as recipe/provenance metadata. It does not
+set the random-number generator.}
 }
 \value{
 A recipe list suitable for \code{\link{simulate_from_recipe}}.
@@ -43,5 +44,6 @@ covs <- list(list(name="x", type="continuous", dist="normal", params=list(mean=0
 r <- recipe_quick_aft(120, "aft_lognormal",
        baseline=list(mu=2.3, sigma=0.5), treat_effect=-0.2,
        covariates=covs, target_censoring=0.25, allocation="1:1")
-dat <- simulate_from_recipe(r, seed = 1)
+set.seed(1)
+dat <- simulate_from_recipe(r)
 }

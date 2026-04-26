@@ -25,6 +25,7 @@
 #' @param linear_terms Optional character vector of additional covariate names.
 #' @param L The numeric value for the RMST truncation time.
 #' @param alpha The significance level (Type I error rate).
+#' @param verbose Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.
 #'
 #' @return A `list` with:
 #' \item{results_data}{A data.frame with \code{N_per_Arm} and \code{Power}.}
@@ -41,7 +42,8 @@ DC.power.analytical <- function(pilot_data,
                                 sample_sizes,
                                 linear_terms = NULL,
                                 L,
-                                alpha = 0.05) {
+                                alpha = 0.05,
+                                verbose = FALSE) {
 
    # --- 1) Prep & outcome ---
    covariates <- c(arm_var, linear_terms)
@@ -204,6 +206,7 @@ DC.power.analytical <- function(pilot_data,
 #' @param n_start The starting sample size *per arm* for the search.
 #' @param n_step The increment in sample size at each step of the search.
 #' @param max_n_per_arm The maximum sample size *per arm* to search.
+#' @param verbose Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.
 #'
 #' @return A `list` with:
 #' \item{results_data}{data.frame with \code{Target_Power} and \code{Required_N_per_Arm}.}
@@ -224,7 +227,8 @@ DC.ss.analytical <- function(pilot_data,
                              alpha = 0.05,
                              n_start = 50,
                              n_step = 25,
-                             max_n_per_arm = 2000) {
+                             max_n_per_arm = 2000,
+                             verbose = FALSE) {
 
    # --- One-time estimation identical to DC.power.analytical ---
    covariates <- c(arm_var, linear_terms)
@@ -314,8 +318,7 @@ DC.ss.analytical <- function(pilot_data,
       ) +
       ggplot2::theme_minimal()
 
-   cat("\n--- Calculation Summary ---\n")
-   print(knitr::kable(results_df, caption = "Required Sample Size"))
+   .rmst_verbose_message(verbose, "Calculation summary available in returned results_data.")
 
    results_summary_ss <- data.frame(
       Statistic = "Assumed RMST Difference (from pilot)", Value = beta_arm)

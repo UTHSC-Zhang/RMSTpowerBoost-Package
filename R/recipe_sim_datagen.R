@@ -390,7 +390,9 @@ gen_covariates <- function(n, covariates) {
 #' Simulate a dataset from a validated recipe (list-only)
 #'
 #' @param recipe A validated recipe list (use \code{validate_recipe()}).
-#' @param seed Optional integer seed to override recipe$seed.
+#' @param seed Optional integer retained as recipe/provenance metadata; it does
+#'   not set the random-number generator. Call \code{set.seed()} before this
+#'   function for reproducible simulation.
 #' @return A data.frame with columns \code{time}, \code{status}, \code{arm} (if treatment present),
 #'         plus covariates. Attribute \code{"achieved_censoring"} is attached.
 #' @examples
@@ -398,27 +400,13 @@ gen_covariates <- function(n, covariates) {
 #' rec <- recipe_quick_aft(120, "aft_lognormal",
 #'         baseline=list(mu=2.2, sigma=0.5), treat_effect=-0.2,
 #'         covariates=covs, target_censoring=0.25)
-#' dat <- simulate_from_recipe(rec, seed = 11)
+#' set.seed(11)
+#' dat <- simulate_from_recipe(rec)
 #' @export
 simulate_from_recipe <- function(recipe, seed = NULL) {
   if (!is.list(recipe)) stop("`recipe` must be a list (no YAML paths).")
   recipe <- validate_recipe(recipe)
-  seed_value <- seed %||% recipe$seed
-  if (!is.null(seed_value)) {
-    had_seed <- exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
-    if (had_seed) {
-      old_seed <- get(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
-    }
-    on.exit({
-      has_current_seed <- exists(".Random.seed", envir = .GlobalEnv, inherits = FALSE)
-      if (had_seed) {
-        assign(".Random.seed", old_seed, envir = .GlobalEnv)
-      } else if (has_current_seed) {
-        rm(".Random.seed", envir = .GlobalEnv)
-      }
-    }, add = TRUE)
-    set.seed(seed_value)
-  }
+  recipe$seed <- seed %||% recipe$seed
   n <- recipe$n
 
   # Covariates
@@ -492,14 +480,16 @@ simulate_from_recipe <- function(recipe, seed = NULL) {
 #' @param covariates Covariate definitions (list of defs).
 #' @param target_censoring Target overall censoring fraction (0-1).
 #' @param allocation Allocation ratio string (e.g., "1:1").
-#' @param seed Optional seed.
+#' @param seed Optional seed retained as recipe/provenance metadata. It does not
+#'   set the random-number generator.
 #' @return A recipe list suitable for \code{\link{simulate_from_recipe}}.
 #' @examples
 #' covs <- list(list(name="x", type="continuous", dist="normal", params=list(mean=0, sd=1)))
 #' r <- recipe_quick_aft(120, "aft_lognormal",
 #'        baseline=list(mu=2.3, sigma=0.5), treat_effect=-0.2,
 #'        covariates=covs, target_censoring=0.25, allocation="1:1")
-#' dat <- simulate_from_recipe(r, seed = 1)
+#' set.seed(1)
+#' dat <- simulate_from_recipe(r)
 #' @export
 recipe_quick_aft <- function(n, model = c("aft_lognormal","aft_weibull"),
                              baseline, treat_effect, covariates,

@@ -26,8 +26,9 @@ generate_recipe_sets(
 
 \item{n_reps}{Integer; number of replicates per scenario.}
 
-\item{seed_base}{Optional integer; per-rep seed computed as
-\code{seed_base + scenario_id*1000 + rep}.}
+\item{seed_base}{Optional integer retained in the manifest as per-replicate
+provenance metadata computed as \code{seed_base + scenario_id*1000 + rep}.
+It does not set the random-number generator.}
 
 \item{filename_template}{Base filename (no extension) with placeholders:
 \code{"{scenario_id}"}, \code{"{rep}"} and any dotted path used in \code{vary}.}

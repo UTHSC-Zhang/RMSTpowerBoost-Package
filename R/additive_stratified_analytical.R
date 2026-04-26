@@ -27,6 +27,7 @@
 #' @param linear_terms An optional character vector of other covariate names.
 #' @param L The numeric value for the RMST truncation time.
 #' @param alpha The significance level (Type I error rate).
+#' @param verbose Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.
 #'
 #' @return A `list` containing:
 #' \item{results_data}{A `data.frame` with specified sample sizes and corresponding powers.}
@@ -62,10 +63,11 @@
 #' print(power_results$results_plot)
 #'
 additive.power.analytical <- function(pilot_data, time_var, status_var, arm_var, strata_var,
-                                      sample_sizes, linear_terms = NULL, L, alpha = 0.05) {
+                                      sample_sizes, linear_terms = NULL, L, alpha = 0.05,
+                                      verbose = FALSE) {
 
    # --- 1. Prepare Data and Calculate IPCW Weights ---
-   cat("--- Estimating parameters from pilot data... ---\n")
+   .rmst_verbose_message(verbose, "--- Estimating parameters from pilot data... ---")
    covariates <- c(arm_var, linear_terms)
    all_vars <- c(time_var, status_var, strata_var, covariates)
    df <- pilot_data[stats::complete.cases(pilot_data[, all_vars]), ]
@@ -103,7 +105,7 @@ additive.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
    df$weights[!is.finite(df$weights)] <- 0
 
    # --- 2. Estimate Beta via Stratum-Centering ---
-   cat("--- Estimating additive effect via stratum-centering... ---\n")
+   .rmst_verbose_message(verbose, "--- Estimating additive effect via stratum-centering... ---")
    vars_to_center <- c("Y_rmst", covariates)
 
    stratum_means <- df %>%
@@ -144,7 +146,7 @@ additive.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
    beta_effect <- beta_hat[arm_var, 1]
 
    # --- 3. Calculate Asymptotic Sandwich Variance ---
-   cat("--- Calculating asymptotic variance... ---\n")
+   .rmst_verbose_message(verbose, "--- Calculating asymptotic variance... ---")
    mu0_hats <- stratum_means %>%
       dplyr::mutate(
          Z_matrix = as.matrix(dplyr::select(., dplyr::all_of(paste0(covariates, "_mean")))),
@@ -168,7 +170,7 @@ additive.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
    se_beta_n1 <- sqrt(var_beta_n1)
 
    # --- 4. Calculate Power ---
-   cat("--- Calculating power for specified sample sizes... ---\n")
+   .rmst_verbose_message(verbose, "--- Calculating power for specified sample sizes... ---")
    z_alpha <- stats::qnorm(1 - alpha / 2)
    n_strata <- length(unique(df[[strata_var]]))
    power_values <- sapply(sample_sizes, function(n_per_stratum) {
@@ -273,6 +275,7 @@ additive.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
 #' @param n_start The starting sample size *per stratum* for the search.
 #' @param n_step The increment in sample size at each step of the search.
 #' @param max_n_per_arm The maximum sample size *per stratum* to search up to.
+#' @param verbose Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.
 #'
 #' @return A `list` containing:
 #' \item{results_data}{A `data.frame` with the target power and required sample size.}
@@ -313,10 +316,11 @@ additive.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
 #'   print(ss_results$results_plot)
 additive.ss.analytical <- function(pilot_data, time_var, status_var, arm_var, strata_var,
                                    target_power, linear_terms = NULL, L, alpha = 0.05,
-                                   n_start = 50, n_step = 25, max_n_per_arm = 2000) {
+                                   n_start = 50, n_step = 25, max_n_per_arm = 2000,
+                                   verbose = FALSE) {
 
    # --- 1. Estimate Parameters and Variance from Pilot Data (One Time) ---
-   cat("--- Estimating parameters from pilot data for analytic search... ---\n")
+   .rmst_verbose_message(verbose, "--- Estimating parameters from pilot data for analytic search... ---")
    covariates <- c(arm_var, linear_terms)
    all_vars <- c(time_var, status_var, strata_var, covariates)
    df <- pilot_data[stats::complete.cases(pilot_data[, all_vars]), ]
@@ -411,7 +415,7 @@ additive.ss.analytical <- function(pilot_data, time_var, status_var, arm_var, st
    se_beta_n1 <- sqrt(var_beta_n1)
 
    # --- 2. Iterative Search for Sample Size ---
-   cat("--- Searching for Sample Size (Method: Additive Analytic) ---\n")
+   .rmst_verbose_message(verbose, "--- Searching for Sample Size (Method: Additive Analytic) ---")
    current_n <- n_start
    search_path <- list()
    final_n <- NA_integer_
@@ -425,7 +429,7 @@ additive.ss.analytical <- function(pilot_data, time_var, status_var, arm_var, st
       if (!is.finite(calculated_power)) calculated_power <- 0
 
       search_path[[as.character(current_n)]] <- calculated_power
-      cat(paste0("  N = ", current_n, "/stratum, Calculated Power = ", round(calculated_power, 3), "\n"))
+      .rmst_verbose_message(verbose, "  N = ", current_n, "/stratum, calculated power = ", round(calculated_power, 3))
 
       if (calculated_power >= target_power) {
          final_n <- current_n
@@ -455,8 +459,7 @@ additive.ss.analytical <- function(pilot_data, time_var, status_var, arm_var, st
          x = "Sample Size Per Stratum", y = "Calculated Power"
       ) + ggplot2::theme_minimal()
 
-   cat("\n--- Calculation Summary ---\n")
-   print(knitr::kable(results_df, caption = "Required Sample Size"))
+   .rmst_verbose_message(verbose, "Calculation summary available in returned results_data.")
 
    model_output <- local({
       se_all  <- sqrt(diag(V_hat_n) / n_pilot)

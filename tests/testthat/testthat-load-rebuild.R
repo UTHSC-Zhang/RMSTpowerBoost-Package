@@ -55,7 +55,8 @@ test_that("rebuild_manifest reconstructs metadata from existing files", {
     seed = 101
   )
 
-  dat <- simulate_from_recipe(rec, seed = 101)
+  set.seed(101)
+  dat <- simulate_from_recipe(rec)
 
   out_dir <- file.path(tempdir(), "rmst-rebuild-manifest")
   dir.create(out_dir, showWarnings = FALSE, recursive = TRUE)

@@ -16,7 +16,8 @@ GAM.power.boot(
   L,
   n_sim = 1000,
   alpha = 0.05,
-  parallel.cores = 1
+  parallel.cores = 1,
+  verbose = FALSE
 )
 }
 \arguments{
@@ -43,6 +44,8 @@ GAM.power.boot(
 \item{alpha}{The significance level.}
 
 \item{parallel.cores}{Number of cores for parallel processing.}
+
+\item{verbose}{Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.}
 }
 \value{
 A \code{list} containing:
