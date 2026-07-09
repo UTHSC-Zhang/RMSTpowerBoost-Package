@@ -7,8 +7,10 @@
 #' This function estimates power by bootstrap resampling the pilot data,
 #' computing RMST pseudo-observations, fitting a semiparametric additive model,
 #' and recording whether the treatment effect is significant. If `strata_var`
-#' is supplied, resampling is carried out within strata. The model formula can
-#' include linear terms, non-linear smooth terms (`s()`), and interactions.
+#' is supplied, resampling is carried out within strata and the model includes
+#' stratum-specific intercepts with a common treatment effect (the same
+#' single-effect hypothesis tested by the analytical stratified models). The
+#' model formula can include linear terms and non-linear smooth terms (`s()`).
 #'
 #' Power is estimated as the proportion of simulations with a treatment-effect
 #' p-value below `alpha`. This pseudo-observation approach models RMST directly
@@ -97,9 +99,12 @@ GAM.power.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var
    smooth_part <- if (!is.null(smooth_terms)) paste0("s(", smooth_terms, ")") else NULL
    if (is_stratified) {
       pilot_groups <- split(pilot_data, pilot_data[[strata_var]])
-      all_terms <- c(strata_var, paste0(arm_var, ":", strata_var), smooth_part, linear_terms)
-      # More robust pattern to find interaction coefficients like 'arm1:stratumA', 'arm1:stratumB'
-      test_term_pattern <- paste0("^", arm_var, "[^:]*:")
+      # Stratum-specific intercepts with a common treatment effect, matching the
+      # single-effect hypothesis tested by the analytical stratified models.
+      # (Testing the minimum p-value across stratum-by-arm interactions would
+      # inflate the type-I error and overstate power.)
+      all_terms <- c(strata_var, arm_var, smooth_part, linear_terms)
+      test_term_pattern <- paste0("^", arm_var)
    } else {
       pilot_groups <- list(pilot_data)
       all_terms <- c(arm_var, smooth_part, linear_terms)
@@ -351,8 +356,10 @@ GAM.ss.boot <- function(pilot_data, time_var, status_var, arm_var, strata_var = 
    smooth_part <- if (!is.null(smooth_terms)) paste0("s(", smooth_terms, ")") else NULL
    if (is_stratified) {
       pilot_groups <- split(pilot_data, pilot_data[[strata_var]])
-      all_terms <- c(strata_var, paste0(arm_var, ":", strata_var), smooth_part, linear_terms)
-      test_term_pattern <- paste0("^", arm_var, "[^:]*:")
+      # Stratum-specific intercepts with a common treatment effect, matching the
+      # single-effect hypothesis tested by the analytical stratified models
+      all_terms <- c(strata_var, arm_var, smooth_part, linear_terms)
+      test_term_pattern <- paste0("^", arm_var)
    } else {
       pilot_groups <- list(pilot_data)
       all_terms <- c(arm_var, smooth_part, linear_terms)

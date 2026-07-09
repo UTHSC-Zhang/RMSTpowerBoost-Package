@@ -9,7 +9,7 @@ analytic formula based on the methods of Tian et al. (2014)."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">RMSTpowerBoost</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,7 +54,8 @@ analytic formula based on the methods of Tian et al. (2014).</p>
 <span>  alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  n_start <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  n_step <span class="op">=</span> <span class="fl">25</span>,</span>
-<span>  max_n_per_arm <span class="op">=</span> <span class="fl">2000</span></span>
+<span>  max_n_per_arm <span class="op">=</span> <span class="fl">2000</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -105,6 +106,10 @@ analytic formula based on the methods of Tian et al. (2014).</p>
 <dt id="arg-max-n-per-arm">max_n_per_arm<a class="anchor" aria-label="anchor" href="#arg-max-n-per-arm"></a></dt>
 <dd><p>The maximum sample size <em>per arm</em> to search up to.</p></dd>
 
+
+<dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
+<dd><p>Logical; if <code>TRUE</code>, emit progress messages. Default <code>FALSE</code>.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -145,95 +150,9 @@ target power is achieved.</p>
 <span class="r-in"><span>  target_power <span class="op">=</span> <span class="fl">0.80</span>,</span></span>
 <span class="r-in"><span>  L <span class="op">=</span> <span class="fl">10</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> --- Estimating parameters from pilot data for analytic search... ---</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Model: Y_rmst ~ factor(arm)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> --- Searching for Sample Size (Method: Analytic) ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 50/arm, Calculated Power = 0.067</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 75/arm, Calculated Power = 0.081</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 100/arm, Calculated Power = 0.095</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 125/arm, Calculated Power = 0.108</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 150/arm, Calculated Power = 0.122</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 175/arm, Calculated Power = 0.135</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 200/arm, Calculated Power = 0.148</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 225/arm, Calculated Power = 0.162</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 250/arm, Calculated Power = 0.175</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 275/arm, Calculated Power = 0.188</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 300/arm, Calculated Power = 0.201</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 325/arm, Calculated Power = 0.214</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 350/arm, Calculated Power = 0.227</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 375/arm, Calculated Power = 0.24</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 400/arm, Calculated Power = 0.253</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 425/arm, Calculated Power = 0.266</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 450/arm, Calculated Power = 0.279</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 475/arm, Calculated Power = 0.292</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 500/arm, Calculated Power = 0.305</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 525/arm, Calculated Power = 0.317</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 550/arm, Calculated Power = 0.33</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 575/arm, Calculated Power = 0.343</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 600/arm, Calculated Power = 0.355</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 625/arm, Calculated Power = 0.367</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 650/arm, Calculated Power = 0.379</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 675/arm, Calculated Power = 0.391</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 700/arm, Calculated Power = 0.403</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 725/arm, Calculated Power = 0.415</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 750/arm, Calculated Power = 0.427</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 775/arm, Calculated Power = 0.438</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 800/arm, Calculated Power = 0.45</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 825/arm, Calculated Power = 0.461</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 850/arm, Calculated Power = 0.472</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 875/arm, Calculated Power = 0.483</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 900/arm, Calculated Power = 0.494</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 925/arm, Calculated Power = 0.505</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 950/arm, Calculated Power = 0.515</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 975/arm, Calculated Power = 0.526</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1000/arm, Calculated Power = 0.536</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1025/arm, Calculated Power = 0.546</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1050/arm, Calculated Power = 0.556</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1075/arm, Calculated Power = 0.566</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1100/arm, Calculated Power = 0.575</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1125/arm, Calculated Power = 0.585</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1150/arm, Calculated Power = 0.594</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1175/arm, Calculated Power = 0.603</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1200/arm, Calculated Power = 0.612</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1225/arm, Calculated Power = 0.621</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1250/arm, Calculated Power = 0.63</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1275/arm, Calculated Power = 0.639</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1300/arm, Calculated Power = 0.647</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1325/arm, Calculated Power = 0.655</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1350/arm, Calculated Power = 0.663</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1375/arm, Calculated Power = 0.671</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1400/arm, Calculated Power = 0.679</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1425/arm, Calculated Power = 0.687</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1450/arm, Calculated Power = 0.694</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1475/arm, Calculated Power = 0.702</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1500/arm, Calculated Power = 0.709</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1525/arm, Calculated Power = 0.716</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1550/arm, Calculated Power = 0.723</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1575/arm, Calculated Power = 0.73</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1600/arm, Calculated Power = 0.737</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1625/arm, Calculated Power = 0.743</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1650/arm, Calculated Power = 0.75</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1675/arm, Calculated Power = 0.756</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1700/arm, Calculated Power = 0.762</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1725/arm, Calculated Power = 0.768</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1750/arm, Calculated Power = 0.774</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1775/arm, Calculated Power = 0.78</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1800/arm, Calculated Power = 0.785</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1825/arm, Calculated Power = 0.791</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1850/arm, Calculated Power = 0.796</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1875/arm, Calculated Power = 0.801</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> --- Calculation Summary ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Table: Required Sample Size</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> | Target_Power| Required_N_per_Arm|</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> |------------:|------------------:|</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> |          0.8|               1875|</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">ss_results</span><span class="op">$</span><span class="va">results_data</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Target_Power Required_N_per_Arm</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1          0.8               1875</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1          0.8                150</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">ss_results</span><span class="op">$</span><span class="va">results_plot</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="linear.ss.analytical-1.png" alt="" width="700" height="433"></span>
 </code></pre></div>
@@ -247,7 +166,7 @@ target power is achieved.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

@@ -40,7 +40,8 @@ recipe_quick_ph(
 or \code{"1:2"}.}
 
 \item{seed}{Optional seed retained as recipe/provenance metadata. It does not
-set the random-number generator.}
+set the random-number generator; call \code{set.seed()} before simulation
+when reproducibility is required.}
 }
 \value{
 A recipe list suitable for \code{\link{simulate_from_recipe}}.

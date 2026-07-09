@@ -9,7 +9,7 @@ for stratified trials, using iterative bootstrap simulations."></head><body>
 
     <a class="navbar-brand me-2" href="../index.html">RMSTpowerBoost</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -58,7 +58,8 @@ for stratified trials, using iterative bootstrap simulations.</p>
 <span>  patience <span class="op">=</span> <span class="fl">5</span>,</span>
 <span>  n_start <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  n_step <span class="op">=</span> <span class="fl">25</span>,</span>
-<span>  max_n_per_arm <span class="op">=</span> <span class="fl">2000</span></span>
+<span>  max_n_per_arm <span class="op">=</span> <span class="fl">2000</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -125,6 +126,10 @@ for stratified trials, using iterative bootstrap simulations.</p>
 <dt id="arg-max-n-per-arm">max_n_per_arm<a class="anchor" aria-label="anchor" href="#arg-max-n-per-arm"></a></dt>
 <dd><p>Maximum sample size per stratum to try.</p></dd>
 
+
+<dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
+<dd><p>Logical; if <code>TRUE</code>, emit progress messages. Default <code>FALSE</code>.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -171,16 +176,7 @@ is a mandatory argument.</p>
 <span class="r-in"><span> n_start <span class="op">=</span> <span class="fl">100</span>,</span></span>
 <span class="r-in"><span> n_step <span class="op">=</span> <span class="fl">50</span>, patience <span class="op">=</span> <span class="fl">2</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Model: log(pseudo_obs) ~ region + region:arm</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> --- Searching for Sample Size (Method: Multiplicative Stratified RMST Model) ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 100/stratum, Calculating Power... Power = 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 150/stratum, Calculating Power... Power = 0</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 200/stratum, Calculating Power... Power = 0</span>
 <span class="r-wrn co"><span class="r-pr">#&gt;</span> <span class="warning">Warning: </span>Search terminated due to stagnation. Best N = 100 with power = 0</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Total simulation time: 178.75 seconds</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> --- Simulation Summary ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> No valid estimates were generated to create a summary.</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">ss_results</span><span class="op">$</span><span class="va">results_data</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Target_Power Required_N_per_Stratum</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> 1          0.8                    100</span>

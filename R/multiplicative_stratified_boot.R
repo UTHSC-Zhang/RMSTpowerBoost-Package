@@ -17,13 +17,15 @@
    pilot_groups <- split(cleaned_pilot_data, cleaned_pilot_data[[strata_var]])
 
    # --- Model Formula Construction ---
-   # Model with stratum-specific intercepts and stratum-specific treatment effects
-   all_terms <- c(strata_var, paste0(strata_var, ":", arm_var), linear_terms)
+   # Stratum-specific intercepts with a common treatment effect, matching the
+   # single-effect hypothesis tested by MS.power.analytical. (Testing the
+   # minimum p-value across stratum-by-arm interactions would inflate the
+   # type-I error and overstate power.)
+   all_terms <- c(strata_var, arm_var, linear_terms)
    model_rhs <- paste(all_terms[!sapply(all_terms, is.null)], collapse = " + ")
    model_formula <- as.formula(paste("log_pseudo_obs ~", model_rhs))
    .rmst_verbose_message(verbose, "Model: log(pseudo_obs) ~ ", model_rhs)
-   # Robust pattern to find interaction terms like 'stratumA:arm1', 'stratumB:arm1'
-   test_term_pattern <- paste0(":", arm_var, "1$")
+   test_term_pattern <- paste0("^", arm_var, "1$")
 
    # --- Helper to calculate jackknife pseudo-observations ---
    get_pseudo_obs <- function(time, status, L_val) {
@@ -82,7 +84,6 @@
                   matching_rows <- grep(test_term_pattern, rownames(coeffs), value = TRUE)
 
                   if (length(matching_rows) > 0) {
-                     # For multiple strata, take the minimum p-value
                      matched_p <- coeffs[matching_rows, "Pr(>|t|)"]
                      matched_est <- coeffs[matching_rows, "Estimate"]
                      finite_p <- matched_p[is.finite(matched_p)]
@@ -134,8 +135,13 @@
 #'   2. A log-linear model (`stats::lm`) is fitted to the `log(pseudo_obs)`.
 #'      This models the multiplicative relationship on the original RMST scale,
 #'      i.e., \eqn{\mu_{ij} = \mu_{0j} \exp\{\beta'Z_i\}}. The model formula
-#'      includes stratum-specific intercepts and interactions with the treatment arm.
+#'      includes stratum-specific intercepts and a common treatment effect,
+#'      matching the single-effect hypothesis tested by `MS.power.analytical`.
 #'   3. The p-value for the treatment effect is extracted from the model summary.
+#'
+#'   Note that pseudo-observations that are non-positive are dropped before
+#'   taking logs; when many pseudo-values are non-positive (e.g., heavy
+#'   truncation or very small `L`), this selection can bias the estimate.
 #'
 #'   Power is determined as the proportion of simulations where the p-value is
 #'   less than `alpha`.

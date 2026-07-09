@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">RMSTpowerBoost</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -52,7 +52,8 @@
 <span>  type <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"analytical"</span>, <span class="st">"boot"</span><span class="op">)</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  n_sim <span class="op">=</span> <span class="fl">1000L</span>,</span>
-<span>  parallel.cores <span class="op">=</span> <span class="fl">1L</span></span>
+<span>  parallel.cores <span class="op">=</span> <span class="fl">1L</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -111,6 +112,11 @@ when the requested type is unavailable for the chosen model.</p></dd>
 <dt id="arg-parallel-cores">parallel.cores<a class="anchor" aria-label="anchor" href="#arg-parallel-cores"></a></dt>
 <dd><p>Number of cores for parallel processing. Default <code>1</code>.</p></dd>
 
+
+<dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
+<dd><p>Logical; if <code>TRUE</code>, emit progress messages from the underlying calculation.
+Default <code>FALSE</code>.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -132,10 +138,6 @@ when the requested type is unavailable for the chosen model.</p></dd>
 <span class="r-in"><span>                arm  <span class="op">=</span> <span class="st">"arm"</span>,</span></span>
 <span class="r-in"><span>                sample_sizes <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="fl">50</span>, <span class="fl">100</span>, <span class="fl">150</span><span class="op">)</span>,</span></span>
 <span class="r-in"><span>                L    <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> --- Estimating parameters from pilot data for analytic calculation... ---</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Model: Y_rmst ~ factor(arm) + age</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> --- Calculating asymptotic variance... ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> --- Calculating power for specified sample sizes... ---</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ── RMST Power Analysis ──────────────────────────</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Model           : Linear IPCW (Analytical) </span>
@@ -145,14 +147,14 @@ when the requested type is unavailable for the chosen model.</p></dd>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Alpha           : 0.05 </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Power Results:</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>  N_per_Arm      Power</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>         50 0.08365565</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        100 0.12692736</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>        150 0.16928696</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>  N_per_Arm     Power</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>         50 0.1884944</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        100 0.3308545</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>        150 0.4619980</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Treatment Effect (from reference data):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Estimand : RMST Difference </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Estimate : -0.3007 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Estimate : -0.5447 </span>
 <span class="r-in"><span><span class="va">s</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/summary.html" class="external-link">summary</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span></span></span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/graphics/plot.default.html" class="external-link">plot</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="rmst.power-1.png" alt="" width="700" height="433"></span>

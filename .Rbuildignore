@@ -56,8 +56,13 @@ docs/
 ^\.Rhistory$
 ^tests/testthat/Rplots\.pdf$
 
+# Manual validation script (needs truncnorm/devtools; run by hand, not by R CMD check)
+^tests/validation-testR-alignment\.R$
+
 # renv: .Rprofile must not ship in CRAN packages
 ^\.Rprofile$
 
 # renv helper file should not ship in CRAN packages
 ^\.renvignore$
+^\.positai$
+^\.claude$

@@ -54,9 +54,11 @@ where \eqn{Y_i = \min(T_i, L)} is the event time truncated at \eqn{L}, \eqn{A_i}
 treatment indicator, and \eqn{\tau} is the treatment effect of interest.
 
 To handle right-censoring, the method uses Inverse Probability of Censoring
-Weighting (IPCW). The weight for an uncensored individual \code{i} is the inverse
-of the probability of remaining uncensored until their event time, \eqn{w_i = \delta_i / \hat{G}(Y_i)},
-where \eqn{\hat{G}(t) = P(C > t)} is the Kaplan-Meier estimate of the censoring distribution.
+Weighting (IPCW). Let \eqn{Y_i = \min(T_i, L)} and
+\eqn{\Delta_i^Y = 1} if the event occurs before \eqn{L} or follow-up reaches
+\eqn{L}. The weight is \eqn{w_i = \Delta_i^Y / \hat{G}(Y_i)}, where
+\eqn{\hat{G}(t) = P(C > t)} is the Kaplan-Meier estimate of the censoring
+distribution fit on the original time scale.
 
 Power is calculated analytically based on the asymptotic properties of the
 coefficient estimators. The variance of the treatment effect estimator, \eqn{\hat{\tau}}, is derived from a

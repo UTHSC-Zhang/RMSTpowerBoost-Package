@@ -124,7 +124,8 @@ covar_categorical <- function(name, probs, labels = NULL) {
 #' @param allocation Treatment allocation ratio string, e.g. \code{"1:1"} (default)
 #'   or \code{"1:2"}.
 #' @param seed Optional seed retained as recipe/provenance metadata. It does not
-#'   set the random-number generator.
+#'   set the random-number generator; call \code{set.seed()} before simulation
+#'   when reproducibility is required.
 #'
 #' @return A recipe list suitable for \code{\link{simulate_from_recipe}}.
 #'
@@ -211,6 +212,7 @@ recipe_quick_ph <- function(n,
 #' }
 #'
 #' @examples
+#' set.seed(42)
 #' df <- rmst.sim(
 #'   n            = 150,
 #'   model        = "aft_lognormal",

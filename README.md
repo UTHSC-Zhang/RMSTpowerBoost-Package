@@ -13,6 +13,47 @@ The package includes both an R interface and a Shiny application for interactive
 - Bootstrap-based semiparametric GAM procedures for nonlinear covariate effects.
 - Analytical and simulation-based methods for covariate-dependent censoring under a single censoring mechanism.
 
+## Unified Interface
+
+The main package surface is organized around three top-level helpers:
+
+- `rmst.sim()` generates pilot or reference survival data across the supported AFT and PH model families.
+- `rmst.power()` computes a power curve from a `Surv(time, status) ~ ...` formula.
+- `rmst.ss()` searches for the minimum sample size that reaches a target power.
+
+```r
+library(RMSTpowerBoost)
+library(survival)
+
+set.seed(42)
+pilot <- rmst.sim(
+  n = 150,
+  model = "aft_lognormal",
+  baseline = list(mu = 2.2, sigma = 0.5),
+  treat_effect = -0.3,
+  covariates = list(covar_continuous("age"), covar_binary("female")),
+  L = 12,
+  seed = 42
+)
+
+power_fit <- rmst.power(
+  Surv(time, status) ~ age + female,
+  data = pilot,
+  arm = "arm",
+  sample_sizes = c(75, 100, 125),
+  L = 12
+)
+```
+
+`rmst.power()` and `rmst.ss()` route automatically based on a few key arguments:
+
+- `type = "analytical"` or `"boot"` selects the analytical or bootstrap path.
+- `strata` and `strata_type` activate additive or multiplicative stratified models.
+- `dep_cens = TRUE` selects the dependent-censoring workflow.
+- Smooth terms such as `s(age)` in the formula select the GAM bootstrap workflow.
+
+`seed` in `rmst.sim()` is stored in the recipe metadata for provenance, but reproducible simulation still comes from calling `set.seed()` before `rmst.sim()`.
+
 ## Installation
 
 Install the development version from GitHub:

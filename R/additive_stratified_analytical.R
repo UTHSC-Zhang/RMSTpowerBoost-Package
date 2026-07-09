@@ -8,10 +8,12 @@
 #' indexes strata.
 #'
 #' The method uses Inverse Probability of Censoring Weighting (IPCW), with
-#' weights derived from a stratified Cox model for the censoring times. The
-#' regression coefficient \eqn{\hat{\beta}} is estimated by centering the
-#' covariates and RMST values within each stratum and then solving the
-#' resulting estimating equations in closed form.
+#' weights \eqn{\hat{W}_{ij}\Delta_i^Y} derived from a stratified Cox model for
+#' the censoring times fit on the original time scale. Here
+#' \eqn{\Delta_i^Y = 1} if the event occurs before \eqn{L} or follow-up reaches
+#' \eqn{L}. The regression coefficient \eqn{\hat{\beta}} is estimated by
+#' centering the covariates and RMST values within each stratum and then solving
+#' the resulting estimating equations in closed form.
 #'
 #' Power is obtained from the asymptotic sandwich variance of \eqn{\hat{\beta}}.
 #' This implementation uses the robust variance estimator
@@ -75,28 +77,33 @@ additive.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
 
    df$Y_rmst <- pmin(df[[time_var]], L)
    df$is_event <- df[[status_var]] == 1
+   df$is_complete <- df$is_event | df[[time_var]] >= L
 
-   cens_formula <- stats::as.formula(paste0("survival::Surv(Y_rmst, is_event == 0) ~ ",
+   cens_formula <- stats::as.formula(paste0("survival::Surv(", time_var, ", ", status_var, " == 0) ~ ",
                                             paste(covariates, collapse = " + "),
                                             " + survival::strata(", strata_var, ")"))
    fit_cens <- survival::coxph(cens_formula, data = df, ties = "breslow")
 
    bh_cens <- survival::basehaz(fit_cens, centered = FALSE)
    df$H_cens <- 0
-   unique_strata_from_bh <- unique(bh_cens$strata)
+   # basehaz() labels strata either as "level" or "strata_var=level" depending
+   # on the survival package version; accept both and fail loudly if neither
+   # matches, since silently missing strata would zero out the censoring hazard
+   bh_labels <- if (is.null(bh_cens$strata)) NULL else as.character(bh_cens$strata)
    for(st in unique(df[[strata_var]])){
-      st_label <- paste0(strata_var, "=", st)
       is_stratum <- df[[strata_var]] == st
-      if (st_label %in% unique_strata_from_bh) {
-         is_bh_stratum <- bh_cens$strata == st_label
-         if(sum(is_bh_stratum) > 0){
-            H_st <- stats::stepfun(bh_cens$time[is_bh_stratum], c(0, bh_cens$hazard[is_bh_stratum]))(df$Y_rmst[is_stratum])
-            df$H_cens[is_stratum] <- H_st
-         }
+      is_bh_stratum <- if (is.null(bh_labels)) rep(TRUE, nrow(bh_cens)) else
+         bh_labels == as.character(st) | bh_labels == paste0(strata_var, "=", st)
+      if (sum(is_bh_stratum) == 0) {
+         stop("Could not locate the baseline censoring hazard for stratum '", st,
+              "'; IPCW weights cannot be computed.", call. = FALSE)
       }
+      H_st <- stats::stepfun(bh_cens$time[is_bh_stratum], c(0, bh_cens$hazard[is_bh_stratum]))(df$Y_rmst[is_stratum])
+      df$H_cens[is_stratum] <- H_st
    }
    df$weights <- exp(df$H_cens * exp(stats::predict(fit_cens, newdata=df, type="lp", reference="zero")))
-   df$weights[!df$is_event] <- 0
+   df$weights[!df$is_complete] <- 0
+   weight_cap <- NA_real_
    finite_weights <- df$weights[is.finite(df$weights) & df$weights > 0]
    if (length(finite_weights) > 0) {
       weight_cap <- stats::quantile(finite_weights, probs = 0.99, na.rm = TRUE)
@@ -138,7 +145,7 @@ additive.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
    A_hat_inv <- tryCatch({
       solve(A_hat)
    }, error = function(e) {
-      stop("The covariate matrix (A_hat) is singular and cannot be inverted.\nThis may be caused by a lack of variation in the covariates among subjects with an event within one or more strata.\nPlease inspect the pilot data for issues like perfect separation.", call. = FALSE)
+      stop("The covariate matrix is singular and cannot be inverted.\nThis may be caused by a lack of variation in the covariates among subjects with an event within one or more strata.\nPlease inspect the pilot data for issues like perfect separation.", call. = FALSE)
    })
 
    beta_hat <- (A_hat_inv / n_pilot) %*% (t(Z_tilde * W) %*% Y_tilde)
@@ -231,7 +238,7 @@ additive.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
                        scale = "original", stringsAsFactors = FALSE))
       ))
       capped_frac <- if (is.finite(weight_cap))
-         mean(df$weights[df$is_event] >= weight_cap, na.rm = TRUE) else NA_real_
+         mean(df$weights[df$is_complete] >= weight_cap, na.rm = TRUE) else NA_real_
       list(
          coefficient_table   = coef_tbl,
          treatment_effect    = trt_eff,
@@ -242,7 +249,8 @@ additive.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
             raw_summary     = stats::quantile(df$weights, c(0, .25, .5, .75, .99, 1), na.rm = TRUE),
             cap_value       = weight_cap,
             capped_fraction = capped_frac),
-         diagnostics         = list(n_used = n_pilot, n_events = sum(df$is_event),
+         diagnostics         = list(n_used = sum(df$is_complete), n_events = sum(df$is_event),
+                                    n_complete = sum(df$is_complete),
                                     convergence_ok = TRUE, singular_flag = FALSE),
          simulation_draws    = NULL
       )
@@ -328,28 +336,33 @@ additive.ss.analytical <- function(pilot_data, time_var, status_var, arm_var, st
 
    df$Y_rmst <- pmin(df[[time_var]], L)
    df$is_event <- df[[status_var]] == 1
+   df$is_complete <- df$is_event | df[[time_var]] >= L
 
-   cens_formula <- stats::as.formula(paste0("survival::Surv(Y_rmst, is_event == 0) ~ ",
+   cens_formula <- stats::as.formula(paste0("survival::Surv(", time_var, ", ", status_var, " == 0) ~ ",
                                             paste(covariates, collapse = " + "),
                                             " + survival::strata(", strata_var, ")"))
    fit_cens <- survival::coxph(cens_formula, data = df, ties = "breslow")
 
    bh_cens <- survival::basehaz(fit_cens, centered = FALSE)
    df$H_cens <- 0
-   unique_strata_from_bh <- unique(bh_cens$strata)
+   # basehaz() labels strata either as "level" or "strata_var=level" depending
+   # on the survival package version; accept both and fail loudly if neither
+   # matches, since silently missing strata would zero out the censoring hazard
+   bh_labels <- if (is.null(bh_cens$strata)) NULL else as.character(bh_cens$strata)
    for(st in unique(df[[strata_var]])){
-      st_label <- paste0(strata_var, "=", st)
       is_stratum <- df[[strata_var]] == st
-      if (st_label %in% unique_strata_from_bh) {
-         is_bh_stratum <- bh_cens$strata == st_label
-         if(sum(is_bh_stratum) > 0){
-            H_st <- stats::stepfun(bh_cens$time[is_bh_stratum], c(0, bh_cens$hazard[is_bh_stratum]))(df$Y_rmst[is_stratum])
-            df$H_cens[is_stratum] <- H_st
-         }
+      is_bh_stratum <- if (is.null(bh_labels)) rep(TRUE, nrow(bh_cens)) else
+         bh_labels == as.character(st) | bh_labels == paste0(strata_var, "=", st)
+      if (sum(is_bh_stratum) == 0) {
+         stop("Could not locate the baseline censoring hazard for stratum '", st,
+              "'; IPCW weights cannot be computed.", call. = FALSE)
       }
+      H_st <- stats::stepfun(bh_cens$time[is_bh_stratum], c(0, bh_cens$hazard[is_bh_stratum]))(df$Y_rmst[is_stratum])
+      df$H_cens[is_stratum] <- H_st
    }
    df$weights <- exp(df$H_cens * exp(stats::predict(fit_cens, newdata=df, type="lp", reference="zero")))
-   df$weights[!df$is_event] <- 0
+   df$weights[!df$is_complete] <- 0
+   weight_cap <- NA_real_
    finite_weights <- df$weights[is.finite(df$weights) & df$weights > 0]
    if (length(finite_weights) > 0) {
       weight_cap <- stats::quantile(finite_weights, probs = 0.99, na.rm = TRUE)
@@ -499,7 +512,7 @@ additive.ss.analytical <- function(pilot_data, time_var, status_var, arm_var, st
                        scale = "original", stringsAsFactors = FALSE))
       ))
       capped_frac <- if (is.finite(weight_cap))
-         mean(df$weights[df$is_event] >= weight_cap, na.rm = TRUE) else NA_real_
+         mean(df$weights[df$is_complete] >= weight_cap, na.rm = TRUE) else NA_real_
       list(
          coefficient_table   = coef_tbl,
          treatment_effect    = trt_eff,
@@ -510,7 +523,8 @@ additive.ss.analytical <- function(pilot_data, time_var, status_var, arm_var, st
             raw_summary     = stats::quantile(df$weights, c(0, .25, .5, .75, .99, 1), na.rm = TRUE),
             cap_value       = weight_cap,
             capped_fraction = capped_frac),
-         diagnostics         = list(n_used = n_pilot, n_events = sum(df$is_event),
+         diagnostics         = list(n_used = sum(df$is_complete), n_events = sum(df$is_event),
+                                    n_complete = sum(df$is_complete),
                                     convergence_ok = TRUE, singular_flag = FALSE),
          simulation_draws    = NULL
       )

@@ -54,8 +54,12 @@ samples (\code{n_sim}) from the provided pilot data by resampling with replaceme
 For each bootstrap sample, it performs the following steps:
 \enumerate{
 \item Estimates the censoring distribution using the Kaplan-Meier method (\code{survival::survfit}).
-\item Calculates Inverse Probability of Censoring Weights (IPCW) for each observation.
-\item Fits a weighted linear model (\code{stats::lm}) to the RMST of the uncensored subjects.
+\item Calculates Inverse Probability of Censoring Weights (IPCW) for each
+observation using \eqn{w_i = \Delta_i^Y / \hat{G}(Y_i)}, where
+\eqn{\Delta_i^Y = 1} if the event occurs before \eqn{L} or follow-up
+reaches \eqn{L}.
+\item Fits a weighted linear model (\code{stats::lm}) to the truncated RMST outcome
+among subjects with observed \eqn{\Delta_i^Y = 1}.
 \item Extracts the p-value for the treatment \code{arm_var} coefficient.
 }
 
@@ -63,6 +67,13 @@ The final power for a given sample size is the proportion of the \code{n_sim} si
 where this p-value is less than the significance level \code{alpha}. This simulation-based
 approach can be useful when analytic approximations are less reliable, but it can
 be computationally intensive.
+
+The p-values come from the weighted least-squares fit with model-based
+standard errors, so the estimated power corresponds to a trial analyzed the
+same way. Because model-based standard errors treat IPCW weights as
+precision weights, this test is somewhat conservative relative to the robust
+sandwich test underlying \code{linear.power.analytical}; bootstrap power can
+therefore be lower than analytic power for the same design.
 }
 \note{
 \code{status_var} should be \code{1} for an event, \code{0} for censored. \code{arm_var}

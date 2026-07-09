@@ -53,10 +53,12 @@ This function computes power for the semiparametric additive RMST model
 indexes strata.
 
 The method uses Inverse Probability of Censoring Weighting (IPCW), with
-weights derived from a stratified Cox model for the censoring times. The
-regression coefficient \eqn{\hat{\beta}} is estimated by centering the
-covariates and RMST values within each stratum and then solving the
-resulting estimating equations in closed form.
+weights \eqn{\hat{W}_{ij}\Delta_i^Y} derived from a stratified Cox model for
+the censoring times fit on the original time scale. Here
+\eqn{\Delta_i^Y = 1} if the event occurs before \eqn{L} or follow-up reaches
+\eqn{L}. The regression coefficient \eqn{\hat{\beta}} is estimated by
+centering the covariates and RMST values within each stratum and then solving
+the resulting estimating equations in closed form.
 
 Power is obtained from the asymptotic sandwich variance of \eqn{\hat{\beta}}.
 This implementation uses the robust variance estimator

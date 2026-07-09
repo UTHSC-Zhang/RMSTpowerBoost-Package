@@ -50,7 +50,10 @@ analytic method based on the work of Wang et al. (2019).
 \details{
 This function is based on the method for evaluating center (stratum) effects
 using a multiplicative model for RMST: \eqn{\mu_{ij} = \mu_{0j} \exp\{\beta'Z_i\}}.
-The method uses IPCW with a stratified Cox model for the censoring distribution.
+The method uses IPCW with a stratified Cox model for the censoring distribution
+fit on the original time scale and weights of the form
+\eqn{\hat{W}_{ij}\Delta_i^Y}, where \eqn{\Delta_i^Y = 1} if the event occurs
+before \eqn{L} or follow-up reaches \eqn{L}.
 
 Formal estimation of \eqn{\beta} requires an iterative solver for the estimating
 equation given in Equation (8) of Wang et al. (2019). Because this is computationally

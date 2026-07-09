@@ -62,9 +62,14 @@ within each stratum defined by \code{strata_var}. In each of the \code{n_sim} it
 \item A log-linear model (\code{stats::lm}) is fitted to the \code{log(pseudo_obs)}.
 This models the multiplicative relationship on the original RMST scale,
 i.e., \eqn{\mu_{ij} = \mu_{0j} \exp\{\beta'Z_i\}}. The model formula
-includes stratum-specific intercepts and interactions with the treatment arm.
+includes stratum-specific intercepts and a common treatment effect,
+matching the single-effect hypothesis tested by \code{MS.power.analytical}.
 \item The p-value for the treatment effect is extracted from the model summary.
 }
+
+Note that pseudo-observations that are non-positive are dropped before
+taking logs; when many pseudo-values are non-positive (e.g., heavy
+truncation or very small \code{L}), this selection can bias the estimate.
 
 Power is determined as the proportion of simulations where the p-value is
 less than \code{alpha}.

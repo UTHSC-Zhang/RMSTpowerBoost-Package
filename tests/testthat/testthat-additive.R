@@ -91,3 +91,17 @@ test_that("additive.ss.analytical finds a plausible N", {
    expect_true(results$results_data$Required_N_per_Stratum > 0)
 })
 
+test_that("additive.power.analytical produces nontrivial IPCW weights", {
+   # Guards against the basehaz() stratum-label mismatch that silently left the
+   # cumulative censoring hazard at zero, collapsing every weight to exactly 1
+   set.seed(333)
+   results <- additive.power.analytical(
+      pilot_data = pilot_data_add_strat,
+      time_var = "time", status_var = "status", arm_var = "arm", strata_var = "region",
+      sample_sizes = 100, L = 15
+   )
+   w_max <- max(results$model_output$censoring_weights$raw_summary, na.rm = TRUE)
+   expect_true(is.finite(w_max))
+   expect_gt(w_max, 1)
+})
+

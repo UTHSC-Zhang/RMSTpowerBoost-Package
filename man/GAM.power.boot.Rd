@@ -61,8 +61,10 @@ semiparametric additive model for the RMST based on pseudo-observations.
 This function estimates power by bootstrap resampling the pilot data,
 computing RMST pseudo-observations, fitting a semiparametric additive model,
 and recording whether the treatment effect is significant. If \code{strata_var}
-is supplied, resampling is carried out within strata. The model formula can
-include linear terms, non-linear smooth terms (\code{s()}), and interactions.
+is supplied, resampling is carried out within strata and the model includes
+stratum-specific intercepts with a common treatment effect (the same
+single-effect hypothesis tested by the analytical stratified models). The
+model formula can include linear terms and non-linear smooth terms (\code{s()}).
 
 Power is estimated as the proportion of simulations with a treatment-effect
 p-value below \code{alpha}. This pseudo-observation approach models RMST directly

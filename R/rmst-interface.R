@@ -78,11 +78,13 @@
                   fn_ss       = additive.ss.analytical,
                   model       = "additive",
                   method_used = method_used))
-    else
+    else {
+      message("Additive stratified model has no dedicated bootstrap; using the GAM (pseudo-observation) bootstrap.")
       return(list(fn_power    = GAM.power.boot,
                   fn_ss       = GAM.ss.boot,
                   model       = "GAM",
                   method_used = method_used))
+    }
   }
   # multiplicative
   if (type == "analytical")
@@ -251,7 +253,8 @@ rmst.power <- function(formula,
                              verbose)
   raw  <- do.call(route$fn_power, args)
 
-  n_col <- if (route$model %in% c("multiplicative", "GAM") && !is.null(strata_var))
+  n_col <- if (route$model == "GAM") "N_per_Group"
+           else if (route$model %in% c("additive", "multiplicative") && !is.null(strata_var))
              "N_per_Stratum" else "N_per_Arm"
 
   structure(
@@ -352,7 +355,8 @@ rmst.ss <- function(formula,
                           n_start, n_step, max_n, patience, verbose)
   raw  <- do.call(route$fn_ss, args)
 
-  n_col <- if (route$model %in% c("multiplicative", "GAM") && !is.null(strata_var))
+  n_col <- if (route$model == "GAM") "N_per_Group"
+           else if (route$model %in% c("additive", "multiplicative") && !is.null(strata_var))
              "N_per_Stratum" else "N_per_Arm"
 
   structure(

@@ -9,14 +9,25 @@
 #' samples (`n_sim`) from the provided pilot data by resampling with replacement.
 #' For each bootstrap sample, it performs the following steps:
 #' 1.  Estimates the censoring distribution using the Kaplan-Meier method (`survival::survfit`).
-#' 2.  Calculates Inverse Probability of Censoring Weights (IPCW) for each observation.
-#' 3.  Fits a weighted linear model (`stats::lm`) to the RMST of the uncensored subjects.
+#' 2.  Calculates Inverse Probability of Censoring Weights (IPCW) for each
+#'     observation using \eqn{w_i = \Delta_i^Y / \hat{G}(Y_i)}, where
+#'     \eqn{\Delta_i^Y = 1} if the event occurs before \eqn{L} or follow-up
+#'     reaches \eqn{L}.
+#' 3.  Fits a weighted linear model (`stats::lm`) to the truncated RMST outcome
+#'     among subjects with observed \eqn{\Delta_i^Y = 1}.
 #' 4.  Extracts the p-value for the treatment `arm_var` coefficient.
 #'
 #' The final power for a given sample size is the proportion of the `n_sim` simulations
 #' where this p-value is less than the significance level `alpha`. This simulation-based
 #' approach can be useful when analytic approximations are less reliable, but it can
 #' be computationally intensive.
+#'
+#' The p-values come from the weighted least-squares fit with model-based
+#' standard errors, so the estimated power corresponds to a trial analyzed the
+#' same way. Because model-based standard errors treat IPCW weights as
+#' precision weights, this test is somewhat conservative relative to the robust
+#' sandwich test underlying \code{linear.power.analytical}; bootstrap power can
+#' therefore be lower than analytic power for the same design.
 #'
 #' @note `status_var` should be `1` for an event, `0` for censored. `arm_var`
 #'   should be `1` for treatment, `0` for control.
@@ -101,23 +112,24 @@ linear.power.boot <- function(pilot_data, time_var, status_var, arm_var,
          boot_data <- do.call(rbind, boot_list)
          boot_data[[arm_var]] <- factor(boot_data[[arm_var]], levels = c(0, 1))
 
+         boot_data$Y_rmst <- pmin(boot_data[[time_var]], L)
          is_censored <- boot_data[[status_var]] == 0
+         is_complete <- boot_data[[status_var]] == 1 | boot_data[[time_var]] >= L
          cens_fit <- tryCatch(survival::survfit(Surv(boot_data[[time_var]], is_censored) ~ 1), error = function(e) NULL)
          if (is.null(cens_fit)) next
-         surv_summary <- tryCatch(summary(cens_fit, times = pmin(boot_data[[time_var]], L), extend = TRUE), error = function(e) NULL)
+         surv_summary <- tryCatch(summary(cens_fit, times = boot_data$Y_rmst, extend = TRUE), error = function(e) NULL)
          if (is.null(surv_summary)) next
 
-         weights <- 1 / surv_summary$surv
-         finite_weights <- weights[is.finite(weights)]
+         weights <- is_complete / surv_summary$surv
+         finite_weights <- weights[is.finite(weights) & weights > 0]
          if (length(finite_weights) > 0) {
             weight_cap <- stats::quantile(finite_weights, probs = 0.99, na.rm = TRUE)
             weights[weights > weight_cap] <- weight_cap
          }
-         weights[!is.finite(weights)] <- NA
+         weights[!is.finite(weights) | !is_complete] <- 0
 
-         boot_data$Y_rmst <- pmin(boot_data[[time_var]], L)
-         fit_data <- boot_data[boot_data[[status_var]] == 1 & is.finite(weights), ]
-         fit_weights <- weights[boot_data[[status_var]] == 1 & is.finite(weights)]
+         fit_data <- boot_data[weights > 0, ]
+         fit_weights <- weights[weights > 0]
 
          if (nrow(fit_data) > (length(all_vars) + 1)) {
             fit <- tryCatch(lm(model_formula, data = fit_data, weights = fit_weights), error = function(e) NULL)
@@ -298,21 +310,22 @@ linear.ss.boot <- function(pilot_data, time_var, status_var, arm_var,
          boot_list <- lapply(pilot_groups, function(df) df[sample(seq_len(nrow(df)), size = current_n, replace = TRUE), ])
          boot_data <- do.call(rbind, boot_list)
          boot_data[[arm_var]] <- factor(boot_data[[arm_var]], levels = c(0, 1))
+         boot_data$Y_rmst <- pmin(boot_data[[time_var]], L)
          is_censored <- boot_data[[status_var]] == 0
+         is_complete <- boot_data[[status_var]] == 1 | boot_data[[time_var]] >= L
          cens_fit <- tryCatch(survival::survfit(Surv(boot_data[[time_var]], is_censored) ~ 1), error = function(e) NULL)
          if (is.null(cens_fit)) next
-         surv_summary <- tryCatch(summary(cens_fit, times = pmin(boot_data[[time_var]], L), extend = TRUE), error = function(e) NULL)
+         surv_summary <- tryCatch(summary(cens_fit, times = boot_data$Y_rmst, extend = TRUE), error = function(e) NULL)
          if (is.null(surv_summary)) next
-         weights <- 1 / surv_summary$surv
-         finite_weights <- weights[is.finite(weights)]
+         weights <- is_complete / surv_summary$surv
+         finite_weights <- weights[is.finite(weights) & weights > 0]
          if (length(finite_weights) > 0) {
             weight_cap <- stats::quantile(finite_weights, probs = 0.99, na.rm = TRUE)
             weights[weights > weight_cap] <- weight_cap
          }
-         weights[!is.finite(weights)] <- NA
-         boot_data$Y_rmst <- pmin(boot_data[[time_var]], L)
-         fit_data <- boot_data[boot_data[[status_var]] == 1 & is.finite(weights), ]
-         fit_weights <- weights[boot_data[[status_var]] == 1 & is.finite(weights)]
+         weights[!is.finite(weights) | !is_complete] <- 0
+         fit_data <- boot_data[weights > 0, ]
+         fit_weights <- weights[weights > 0]
 
          if (nrow(fit_data) > (length(all_vars) + 1)) {
             fit <- tryCatch(lm(model_formula, data = fit_data, weights = fit_weights), error = function(e) NULL)

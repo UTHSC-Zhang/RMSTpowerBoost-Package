@@ -68,6 +68,7 @@ Internally routes to \code{\link{recipe_quick_aft}} for AFT models and
 \code{\link{simulate_from_recipe}}.
 }
 \examples{
+set.seed(42)
 df <- rmst.sim(
   n            = 150,
   model        = "aft_lognormal",

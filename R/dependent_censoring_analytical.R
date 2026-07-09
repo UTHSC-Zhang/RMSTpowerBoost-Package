@@ -9,7 +9,9 @@
 #' (but not on treatment by default). It fits a Cox model for censoring
 #' \deqn{\Pr(\text{censoring by } t \mid X) = 1 - G(t \mid X)}
 #' using \code{Surv(time, status==0) ~ linear\_terms}, then forms inverse-probability-of-censoring
-#' weights (IPCW) \eqn{w_i = 1/\hat G(Y_i\mid X_i)} evaluated at \eqn{Y_i=\min(T_i,L)}.
+#' weights (IPCW) \eqn{w_i = \Delta_i^Y/\hat G(Y_i\mid X_i)} evaluated at
+#' \eqn{Y_i=\min(T_i,L)}, where \eqn{\Delta_i^Y=1} if the event is observed before
+#' \eqn{L} or follow-up reaches \eqn{L}.
 #' The RMST regression \eqn{E[Y_i \mid A_i,X_i]} is then fit by weighted least squares,
 #' and power is derived from a sandwich variance that ignores uncertainty from
 #' estimating \eqn{\hat G}.
@@ -53,6 +55,8 @@ DC.power.analytical <- function(pilot_data,
    if (n_pilot < 10) stop("Too few complete cases after filtering.", call. = FALSE)
 
    df$Y_rmst <- pmin(df[[time_var]], L)
+   df$is_event <- df[[status_var]] == 1
+   df$is_complete <- df$is_event | df[[time_var]] >= L
 
    # --- 2) Censoring model: covariate-dependent only (no arm, no competing risks) ---
    cens_rhs <- if (is.null(linear_terms) || length(linear_terms) == 0) "1" else paste(linear_terms, collapse = " + ")
@@ -67,10 +71,11 @@ DC.power.analytical <- function(pilot_data,
    Hc <- H0_step(df$Y_rmst) * exp(lp)
    Ghat <- exp(-Hc)
 
-   # IPCW for all subjects (stabilize)
+   # IPCW for subjects whose truncated RMST outcome is observed (stabilize)
    eps <- 1e-6
-   w <- 1 / pmax(Ghat, eps)
+   w <- df$is_complete / pmax(Ghat, eps)
    w[!is.finite(w)] <- 0
+   cap <- NA_real_
    if (any(is.finite(w) & w > 0)) {
       cap <- stats::quantile(w[is.finite(w) & w > 0], 0.99, na.rm = TRUE)
       w[w > cap] <- cap
@@ -80,7 +85,8 @@ DC.power.analytical <- function(pilot_data,
    # --- 3) Weighted RMST regression ---
    model_rhs <- paste(c(arm_var, linear_terms), collapse = " + ")
    model_formula <- stats::as.formula(paste("Y_rmst ~", model_rhs))
-   fit_wls <- stats::lm(model_formula, data = df, weights = df$w)
+   fit_data <- df[df$w > 0, ]
+   fit_wls <- stats::lm(model_formula, data = fit_data, weights = fit_data$w)
    beta <- stats::coef(fit_wls)
    if (!(arm_var %in% names(beta))) stop("Arm coefficient not found in model.", call. = FALSE)
    beta_arm <- beta[arm_var]
@@ -139,12 +145,13 @@ DC.power.analytical <- function(pilot_data,
          row.names = NULL,
          stringsAsFactors = FALSE
       )
+      se_arm_pilot <- se_beta_n1 / sqrt(n_pilot)
       trt_eff <- data.frame(
          estimand  = "RMST Difference (DC-IPCW)",
          estimate  = beta_arm,
-         std_error = se_beta_n1,
-         ci_lower  = beta_arm - 1.96 * se_beta_n1,
-         ci_upper  = beta_arm + 1.96 * se_beta_n1,
+         std_error = se_arm_pilot,
+         ci_lower  = beta_arm - 1.96 * se_arm_pilot,
+         ci_upper  = beta_arm + 1.96 * se_arm_pilot,
          stringsAsFactors = FALSE
       )
       arms <- sort(unique(df[[arm_var]]))
@@ -169,7 +176,8 @@ DC.power.analytical <- function(pilot_data,
             raw_summary     = stats::quantile(df$w, c(0, .25, .5, .75, .99, 1), na.rm = TRUE),
             cap_value       = cap,
             capped_fraction = capped_frac),
-         diagnostics         = list(n_used = n_pilot, n_events = sum(df[[status_var]]),
+         diagnostics         = list(n_used = nrow(fit_data), n_events = sum(df$is_event),
+                                    n_complete = sum(df$is_complete),
                                     convergence_ok = TRUE, singular_flag = FALSE),
          simulation_draws    = NULL
       )
@@ -188,9 +196,11 @@ DC.power.analytical <- function(pilot_data,
 #'   using the same IPCW-based analytic variance as \code{DC.power.analytical}.
 #'
 #' @details
-#' Uses a single censoring Cox model \code{Surv(time, status==0) ~ linear_terms} to form IPCW
-#' and fits a weighted RMST regression. Treatment is excluded from the censoring model
-#' by default. Competing risks are not modeled. Variance ignores uncertainty in \eqn{\hat G}.
+#' Uses a single censoring Cox model \code{Surv(time, status==0) ~ linear_terms} to form
+#' IPCW weights \eqn{\Delta_i^Y/\hat G(Y_i\mid X_i)} and fits a weighted RMST regression
+#' among subjects whose truncated RMST outcome is observed. Treatment is excluded from
+#' the censoring model by default. Competing risks are not modeled. Variance ignores
+#' uncertainty in \eqn{\hat G}.
 #'
 #' Note: This implementation models a single censoring process and does not
 #' handle competing risks.
@@ -238,6 +248,8 @@ DC.ss.analytical <- function(pilot_data,
    if (n_pilot < 10) stop("Too few complete cases after filtering.", call. = FALSE)
 
    df$Y_rmst <- pmin(df[[time_var]], L)
+   df$is_event <- df[[status_var]] == 1
+   df$is_complete <- df$is_event | df[[time_var]] >= L
 
    cens_rhs <- if (is.null(linear_terms) || length(linear_terms) == 0) "1" else paste(linear_terms, collapse = " + ")
    cens_formula <- stats::as.formula(
@@ -252,8 +264,9 @@ DC.ss.analytical <- function(pilot_data,
    Ghat <- exp(-Hc)
 
    eps <- 1e-6
-   w <- 1 / pmax(Ghat, eps)
+   w <- df$is_complete / pmax(Ghat, eps)
    w[!is.finite(w)] <- 0
+   cap <- NA_real_
    if (any(is.finite(w) & w > 0)) {
       cap <- stats::quantile(w[is.finite(w) & w > 0], 0.99, na.rm = TRUE)
       w[w > cap] <- cap
@@ -262,7 +275,8 @@ DC.ss.analytical <- function(pilot_data,
 
    model_rhs <- paste(c(arm_var, linear_terms), collapse = " + ")
    model_formula <- stats::as.formula(paste("Y_rmst ~", model_rhs))
-   fit_wls <- stats::lm(model_formula, data = df, weights = df$w)
+   fit_data <- df[df$w > 0, ]
+   fit_wls <- stats::lm(model_formula, data = fit_data, weights = fit_data$w)
    beta <- stats::coef(fit_wls)
    if (!(arm_var %in% names(beta))) stop("Arm coefficient not found in model.", call. = FALSE)
    beta_arm <- beta[arm_var]
@@ -336,12 +350,13 @@ DC.ss.analytical <- function(pilot_data,
          row.names = NULL,
          stringsAsFactors = FALSE
       )
+      se_arm_pilot <- se_beta_n1 / sqrt(n_pilot)
       trt_eff <- data.frame(
          estimand  = "RMST Difference (DC-IPCW)",
          estimate  = beta_arm,
-         std_error = se_beta_n1,
-         ci_lower  = beta_arm - 1.96 * se_beta_n1,
-         ci_upper  = beta_arm + 1.96 * se_beta_n1,
+         std_error = se_arm_pilot,
+         ci_lower  = beta_arm - 1.96 * se_arm_pilot,
+         ci_upper  = beta_arm + 1.96 * se_arm_pilot,
          stringsAsFactors = FALSE
       )
       arms <- sort(unique(df[[arm_var]]))
@@ -366,7 +381,8 @@ DC.ss.analytical <- function(pilot_data,
             raw_summary     = stats::quantile(df$w, c(0, .25, .5, .75, .99, 1), na.rm = TRUE),
             cap_value       = cap,
             capped_fraction = capped_frac),
-         diagnostics         = list(n_used = n_pilot, n_events = sum(df[[status_var]]),
+         diagnostics         = list(n_used = nrow(fit_data), n_events = sum(df$is_event),
+                                    n_complete = sum(df$is_complete),
                                     convergence_ok = TRUE, singular_flag = FALSE),
          simulation_draws    = NULL
       )

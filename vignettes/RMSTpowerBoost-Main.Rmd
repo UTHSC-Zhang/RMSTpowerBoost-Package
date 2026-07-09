@@ -372,6 +372,8 @@ Key arguments that control model selection:
 | `dep_cens` | `TRUE` / `FALSE` | Dependent-censoring model |
 | Smooth terms | `s(var)` in formula | Activates GAM (forces `type = "boot"`) |
 
+For simulation-driven workflows, `rmst.sim()` provides matching pilot data with the same unified design. The `seed` argument is stored in the recipe metadata for provenance, while reproducible simulation still comes from calling `set.seed()` before `rmst.sim()`.
+
 The underlying model-specific functions remain exported for direct use when needed.
 
 ## Selecting an Appropriate Model

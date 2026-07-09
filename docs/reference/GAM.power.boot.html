@@ -9,7 +9,7 @@ semiparametric additive model for the RMST based on pseudo-observations."></head
 
     <a class="navbar-brand me-2" href="../index.html">RMSTpowerBoost</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -55,7 +55,8 @@ semiparametric additive model for the RMST based on pseudo-observations.</p>
 <span>  <span class="va">L</span>,</span>
 <span>  n_sim <span class="op">=</span> <span class="fl">1000</span>,</span>
 <span>  alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
-<span>  parallel.cores <span class="op">=</span> <span class="fl">1</span></span>
+<span>  parallel.cores <span class="op">=</span> <span class="fl">1</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -109,6 +110,10 @@ semiparametric additive model for the RMST based on pseudo-observations.</p>
 
 <dt id="arg-parallel-cores">parallel.cores<a class="anchor" aria-label="anchor" href="#arg-parallel-cores"></a></dt>
 <dd><p>Number of cores for parallel processing.</p></dd>
+
+
+<dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
+<dd><p>Logical; if <code>TRUE</code>, emit progress messages. Default <code>FALSE</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -164,27 +169,10 @@ should be <code>1</code> for treatment, <code>0</code> for control.</p>
 <span class="r-in"><span>  n_sim <span class="op">=</span> <span class="fl">100</span>, <span class="co"># Use more sims in practice, e.g., 1000</span></span></span>
 <span class="r-in"><span>  parallel.cores <span class="op">=</span> <span class="fl">2</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> --- Calculating Power (Method: Additive GAM for RMST) ---</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Model: pseudo_obs ~ arm + age</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Simulating for n = 100 /arm ...</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Simulating for n = 150 /arm ...</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Total simulation time: 45.56 seconds</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> --- Simulation Summary ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Table: Estimated Treatment Effect (RMST Difference)</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> |Statistic            |      Value|</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> |:--------------------|----------:|</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> |Mean RMST Difference | -1.6634763|</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> |Mean Standard Error  |  0.6459969|</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> |95% CI Lower         | -3.2260579|</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> |95% CI Upper         | -0.1008947|</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">power_results</span><span class="op">$</span><span class="va">results_data</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   N_per_Group Power</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1         100  0.64</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2         150  0.72</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1         100  0.09</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2         150  0.17</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">power_results</span><span class="op">$</span><span class="va">results_plot</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="GAM.power.boot-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span><span class="co"># }</span></span></span>
@@ -199,7 +187,7 @@ should be <code>1</code> for treatment, <code>0</code> for control.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

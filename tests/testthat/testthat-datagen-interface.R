@@ -257,6 +257,20 @@ test_that("rmst.sim uses caller RNG state for reproducible output", {
   expect_identical(df1$status, df2$status)
 })
 
+test_that("rmst.sim seed is stored as metadata and does not alter RNG", {
+  set.seed(123L)
+  df1 <- rmst.sim(n = 50L, model = "aft_lognormal",
+                  baseline = list(mu = 2, sigma = 0.5), seed = 11L)
+  set.seed(123L)
+  df2 <- rmst.sim(n = 50L, model = "aft_lognormal",
+                  baseline = list(mu = 2, sigma = 0.5), seed = 22L)
+
+  expect_identical(attr(df1, "recipe")$seed, 11L)
+  expect_identical(attr(df2, "recipe")$seed, 22L)
+  expect_identical(df1$time, df2$time)
+  expect_identical(df1$status, df2$status)
+})
+
 test_that("rmst.sim L=NULL stores NULL attribute", {
   df <- rmst.sim(n = 50L, model = "aft_lognormal",
                  baseline = list(mu = 2, sigma = 0.5), seed = 1L)

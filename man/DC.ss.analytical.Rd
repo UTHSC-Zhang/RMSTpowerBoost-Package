@@ -55,9 +55,11 @@ Iteratively finds required per-arm sample size for a target power,
 using the same IPCW-based analytic variance as \code{DC.power.analytical}.
 }
 \details{
-Uses a single censoring Cox model \code{Surv(time, status==0) ~ linear_terms} to form IPCW
-and fits a weighted RMST regression. Treatment is excluded from the censoring model
-by default. Competing risks are not modeled. Variance ignores uncertainty in \eqn{\hat G}.
+Uses a single censoring Cox model \code{Surv(time, status==0) ~ linear_terms} to form
+IPCW weights \eqn{\Delta_i^Y/\hat G(Y_i\mid X_i)} and fits a weighted RMST regression
+among subjects whose truncated RMST outcome is observed. Treatment is excluded from
+the censoring model by default. Competing risks are not modeled. Variance ignores
+uncertainty in \eqn{\hat G}.
 
 Note: This implementation models a single censoring process and does not
 handle competing risks.

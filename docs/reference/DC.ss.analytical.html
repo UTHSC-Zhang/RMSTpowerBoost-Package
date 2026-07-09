@@ -9,7 +9,7 @@ using the same IPCW-based analytic variance as DC.power.analytical."></head><bod
 
     <a class="navbar-brand me-2" href="../index.html">RMSTpowerBoost</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -54,7 +54,8 @@ using the same IPCW-based analytic variance as <code>DC.power.analytical</code>.
 <span>  alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
 <span>  n_start <span class="op">=</span> <span class="fl">50</span>,</span>
 <span>  n_step <span class="op">=</span> <span class="fl">25</span>,</span>
-<span>  max_n_per_arm <span class="op">=</span> <span class="fl">2000</span></span>
+<span>  max_n_per_arm <span class="op">=</span> <span class="fl">2000</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -105,6 +106,10 @@ using the same IPCW-based analytic variance as <code>DC.power.analytical</code>.
 <dt id="arg-max-n-per-arm">max_n_per_arm<a class="anchor" aria-label="anchor" href="#arg-max-n-per-arm"></a></dt>
 <dd><p>The maximum sample size <em>per arm</em> to search.</p></dd>
 
+
+<dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
+<dd><p>Logical; if <code>TRUE</code>, emit progress messages. Default <code>FALSE</code>.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -121,9 +126,11 @@ using the same IPCW-based analytic variance as <code>DC.power.analytical</code>.
 </dl></div>
     <div class="section level2">
     <h2 id="details">Details<a class="anchor" aria-label="anchor" href="#details"></a></h2>
-    <p>Uses a single censoring Cox model <code>Surv(time, status==0) ~ linear_terms</code> to form IPCW
-and fits a weighted RMST regression. Treatment is excluded from the censoring model
-by default. Competing risks are not modeled. Variance ignores uncertainty in \(\hat G\).</p>
+    <p>Uses a single censoring Cox model <code>Surv(time, status==0) ~ linear_terms</code> to form
+IPCW weights \(\Delta_i^Y/\hat G(Y_i\mid X_i)\) and fits a weighted RMST regression
+among subjects whose truncated RMST outcome is observed. Treatment is excluded from
+the censoring model by default. Competing risks are not modeled. Variance ignores
+uncertainty in \(\hat G\).</p>
 <p>Note: This implementation models a single censoring process and does not
 handle competing risks.</p>
     </div>
@@ -137,7 +144,7 @@ handle competing risks.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

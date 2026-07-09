@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">RMSTpowerBoost</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -56,7 +56,8 @@
 <span>  n_start <span class="op">=</span> <span class="fl">50L</span>,</span>
 <span>  n_step <span class="op">=</span> <span class="fl">25L</span>,</span>
 <span>  max_n <span class="op">=</span> <span class="fl">2000L</span>,</span>
-<span>  patience <span class="op">=</span> <span class="fl">5L</span></span>
+<span>  patience <span class="op">=</span> <span class="fl">5L</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -127,6 +128,11 @@
 <dt id="arg-patience">patience<a class="anchor" aria-label="anchor" href="#arg-patience"></a></dt>
 <dd><p>Number of consecutive non-improving steps before stopping. Default <code>5</code>.</p></dd>
 
+
+<dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
+<dd><p>Logical; if <code>TRUE</code>, emit progress messages from the underlying calculation.
+Default <code>FALSE</code>.</p></dd>
+
 </dl></div>
     <div class="section level2">
     <h2 id="value">Value<a class="anchor" aria-label="anchor" href="#value"></a></h2>
@@ -148,64 +154,6 @@
 <span class="r-in"><span>             arm          <span class="op">=</span> <span class="st">"arm"</span>,</span></span>
 <span class="r-in"><span>             target_power <span class="op">=</span> <span class="fl">0.80</span>,</span></span>
 <span class="r-in"><span>             L            <span class="op">=</span> <span class="fl">12</span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> --- Estimating parameters from pilot data for analytic search... ---</span>
-<span class="r-msg co"><span class="r-pr">#&gt;</span> Model: Y_rmst ~ factor(arm) + age</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> --- Searching for Sample Size (Method: Analytic) ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 50/arm, Calculated Power = 0.084</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 75/arm, Calculated Power = 0.106</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 100/arm, Calculated Power = 0.127</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 125/arm, Calculated Power = 0.148</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 150/arm, Calculated Power = 0.169</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 175/arm, Calculated Power = 0.19</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 200/arm, Calculated Power = 0.211</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 225/arm, Calculated Power = 0.232</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 250/arm, Calculated Power = 0.253</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 275/arm, Calculated Power = 0.274</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 300/arm, Calculated Power = 0.294</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 325/arm, Calculated Power = 0.314</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 350/arm, Calculated Power = 0.334</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 375/arm, Calculated Power = 0.354</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 400/arm, Calculated Power = 0.374</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 425/arm, Calculated Power = 0.393</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 450/arm, Calculated Power = 0.412</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 475/arm, Calculated Power = 0.43</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 500/arm, Calculated Power = 0.449</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 525/arm, Calculated Power = 0.467</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 550/arm, Calculated Power = 0.484</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 575/arm, Calculated Power = 0.501</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 600/arm, Calculated Power = 0.518</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 625/arm, Calculated Power = 0.535</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 650/arm, Calculated Power = 0.551</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 675/arm, Calculated Power = 0.567</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 700/arm, Calculated Power = 0.582</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 725/arm, Calculated Power = 0.597</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 750/arm, Calculated Power = 0.611</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 775/arm, Calculated Power = 0.625</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 800/arm, Calculated Power = 0.639</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 825/arm, Calculated Power = 0.653</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 850/arm, Calculated Power = 0.666</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 875/arm, Calculated Power = 0.678</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 900/arm, Calculated Power = 0.69</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 925/arm, Calculated Power = 0.702</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 950/arm, Calculated Power = 0.714</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 975/arm, Calculated Power = 0.725</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1000/arm, Calculated Power = 0.736</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1025/arm, Calculated Power = 0.746</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1050/arm, Calculated Power = 0.756</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1075/arm, Calculated Power = 0.766</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1100/arm, Calculated Power = 0.775</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1125/arm, Calculated Power = 0.784</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1150/arm, Calculated Power = 0.793</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   N = 1175/arm, Calculated Power = 0.802</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> --- Calculation Summary ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> Table: Required Sample Size</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> | Target_Power| Required_N_per_Arm|</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> |------------:|------------------:|</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> |          0.8|               1175|</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">r</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> ── RMST Sample Size Estimation ────────────────</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Model           : Linear IPCW (Analytical) </span>
@@ -216,11 +164,11 @@
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Sample Size Result:</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>  Target_Power Required_N_per_Arm</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>           0.8               1175</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>           0.8                350</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> </span>
 <span class="r-out co"><span class="r-pr">#&gt;</span> Treatment Effect (from reference data):</span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   Estimand : RMST Difference </span>
-<span class="r-out co"><span class="r-pr">#&gt;</span>   Estimate : -0.3007 </span>
+<span class="r-out co"><span class="r-pr">#&gt;</span>   Estimate : -0.5447 </span>
 <span class="r-in"><span></span></span>
 </code></pre></div>
     </div>

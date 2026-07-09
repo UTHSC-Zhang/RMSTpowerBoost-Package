@@ -14,9 +14,11 @@
 #' treatment indicator, and \eqn{\tau} is the treatment effect of interest.
 #'
 #' To handle right-censoring, the method uses Inverse Probability of Censoring
-#' Weighting (IPCW). The weight for an uncensored individual `i` is the inverse
-#' of the probability of remaining uncensored until their event time, \eqn{w_i = \delta_i / \hat{G}(Y_i)},
-#' where \eqn{\hat{G}(t) = P(C > t)} is the Kaplan-Meier estimate of the censoring distribution.
+#' Weighting (IPCW). Let \eqn{Y_i = \min(T_i, L)} and
+#' \eqn{\Delta_i^Y = 1} if the event occurs before \eqn{L} or follow-up reaches
+#' \eqn{L}. The weight is \eqn{w_i = \Delta_i^Y / \hat{G}(Y_i)}, where
+#' \eqn{\hat{G}(t) = P(C > t)} is the Kaplan-Meier estimate of the censoring
+#' distribution fit on the original time scale.
 #'
 #' Power is calculated analytically based on the asymptotic properties of the
 #' coefficient estimators. The variance of the treatment effect estimator, \eqn{\hat{\tau}}, is derived from a
@@ -86,13 +88,16 @@ linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
    df$Y_rmst <- pmin(df[[time_var]], L)
    df$is_censored <- df[[status_var]] == 0
    df$is_event <- df[[status_var]] == 1
+   df$is_complete <- df$is_event | df[[time_var]] >= L
 
    # Fit censoring model (Kaplan-Meier for G(t))
-   cens_fit <- survival::survfit(survival::Surv(Y_rmst, is_censored) ~ 1, data = df)
+   cens_formula <- stats::as.formula(paste0("survival::Surv(", time_var, ", is_censored) ~ 1"))
+   cens_fit <- survival::survfit(cens_formula, data = df)
    cens_surv_prob <- stats::stepfun(cens_fit$time, c(1, cens_fit$surv))(df$Y_rmst)
-   df$weights <- df$is_event / cens_surv_prob
+   df$weights <- df$is_complete / cens_surv_prob
 
    # Stabilize weights
+   weight_cap <- NA_real_
    finite_weights <- df$weights[is.finite(df$weights) & df$weights > 0]
    if (length(finite_weights) > 0) {
       weight_cap <- stats::quantile(finite_weights, probs = 0.99, na.rm = TRUE)
@@ -184,12 +189,13 @@ linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
          row.names = NULL,
          stringsAsFactors = FALSE
       )
+      se_arm_pilot <- se_beta_n1 / sqrt(n_pilot)
       trt_eff <- data.frame(
          estimand  = "RMST Difference",
          estimate  = beta_effect,
-         std_error = se_beta_n1,
-         ci_lower  = beta_effect - 1.96 * se_beta_n1,
-         ci_upper  = beta_effect + 1.96 * se_beta_n1,
+         std_error = se_arm_pilot,
+         ci_lower  = beta_effect - 1.96 * se_arm_pilot,
+         ci_upper  = beta_effect + 1.96 * se_arm_pilot,
          stringsAsFactors = FALSE
       )
       arms <- sort(unique(fit_data[[arm_var]]))
@@ -203,7 +209,7 @@ linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
                     scale = "original", stringsAsFactors = FALSE)
       }))
       capped_frac <- if (is.finite(weight_cap))
-         mean(df$weights[df$is_event] >= weight_cap, na.rm = TRUE) else NA_real_
+         mean(df$weights[df$is_complete] >= weight_cap, na.rm = TRUE) else NA_real_
       list(
          coefficient_table   = coef_tbl,
          treatment_effect    = trt_eff,
@@ -215,6 +221,7 @@ linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
             cap_value       = weight_cap,
             capped_fraction = capped_frac),
          diagnostics         = list(n_used = nrow(fit_data), n_events = sum(df$is_event),
+                                    n_complete = sum(df$is_complete),
                                     convergence_ok = TRUE, singular_flag = FALSE),
          simulation_draws    = NULL
       )
@@ -300,10 +307,13 @@ linear.ss.analytical <- function(pilot_data, time_var, status_var, arm_var,
    df$Y_rmst <- pmin(df[[time_var]], L)
    df$is_censored <- df[[status_var]] == 0
    df$is_event <- df[[status_var]] == 1
+   df$is_complete <- df$is_event | df[[time_var]] >= L
 
-   cens_fit <- survival::survfit(survival::Surv(Y_rmst, is_censored) ~ 1, data = df)
+   cens_formula <- stats::as.formula(paste0("survival::Surv(", time_var, ", is_censored) ~ 1"))
+   cens_fit <- survival::survfit(cens_formula, data = df)
    cens_surv_prob <- stats::stepfun(cens_fit$time, c(1, cens_fit$surv))(df$Y_rmst)
-   df$weights <- df$is_event / cens_surv_prob
+   df$weights <- df$is_complete / cens_surv_prob
+   weight_cap <- NA_real_
    finite_weights <- df$weights[is.finite(df$weights) & df$weights > 0]
    if (length(finite_weights) > 0) {
       weight_cap <- stats::quantile(finite_weights, probs = 0.99, na.rm = TRUE)
@@ -403,12 +413,13 @@ linear.ss.analytical <- function(pilot_data, time_var, status_var, arm_var,
          row.names = NULL,
          stringsAsFactors = FALSE
       )
+      se_arm_pilot <- se_beta_n1 / sqrt(n_pilot)
       trt_eff <- data.frame(
          estimand  = "RMST Difference",
          estimate  = beta_effect,
-         std_error = se_beta_n1,
-         ci_lower  = beta_effect - 1.96 * se_beta_n1,
-         ci_upper  = beta_effect + 1.96 * se_beta_n1,
+         std_error = se_arm_pilot,
+         ci_lower  = beta_effect - 1.96 * se_arm_pilot,
+         ci_upper  = beta_effect + 1.96 * se_arm_pilot,
          stringsAsFactors = FALSE
       )
       arms <- sort(unique(fit_data[[arm_var]]))
@@ -422,7 +433,7 @@ linear.ss.analytical <- function(pilot_data, time_var, status_var, arm_var,
                     scale = "original", stringsAsFactors = FALSE)
       }))
       capped_frac <- if (is.finite(weight_cap))
-         mean(df$weights[df$is_event] >= weight_cap, na.rm = TRUE) else NA_real_
+         mean(df$weights[df$is_complete] >= weight_cap, na.rm = TRUE) else NA_real_
       list(
          coefficient_table   = coef_tbl,
          treatment_effect    = trt_eff,
@@ -434,6 +445,7 @@ linear.ss.analytical <- function(pilot_data, time_var, status_var, arm_var,
             cap_value       = weight_cap,
             capped_fraction = capped_frac),
          diagnostics         = list(n_used = nrow(fit_data), n_events = sum(df$is_event),
+                                    n_complete = sum(df$is_complete),
                                     convergence_ok = TRUE, singular_flag = FALSE),
          simulation_draws    = NULL
       )

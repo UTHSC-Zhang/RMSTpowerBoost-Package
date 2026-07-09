@@ -7,7 +7,7 @@
 
     <a class="navbar-brand me-2" href="../index.html">RMSTpowerBoost</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -52,7 +52,9 @@
 
 
 <dt id="arg-seed">seed<a class="anchor" aria-label="anchor" href="#arg-seed"></a></dt>
-<dd><p>Optional integer seed to override recipe$seed.</p></dd>
+<dd><p>Optional integer retained as recipe/provenance metadata; it does
+not set the random-number generator. Call <code><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed()</a></code> before this
+function for reproducible simulation.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -67,7 +69,8 @@ plus covariates. Attribute <code>"achieved_censoring"</code> is attached.</p>
 <span class="r-in"><span><span class="va">rec</span> <span class="op">&lt;-</span> <span class="fu"><a href="recipe_quick_aft.html">recipe_quick_aft</a></span><span class="op">(</span><span class="fl">120</span>, <span class="st">"aft_lognormal"</span>,</span></span>
 <span class="r-in"><span>        baseline<span class="op">=</span><span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>mu<span class="op">=</span><span class="fl">2.2</span>, sigma<span class="op">=</span><span class="fl">0.5</span><span class="op">)</span>, treat_effect<span class="op">=</span><span class="op">-</span><span class="fl">0.2</span>,</span></span>
 <span class="r-in"><span>        covariates<span class="op">=</span><span class="va">covs</span>, target_censoring<span class="op">=</span><span class="fl">0.25</span><span class="op">)</span></span></span>
-<span class="r-in"><span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu">simulate_from_recipe</span><span class="op">(</span><span class="va">rec</span>, seed <span class="op">=</span> <span class="fl">11</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">11</span><span class="op">)</span></span></span>
+<span class="r-in"><span><span class="va">dat</span> <span class="op">&lt;-</span> <span class="fu">simulate_from_recipe</span><span class="op">(</span><span class="va">rec</span><span class="op">)</span></span></span>
 </code></pre></div>
     </div>
   </main><aside class="col-md-3"><nav id="toc" aria-label="Table of contents"><h2>On this page</h2>
@@ -79,7 +82,7 @@ plus covariates. Attribute <code>"achieved_censoring"</code> is attached.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

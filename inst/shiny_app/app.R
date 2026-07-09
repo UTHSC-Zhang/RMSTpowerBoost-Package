@@ -1108,12 +1108,19 @@ ui <- fluidPage(
 )
 )
 
-# ------------------ Repeated Power (no 'bootstrap' wording) ------------------
+# ------------------ Repeated Power (RMST-based; no 'bootstrap' wording) ------------------
+# Each replicate resamples the pilot data and tests the treatment effect on the
+# L-truncated RMST with an IPCW-weighted linear model: the complete-case
+# indicator is deltaY = 1 if the event occurs before L or follow-up reaches L,
+# and weights are deltaY / G(Y) with G the Kaplan-Meier estimate of the
+# censoring distribution. This matches the package's linear IPCW methodology;
+# strata (if any) enter as fixed effects with a common treatment effect.
 repeated_power_from_pilot <- function(pilot_df, time_var, status_var, arm_var,
-                                      n_per_arm_vec, alpha = 0.05, R = 500,
+                                      n_per_arm_vec, L, alpha = 0.05, R = 500,
                                       strata_var = NULL, seed = NULL,
                                       point_cb = NULL) {
-  stopifnot(is.data.frame(pilot_df))
+  stopifnot(is.data.frame(pilot_df), is.numeric(L), length(L) == 1L, L > 0)
+  if (!is.null(seed)) set.seed(seed)
   needed <- c(time_var, status_var, arm_var, strata_var)
   needed <- needed[!is.null(needed)]
   if (!all(needed %in% names(pilot_df))) stop("Required columns not found in pilot data.")
@@ -1121,7 +1128,7 @@ repeated_power_from_pilot <- function(pilot_df, time_var, status_var, arm_var,
   names(df)[match(c(time_var, status_var, arm_var), names(df))] <- c("time","status","arm")
   df$arm <- as.factor(df$arm)
   if (nlevels(df$arm) != 2L) stop("Repeated method currently expects exactly 2 arms.")
-  
+
   if (!is.null(strata_var)) {
     names(df)[names(df) == strata_var] <- "stratum"
     df$stratum <- as.factor(df$stratum)
@@ -1130,15 +1137,36 @@ repeated_power_from_pilot <- function(pilot_df, time_var, status_var, arm_var,
   } else {
     split_by <- split(df, df$arm, drop = TRUE)
   }
-  
+
+  rmst_test_p <- function(dat) {
+    dat$Y <- pmin(dat$time, L)
+    dat$deltaY <- as.numeric(dat$status == 1 | dat$time >= L)
+    cens_fit <- tryCatch(survfit(Surv(time, status == 0) ~ 1, data = dat),
+                         error = function(e) NULL)
+    if (is.null(cens_fit)) return(NA_real_)
+    G <- stats::stepfun(cens_fit$time, c(1, cens_fit$surv))(dat$Y)
+    w <- dat$deltaY / pmax(G, 1e-8)
+    pos <- is.finite(w) & w > 0
+    if (sum(pos) < 4L) return(NA_real_)
+    cap <- stats::quantile(w[pos], 0.99, na.rm = TRUE)
+    w[w > cap] <- cap
+    fml <- if ("stratum" %in% names(dat)) Y ~ arm + stratum else Y ~ arm
+    fit <- tryCatch(stats::lm(fml, data = dat[pos, , drop = FALSE], weights = w[pos]),
+                    error = function(e) NULL)
+    if (is.null(fit)) return(NA_real_)
+    cf <- summary(fit)$coefficients
+    arm_row <- grep("^arm", rownames(cf))[1]
+    if (is.na(arm_row)) return(NA_real_)
+    cf[arm_row, "Pr(>|t|)"]
+  }
+
   out <- lapply(n_per_arm_vec, function(n_arm){
-    rej <- logical(R)
+    rej <- rep(NA, R)
     for (r in seq_len(R)) {
       if (is.null(strata_var)) {
         s0 <- split_by[[1]][sample.int(nrow(split_by[[1]]), n_arm, replace = TRUE), , drop = FALSE]
         s1 <- split_by[[2]][sample.int(nrow(split_by[[2]]), n_arm, replace = TRUE), , drop = FALSE]
         dat <- rbind(s0, s1)
-        fml <- Surv(time, status) ~ arm
       } else {
         blocks <- lapply(split_by, function(by_arm) {
           a0 <- by_arm[[1]]; a1 <- by_arm[[2]]
@@ -1148,17 +1176,10 @@ repeated_power_from_pilot <- function(pilot_df, time_var, status_var, arm_var,
         })
         dat <- do.call(rbind, blocks)
         dat$stratum <- factor(dat$stratum)
-        fml <- Surv(time, status) ~ arm + strata(stratum)
       }
       dat$arm <- factor(dat$arm)
-      lr <- tryCatch(survdiff(fml, data = dat), error = function(e) NULL)
-      if (is.null(lr) || is.null(lr$chisq)) {
-        rej[r] <- NA
-      } else {
-        df_chi <- length(lr$n) - 1
-        p <- 1 - pchisq(lr$chisq, df = df_chi)
-        rej[r] <- is.finite(p) && (p < alpha)
-      }
+      p <- rmst_test_p(dat)
+      rej[r] <- if (is.finite(p)) (p < alpha) else NA
     }
     m <- mean(rej, na.rm = TRUE); k <- sum(is.finite(rej))
     se <- if (k > 0) sqrt(m*(1-m)/k) else NA_real_
@@ -2798,7 +2819,7 @@ server <- function(input, output, session) {
             cat(sprintf("Repeated method: estimating power at %d sample sizes with R=%d.\n", length(n_vec), R))
             power_df <- repeated_power_from_pilot(
               pilot_data_clean, resolved_time_var, resolved_status_var, resolved_arm_var,
-              n_per_arm_vec = n_vec, alpha = input$alpha, R = R,
+              n_per_arm_vec = n_vec, L = input$L, alpha = input$alpha, R = R,
               strata_var = if ("stratum" %in% names(analysis_data)) resolved_strata_var else NULL,
               seed = reps_seed,
               point_cb = point_cb
@@ -2810,7 +2831,7 @@ server <- function(input, output, session) {
             cat(sprintf("Repeated method: searching required N for target power %.3f with R=%d.\n", target_power_input, R))
             power_df <- repeated_power_from_pilot(
               pilot_data_clean, resolved_time_var, resolved_status_var, resolved_arm_var,
-              n_per_arm_vec = grid, alpha = input$alpha, R = R,
+              n_per_arm_vec = grid, L = input$L, alpha = input$alpha, R = R,
               strata_var = if ("stratum" %in% names(analysis_data)) resolved_strata_var else NULL,
               seed = reps_seed,
               point_cb = point_cb
@@ -2844,8 +2865,7 @@ server <- function(input, output, session) {
                 sample_sizes        = n_vec,
                 linear_terms        = input$dc_linear_terms %||% character(0),
                 L                   = input$L,
-                alpha               = input$alpha,
-                point_cb            = point_cb
+                alpha               = input$alpha
               )
               results_plot    <- dc$results_plot
               results_data    <- dc$results_data
@@ -2863,8 +2883,7 @@ server <- function(input, output, session) {
                 alpha               = input$alpha,
                 n_start             = 50,
                 n_step              = 25,
-                max_n_per_arm       = 2000,
-                point_cb            = point_cb
+                max_n_per_arm       = 2000
               )
               results_plot    <- dc$results_plot
               results_data    <- dc$results_data
@@ -2881,8 +2900,7 @@ server <- function(input, output, session) {
                 sample_sizes = n_vec,
                 linear_terms = NULL,
                 L            = input$L,
-                alpha        = input$alpha,
-                point_cb     = point_cb
+                alpha        = input$alpha
               )
             } else {
               lin <- RMSTpowerBoost::linear.ss.analytical(
@@ -2896,8 +2914,7 @@ server <- function(input, output, session) {
                 alpha         = input$alpha,
                 n_start       = 50,
                 n_step        = 25,
-                max_n_per_arm = 2000,
-                point_cb      = point_cb
+                max_n_per_arm = 2000
               )
             }
             results_plot    <- lin$results_plot
@@ -2915,8 +2932,7 @@ server <- function(input, output, session) {
                 sample_sizes = n_vec,
                 linear_terms = NULL,
                 L            = input$L,
-                alpha        = input$alpha,
-                point_cb     = point_cb
+                alpha        = input$alpha
               )
             } else {
               add <- RMSTpowerBoost::additive.ss.analytical(
@@ -2931,8 +2947,7 @@ server <- function(input, output, session) {
                 alpha         = input$alpha,
                 n_start       = 50,
                 n_step        = 25,
-                max_n_per_arm = 2000,
-                point_cb      = point_cb
+                max_n_per_arm = 2000
               )
             }
             results_plot    <- add$results_plot
@@ -2950,8 +2965,7 @@ server <- function(input, output, session) {
                 sample_sizes = n_vec,
                 linear_terms = NULL,
                 L            = input$L,
-                alpha        = input$alpha,
-                point_cb     = point_cb
+                alpha        = input$alpha
               )
             } else {
               mul <- RMSTpowerBoost::MS.ss.analytical(
@@ -2966,8 +2980,7 @@ server <- function(input, output, session) {
                 alpha         = input$alpha,
                 n_start       = 50,
                 n_step        = 25,
-                max_n_per_arm = 2000,
-                point_cb      = point_cb
+                max_n_per_arm = 2000
               )
             }
             results_plot    <- mul$results_plot
@@ -2976,9 +2989,20 @@ server <- function(input, output, session) {
             
           } else if (input$model_selection == "Semiparametric (GAM) Model") {
             stop("Analytical calculation is not implemented for Semiparametric (GAM) Model. Please use the Repeated method.", call. = FALSE)
-            
+
           } else {
             stop(paste("Unsupported model selection:", input$model_selection), call. = FALSE)
+          }
+
+          # Package functions return all points at once; stream them to the live plot.
+          if (is.data.frame(results_data) && "Power" %in% names(results_data)) {
+            n_col_live <- intersect(c("N_per_Arm", "N_per_Stratum", "N_per_Group"),
+                                    names(results_data))
+            if (length(n_col_live)) {
+              for (i in seq_len(nrow(results_data))) {
+                try(point_cb(results_data[[n_col_live[1]]][i], results_data$Power[i]), silent = TRUE)
+              }
+            }
           }
         }
         

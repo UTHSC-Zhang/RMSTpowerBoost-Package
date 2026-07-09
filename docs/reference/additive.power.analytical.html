@@ -9,7 +9,7 @@ analytic variance estimator based on the method of Zhang &amp;amp; Schaubel (202
 
     <a class="navbar-brand me-2" href="../index.html">RMSTpowerBoost</a>
 
-    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.2</small>
+    <small class="nav-text text-muted me-auto" data-bs-toggle="tooltip" data-bs-placement="bottom" title="">1.0.3</small>
 
 
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
@@ -52,7 +52,8 @@ analytic variance estimator based on the method of Zhang &amp; Schaubel (2024).<
 <span>  <span class="va">sample_sizes</span>,</span>
 <span>  linear_terms <span class="op">=</span> <span class="cn">NULL</span>,</span>
 <span>  <span class="va">L</span>,</span>
-<span>  alpha <span class="op">=</span> <span class="fl">0.05</span></span>
+<span>  alpha <span class="op">=</span> <span class="fl">0.05</span>,</span>
+<span>  verbose <span class="op">=</span> <span class="cn">FALSE</span></span>
 <span><span class="op">)</span></span></code></pre></div>
     </div>
 
@@ -94,6 +95,10 @@ analytic variance estimator based on the method of Zhang &amp; Schaubel (2024).<
 
 <dt id="arg-alpha">alpha<a class="anchor" aria-label="anchor" href="#arg-alpha"></a></dt>
 <dd><p>The significance level (Type I error rate).</p></dd>
+
+
+<dt id="arg-verbose">verbose<a class="anchor" aria-label="anchor" href="#arg-verbose"></a></dt>
+<dd><p>Logical; if <code>TRUE</code>, emit progress messages. Default <code>FALSE</code>.</p></dd>
 
 </dl></div>
     <div class="section level2">
@@ -143,15 +148,11 @@ estimates of the variance components.</p>
 <span class="r-in"><span>  linear_terms <span class="op">=</span> <span class="st">"age"</span>,</span></span>
 <span class="r-in"><span>  L <span class="op">=</span> <span class="fl">12</span></span></span>
 <span class="r-in"><span><span class="op">)</span></span></span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> --- Estimating parameters from pilot data... ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> --- Estimating additive effect via stratum-centering... ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> --- Calculating asymptotic variance... ---</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> --- Calculating power for specified sample sizes... ---</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">power_results</span><span class="op">$</span><span class="va">results_data</span><span class="op">)</span></span></span>
 <span class="r-out co"><span class="r-pr">#&gt;</span>   N_per_Stratum     Power</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 1           100 0.2629389</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 2           150 0.3682932</span>
-<span class="r-out co"><span class="r-pr">#&gt;</span> 3           200 0.4660482</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 1           100 0.2402152</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 2           150 0.3358920</span>
+<span class="r-out co"><span class="r-pr">#&gt;</span> 3           200 0.4262066</span>
 <span class="r-in"><span><span class="fu"><a href="https://rdrr.io/r/base/print.html" class="external-link">print</a></span><span class="op">(</span><span class="va">power_results</span><span class="op">$</span><span class="va">results_plot</span><span class="op">)</span></span></span>
 <span class="r-plt img"><img src="additive.power.analytical-1.png" alt="" width="700" height="433"></span>
 <span class="r-in"><span></span></span>
@@ -166,7 +167,7 @@ estimates of the variance components.</p>
 </div>
 
 <div class="pkgdown-footer-right">
-  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+  <p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.2.0.</p>
 </div>
 
     </footer></div>

@@ -7,3 +7,4 @@
 *.Rprofile
 vignettes/cache/
 
+.positai

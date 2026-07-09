@@ -121,3 +121,28 @@ test_that("Analytical and Bootstrap methods give comparable results", {
    expect_true(abs(power_boot - 0.7) < 0.5) # CORRECTED: Relaxed tolerance slightly
 })
 
+test_that("linear IPCW gives nonzero weight to censored-at-L subjects", {
+   set.seed(2025)
+   pilot <- data.frame(
+      time   = c(5, 8, 12, 15, 20, 25),
+      status = c(1, 0, 0, 1, 0, 1),
+      arm    = c(0, 1, 0, 1, 0, 1),
+      age    = stats::rnorm(6)
+   )
+   L <- 10
+
+   results <- linear.power.analytical(
+      pilot_data   = pilot,
+      time_var     = "time",
+      status_var   = "status",
+      arm_var      = "arm",
+      sample_sizes = 50,
+      linear_terms = "age",
+      L            = L
+   )
+
+   expect_true(results$model_output$diagnostics$n_complete >= 4)
+   expect_true(results$model_output$diagnostics$n_events < results$model_output$diagnostics$n_complete)
+   expect_true(results$model_output$diagnostics$n_used > results$model_output$diagnostics$n_events)
+})
+

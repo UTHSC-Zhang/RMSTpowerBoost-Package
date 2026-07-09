@@ -314,23 +314,25 @@ test_that("GAM bootstrap functions cover validation, parallel, and search termin
   expect_true(is.list(gp))
   expect_named(gp, c("results_data", "results_plot", "results_summary", "model_output"))
 
-  # Stagnation branch.
+  # Stagnation branch. A near-zero alpha guarantees zero rejections so power
+  # stays flat and the patience rule deterministically triggers.
   expect_warning(
     RMSTpowerBoost::GAM.ss.boot(
       dat, "time", "status", "arm", strata_var = "region",
       target_power = 0.99, linear_terms = "x1",
-      L = 2, n_sim = 1, alpha = 0.1, parallel.cores = 1,
+      L = 2, n_sim = 1, alpha = 1e-12, parallel.cores = 1,
       patience = 1, n_start = 4, n_step = 1, max_n_per_arm = 8
     ),
     "stagnation"
   )
 
-  # max_n_per_arm terminal warning branch.
+  # max_n_per_arm terminal warning branch. A near-zero alpha guarantees zero
+  # rejections so the search deterministically exhausts max_n_per_arm.
   expect_warning(
     RMSTpowerBoost::GAM.ss.boot(
       dat, "time", "status", "arm", strata_var = "region",
       target_power = 0.999, linear_terms = "x1",
-      L = 2, n_sim = 1, alpha = 0.1, parallel.cores = 1,
+      L = 2, n_sim = 1, alpha = 1e-12, parallel.cores = 1,
       patience = 99, n_start = 4, n_step = 1, max_n_per_arm = 5
     ),
     "not achieved by max N"
