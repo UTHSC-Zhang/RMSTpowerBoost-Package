@@ -15,10 +15,21 @@
 #' centering the covariates and RMST values within each stratum and then solving
 #' the resulting estimating equations in closed form.
 #'
+#' For numerical stability, the estimated IPCW weights are capped at their
+#' 99th percentile before estimation. This is a practical stabilization step
+#' that is not part of the Zhang & Schaubel (2024) theory; the cap value and
+#' the fraction of weights affected are reported in
+#' \code{model_output$censoring_weights}.
+#'
 #' Power is obtained from the asymptotic sandwich variance of \eqn{\hat{\beta}}.
 #' This implementation uses the robust variance estimator
 #' \eqn{A_n^{-1} B_n (A_n^{-1})'}, where \eqn{A_n} and \eqn{B_n} are empirical
 #' estimates of the variance components.
+#'
+#' @references
+#' Zhang, Y. and Schaubel, D. E. (2024). Semiparametric Additive Modeling of
+#' the Restricted Mean Survival Time. \emph{Biometrical Journal}, 66:e202200371.
+#' \doi{10.1002/bimj.202200371}
 #'
 #' @param pilot_data A `data.frame` containing pilot study data.
 #' @param time_var A character string for the time-to-event variable.
@@ -68,196 +79,33 @@ additive.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
                                       sample_sizes, linear_terms = NULL, L, alpha = 0.05,
                                       verbose = FALSE) {
 
-   # --- 1. Prepare Data and Calculate IPCW Weights ---
+   # --- 1. Estimate model parameters and sandwich variance from pilot data ---
    .rmst_verbose_message(verbose, "--- Estimating parameters from pilot data... ---")
-   covariates <- c(arm_var, linear_terms)
-   all_vars <- c(time_var, status_var, strata_var, covariates)
-   df <- pilot_data[stats::complete.cases(pilot_data[, all_vars]), ]
-   n_pilot <- nrow(df)
-
-   df$Y_rmst <- pmin(df[[time_var]], L)
-   df$is_event <- df[[status_var]] == 1
-   df$is_complete <- df$is_event | df[[time_var]] >= L
-
-   cens_formula <- stats::as.formula(paste0("survival::Surv(", time_var, ", ", status_var, " == 0) ~ ",
-                                            paste(covariates, collapse = " + "),
-                                            " + survival::strata(", strata_var, ")"))
-   fit_cens <- survival::coxph(cens_formula, data = df, ties = "breslow")
-
-   bh_cens <- survival::basehaz(fit_cens, centered = FALSE)
-   df$H_cens <- 0
-   # basehaz() labels strata either as "level" or "strata_var=level" depending
-   # on the survival package version; accept both and fail loudly if neither
-   # matches, since silently missing strata would zero out the censoring hazard
-   bh_labels <- if (is.null(bh_cens$strata)) NULL else as.character(bh_cens$strata)
-   for(st in unique(df[[strata_var]])){
-      is_stratum <- df[[strata_var]] == st
-      is_bh_stratum <- if (is.null(bh_labels)) rep(TRUE, nrow(bh_cens)) else
-         bh_labels == as.character(st) | bh_labels == paste0(strata_var, "=", st)
-      if (sum(is_bh_stratum) == 0) {
-         stop("Could not locate the baseline censoring hazard for stratum '", st,
-              "'; IPCW weights cannot be computed.", call. = FALSE)
-      }
-      H_st <- stats::stepfun(bh_cens$time[is_bh_stratum], c(0, bh_cens$hazard[is_bh_stratum]))(df$Y_rmst[is_stratum])
-      df$H_cens[is_stratum] <- H_st
-   }
-   df$weights <- exp(df$H_cens * exp(stats::predict(fit_cens, newdata=df, type="lp", reference="zero")))
-   df$weights[!df$is_complete] <- 0
-   weight_cap <- NA_real_
-   finite_weights <- df$weights[is.finite(df$weights) & df$weights > 0]
-   if (length(finite_weights) > 0) {
-      weight_cap <- stats::quantile(finite_weights, probs = 0.99, na.rm = TRUE)
-      df$weights[df$weights > weight_cap] <- weight_cap
-   }
-   df$weights[!is.finite(df$weights)] <- 0
-
-   # --- 2. Estimate Beta via Stratum-Centering ---
    .rmst_verbose_message(verbose, "--- Estimating additive effect via stratum-centering... ---")
-   vars_to_center <- c("Y_rmst", covariates)
-
-   stratum_means <- df %>%
-      dplyr::group_by(.data[[strata_var]]) %>%
-      dplyr::summarise(
-         dplyr::across(
-            dplyr::all_of(vars_to_center),
-            ~ weighted.mean(.x, w = weights, na.rm = TRUE)
-         ),
-         .groups = 'drop'
-      )
-   names(stratum_means) <- c(strata_var, paste0(vars_to_center, "_mean"))
-
-   df_centered <- df %>%
-      dplyr::left_join(stratum_means, by = strata_var)
-
-   for (cov in vars_to_center) {
-      df_centered[[paste0(cov, "_tilde")]] <- df_centered[[cov]] - df_centered[[paste0(cov, "_mean")]]
-   }
-
-   Z_tilde <- as.matrix(df_centered[, paste0(covariates, "_tilde")])
-   Y_tilde <- df_centered[["Y_rmst_tilde"]]
-   W <- df_centered$weights
-
-   A_hat_num <- crossprod(Z_tilde * sqrt(W))
-   dimnames(A_hat_num) <- list(covariates, covariates)
-   A_hat <- A_hat_num / n_pilot
-
-   # CORRECTED: Add error handling for singular matrix
-   A_hat_inv <- tryCatch({
-      solve(A_hat)
-   }, error = function(e) {
-      stop("The covariate matrix is singular and cannot be inverted.\nThis may be caused by a lack of variation in the covariates among subjects with an event within one or more strata.\nPlease inspect the pilot data for issues like perfect separation.", call. = FALSE)
-   })
-
-   beta_hat <- (A_hat_inv / n_pilot) %*% (t(Z_tilde * W) %*% Y_tilde)
-   rownames(beta_hat) <- covariates
-   beta_effect <- beta_hat[arm_var, 1]
-
-   # --- 3. Calculate Asymptotic Sandwich Variance ---
+   est <- .estimate_additive_params(pilot_data, time_var, status_var, arm_var,
+                                    strata_var, linear_terms, L)
    .rmst_verbose_message(verbose, "--- Calculating asymptotic variance... ---")
-   mu0_hats <- stratum_means %>%
-      dplyr::mutate(
-         Z_matrix = as.matrix(dplyr::select(., dplyr::all_of(paste0(covariates, "_mean")))),
-         mu0_hat = .data[["Y_rmst_mean"]] - Z_matrix %*% beta_hat
-      ) %>%
-      dplyr::select(dplyr::all_of(strata_var), mu0_hat)
 
-   df_final <- df_centered %>% dplyr::left_join(mu0_hats, by = strata_var)
-   Z_matrix <- as.matrix(df_final[, covariates])
-
-   df_final$residuals <- df_final$Y_rmst - (df_final$mu0_hat + as.vector(Z_matrix %*% beta_hat))
-
-   epsilon <- apply(Z_tilde, 2, function(z_col) z_col * W * df_final$residuals)
-   B_hat <- crossprod(epsilon) / n_pilot
-   dimnames(B_hat) <- list(covariates, covariates)
-
-   V_hat_n <- A_hat_inv %*% B_hat %*% t(A_hat_inv)
-
-   var_beta_pilot <- V_hat_n[arm_var, arm_var] / n_pilot
-   var_beta_n1 <- var_beta_pilot * n_pilot
-   se_beta_n1 <- sqrt(var_beta_n1)
-
-   # --- 4. Calculate Power ---
+   # --- 2. Calculate Power ---
    .rmst_verbose_message(verbose, "--- Calculating power for specified sample sizes... ---")
    z_alpha <- stats::qnorm(1 - alpha / 2)
-   n_strata <- length(unique(df[[strata_var]]))
    power_values <- sapply(sample_sizes, function(n_per_stratum) {
-      total_n <- n_per_stratum * n_strata
-      se_final <- se_beta_n1 / sqrt(total_n)
-      power <- stats::pnorm( (abs(beta_effect) / se_final) - z_alpha )
-      return(power)
+      .rmst_wald_power(est$beta_effect, est$se_beta_n1,
+                       n_per_stratum * est$n_strata, z_alpha)
    })
 
    results_df <- data.frame(N_per_Stratum = sample_sizes, Power = power_values)
 
-   # --- 5. Plot and Return ---
-   p <- ggplot2::ggplot(results_df, ggplot2::aes(x = N_per_Stratum, y = Power)) +
-      ggplot2::geom_line(color = "#0072B2", linewidth = 1) +
-      ggplot2::geom_point(color = "#0072B2", size = 3) +
-      ggplot2::labs(
-         title = "Analytic Power Curve: Additive Stratified RMST Model",
-         subtitle = "Based on stratum-centered estimating equations.",
-         x = "Sample Size Per Stratum", y = "Estimated Power"
-      ) +
-      ggplot2::ylim(0, 1) + ggplot2::theme_minimal()
-
-   model_output <- local({
-      se_all  <- sqrt(diag(V_hat_n) / n_pilot)
-      z_vals  <- as.numeric(beta_hat[, 1]) / se_all
-      p_vals  <- 2 * stats::pnorm(-abs(z_vals))
-      coef_tbl <- data.frame(
-         term      = covariates,
-         estimate  = as.numeric(beta_hat[, 1]),
-         std_error = se_all,
-         ci_lower  = as.numeric(beta_hat[, 1]) - 1.96 * se_all,
-         ci_upper  = as.numeric(beta_hat[, 1]) + 1.96 * se_all,
-         test_stat = z_vals,
-         p_value   = p_vals,
-         row.names = NULL,
-         stringsAsFactors = FALSE
-      )
-      trt_eff <- data.frame(
-         estimand  = "RMST Difference (additive)",
-         estimate  = beta_effect,
-         std_error = se_beta_n1 / sqrt(n_pilot),
-         ci_lower  = beta_effect - 1.96 * se_beta_n1 / sqrt(n_pilot),
-         ci_upper  = beta_effect + 1.96 * se_beta_n1 / sqrt(n_pilot),
-         stringsAsFactors = FALSE
-      )
-      strat_col <- mu0_hats[[strata_var]]
-      mu0_vec   <- mu0_hats$mu0_hat
-      arm_rmst <- do.call(rbind, c(
-         lapply(seq_along(strat_col), function(i)
-            data.frame(arm = 0, stratum = as.character(strat_col[i]),
-                       rmst_estimate = mu0_vec[i],
-                       std_error = NA_real_, ci_lower = NA_real_, ci_upper = NA_real_,
-                       scale = "original", stringsAsFactors = FALSE)),
-         lapply(seq_along(strat_col), function(i)
-            data.frame(arm = 1, stratum = as.character(strat_col[i]),
-                       rmst_estimate = mu0_vec[i] + beta_effect,
-                       std_error = NA_real_, ci_lower = NA_real_, ci_upper = NA_real_,
-                       scale = "original", stringsAsFactors = FALSE))
-      ))
-      capped_frac <- if (is.finite(weight_cap))
-         mean(df$weights[df$is_complete] >= weight_cap, na.rm = TRUE) else NA_real_
-      list(
-         coefficient_table   = coef_tbl,
-         treatment_effect    = trt_eff,
-         arm_specific_rmst   = arm_rmst,
-         variance_components = list(A_hat = A_hat, B_hat = B_hat,
-                                    V_hat_n = V_hat_n, se_effect_n1 = se_beta_n1),
-         censoring_weights   = list(
-            raw_summary     = stats::quantile(df$weights, c(0, .25, .5, .75, .99, 1), na.rm = TRUE),
-            cap_value       = weight_cap,
-            capped_fraction = capped_frac),
-         diagnostics         = list(n_used = sum(df$is_complete), n_events = sum(df$is_event),
-                                    n_complete = sum(df$is_complete),
-                                    convergence_ok = TRUE, singular_flag = FALSE),
-         simulation_draws    = NULL
-      )
-   })
+   # --- 3. Plot and Return ---
+   p <- .rmst_power_curve_plot(
+      results_df, "N_per_Stratum", "#0072B2",
+      title = "Analytic Power Curve: Additive Stratified RMST Model",
+      subtitle = "Based on stratum-centered estimating equations.",
+      xlab = "Sample Size Per Stratum")
 
    return(list(results_data = results_df, results_plot = p,
-               results_summary = NULL, model_output = model_output))
+               results_summary = NULL,
+               model_output = .additive_model_output(est, arm_var, strata_var)))
 }
 
 
@@ -269,7 +117,13 @@ additive.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
 #' This function estimates the additive treatment effect and its asymptotic
 #' variance once from the pilot data, then increases the per-stratum sample
 #' size until the target power is reached or the search limit is hit. It uses
-#' the same stratum-centering framework as `additive.power.analytical`.
+#' the same stratum-centering framework as `additive.power.analytical`,
+#' including the 99th-percentile IPCW weight cap described there.
+#'
+#' @references
+#' Zhang, Y. and Schaubel, D. E. (2024). Semiparametric Additive Modeling of
+#' the Restricted Mean Survival Time. \emph{Biometrical Journal}, 66:e202200371.
+#' \doi{10.1002/bimj.202200371}
 #'
 #' @param pilot_data A `data.frame` containing pilot study data.
 #' @param time_var A character string for the time-to-event variable.
@@ -329,208 +183,31 @@ additive.ss.analytical <- function(pilot_data, time_var, status_var, arm_var, st
 
    # --- 1. Estimate Parameters and Variance from Pilot Data (One Time) ---
    .rmst_verbose_message(verbose, "--- Estimating parameters from pilot data for analytic search... ---")
-   covariates <- c(arm_var, linear_terms)
-   all_vars <- c(time_var, status_var, strata_var, covariates)
-   df <- pilot_data[stats::complete.cases(pilot_data[, all_vars]), ]
-   n_pilot <- nrow(df)
-
-   df$Y_rmst <- pmin(df[[time_var]], L)
-   df$is_event <- df[[status_var]] == 1
-   df$is_complete <- df$is_event | df[[time_var]] >= L
-
-   cens_formula <- stats::as.formula(paste0("survival::Surv(", time_var, ", ", status_var, " == 0) ~ ",
-                                            paste(covariates, collapse = " + "),
-                                            " + survival::strata(", strata_var, ")"))
-   fit_cens <- survival::coxph(cens_formula, data = df, ties = "breslow")
-
-   bh_cens <- survival::basehaz(fit_cens, centered = FALSE)
-   df$H_cens <- 0
-   # basehaz() labels strata either as "level" or "strata_var=level" depending
-   # on the survival package version; accept both and fail loudly if neither
-   # matches, since silently missing strata would zero out the censoring hazard
-   bh_labels <- if (is.null(bh_cens$strata)) NULL else as.character(bh_cens$strata)
-   for(st in unique(df[[strata_var]])){
-      is_stratum <- df[[strata_var]] == st
-      is_bh_stratum <- if (is.null(bh_labels)) rep(TRUE, nrow(bh_cens)) else
-         bh_labels == as.character(st) | bh_labels == paste0(strata_var, "=", st)
-      if (sum(is_bh_stratum) == 0) {
-         stop("Could not locate the baseline censoring hazard for stratum '", st,
-              "'; IPCW weights cannot be computed.", call. = FALSE)
-      }
-      H_st <- stats::stepfun(bh_cens$time[is_bh_stratum], c(0, bh_cens$hazard[is_bh_stratum]))(df$Y_rmst[is_stratum])
-      df$H_cens[is_stratum] <- H_st
-   }
-   df$weights <- exp(df$H_cens * exp(stats::predict(fit_cens, newdata=df, type="lp", reference="zero")))
-   df$weights[!df$is_complete] <- 0
-   weight_cap <- NA_real_
-   finite_weights <- df$weights[is.finite(df$weights) & df$weights > 0]
-   if (length(finite_weights) > 0) {
-      weight_cap <- stats::quantile(finite_weights, probs = 0.99, na.rm = TRUE)
-      df$weights[df$weights > weight_cap] <- weight_cap
-   }
-   df$weights[!is.finite(df$weights)] <- 0
-
-   vars_to_center <- c("Y_rmst", covariates)
-   stratum_means <- df %>%
-      dplyr::group_by(.data[[strata_var]]) %>%
-      dplyr::summarise(
-         dplyr::across(
-            dplyr::all_of(vars_to_center),
-            ~ weighted.mean(.x, w = weights, na.rm = TRUE)
-         ),
-         .groups = 'drop'
-      )
-   names(stratum_means) <- c(strata_var, paste0(vars_to_center, "_mean"))
-
-   df_centered <- df %>% dplyr::left_join(stratum_means, by = strata_var)
-   for (cov in vars_to_center) {
-      df_centered[[paste0(cov, "_tilde")]] <- df_centered[[cov]] - df_centered[[paste0(cov, "_mean")]]
-   }
-
-   Z_tilde <- as.matrix(df_centered[, paste0(covariates, "_tilde")])
-   Y_tilde <- df_centered[["Y_rmst_tilde"]]
-   W <- df_centered$weights
-
-   A_hat_num <- crossprod(Z_tilde * sqrt(W))
-   dimnames(A_hat_num) <- list(covariates, covariates)
-   A_hat <- A_hat_num / n_pilot
-
-   # CORRECTED: Add error handling for singular matrix
-   A_hat_inv <- tryCatch({
-      solve(A_hat)
-   }, error = function(e) {
-      stop("The covariate matrix (A_hat) is singular and cannot be inverted.\nThis may be caused by a lack of variation in the covariates among subjects with an event within one or more strata.\nPlease inspect the pilot data for issues like perfect separation.", call. = FALSE)
-   })
-
-   beta_hat <- (A_hat_inv / n_pilot) %*% (t(Z_tilde * W) %*% Y_tilde)
-   rownames(beta_hat) <- covariates
-   beta_effect <- beta_hat[arm_var, 1]
-
-   mu0_hats <- stratum_means %>%
-      dplyr::mutate(
-         Z_matrix = as.matrix(dplyr::select(., dplyr::all_of(paste0(covariates, "_mean")))),
-         mu0_hat = .data[["Y_rmst_mean"]] - Z_matrix %*% beta_hat
-      ) %>%
-      dplyr::select(dplyr::all_of(strata_var), mu0_hat)
-
-   df_final <- df_centered %>% dplyr::left_join(mu0_hats, by = strata_var)
-   Z_matrix <- as.matrix(df_final[, covariates])
-   df_final$residuals <- df_final$Y_rmst - (df_final$mu0_hat + as.vector(Z_matrix %*% beta_hat))
-
-   epsilon <- apply(Z_tilde, 2, function(z_col) z_col * W * df_final$residuals)
-   B_hat <- crossprod(epsilon) / n_pilot
-   dimnames(B_hat) <- list(covariates, covariates)
-
-   V_hat_n <- A_hat_inv %*% B_hat %*% t(A_hat_inv)
-
-   var_beta_pilot <- V_hat_n[arm_var, arm_var] / n_pilot
-   var_beta_n1 <- var_beta_pilot * n_pilot
-   se_beta_n1 <- sqrt(var_beta_n1)
+   est <- .estimate_additive_params(pilot_data, time_var, status_var, arm_var,
+                                    strata_var, linear_terms, L)
 
    # --- 2. Iterative Search for Sample Size ---
    .rmst_verbose_message(verbose, "--- Searching for Sample Size (Method: Additive Analytic) ---")
-   current_n <- n_start
-   search_path <- list()
-   final_n <- NA_integer_
-   z_alpha <- stats::qnorm(1 - alpha / 2)
-   n_strata <- length(unique(df[[strata_var]]))
-
-   while (current_n <= max_n_per_arm) {
-      total_n <- current_n * n_strata
-      se_final <- se_beta_n1 / sqrt(total_n)
-      calculated_power <- stats::pnorm((abs(beta_effect) / se_final) - z_alpha)
-      if (!is.finite(calculated_power)) calculated_power <- 0
-
-      search_path[[as.character(current_n)]] <- calculated_power
-      .rmst_verbose_message(verbose, "  N = ", current_n, "/stratum, calculated power = ", round(calculated_power, 3))
-
-      if (calculated_power >= target_power) {
-         final_n <- current_n
-         break
-      }
-      current_n <- current_n + n_step
-   }
-
-   if (is.na(final_n)) {
-      warning(paste("Target power", target_power, "not achieved by max N of", max_n_per_arm), call. = FALSE)
-      final_n <- max_n_per_arm
-   }
+   search <- .rmst_analytic_ss_search(est$beta_effect, est$se_beta_n1, est$n_strata,
+                                      target_power, alpha, n_start, n_step,
+                                      max_n_per_arm, "/stratum", verbose)
+   final_n <- search$final_n
 
    # --- 3. Finalize and Return Results ---
-   results_summary <- data.frame(Statistic = "Assumed RMST Difference (from pilot)", Value = beta_effect)
+   results_summary <- data.frame(Statistic = "Assumed RMST Difference (from pilot)", Value = est$beta_effect)
    results_df <- data.frame(Target_Power = target_power, Required_N_per_Stratum = final_n)
-   search_path_df <- data.frame(N_per_Stratum = as.integer(names(search_path)), Power = unlist(search_path))
+   search_path_df <- search$search_path_df
+   names(search_path_df) <- c("N_per_Stratum", "Power")
 
-   p <- ggplot2::ggplot(na.omit(search_path_df), ggplot2::aes(x = N_per_Stratum, y = Power)) +
-      ggplot2::geom_line(color = "#009E73", linewidth = 1) +
-      ggplot2::geom_point(color = "#009E73", size = 3) +
-      ggplot2::geom_hline(yintercept = target_power, linetype = "dashed", color = "red") +
-      ggplot2::geom_vline(xintercept = final_n, linetype = "dotted", color = "blue") +
-      ggplot2::labs(
-         title = "Analytic Sample Size Search: Additive Stratified RMST Model",
-         subtitle = "Power calculated from formula at each step.",
-         x = "Sample Size Per Stratum", y = "Calculated Power"
-      ) + ggplot2::theme_minimal()
+   p <- .rmst_ss_search_plot(
+      search_path_df, "N_per_Stratum", final_n, target_power,
+      title = "Analytic Sample Size Search: Additive Stratified RMST Model",
+      subtitle = "Power calculated from formula at each step.",
+      xlab = "Sample Size Per Stratum")
 
    .rmst_verbose_message(verbose, "Calculation summary available in returned results_data.")
 
-   model_output <- local({
-      se_all  <- sqrt(diag(V_hat_n) / n_pilot)
-      z_vals  <- as.numeric(beta_hat[, 1]) / se_all
-      p_vals  <- 2 * stats::pnorm(-abs(z_vals))
-      coef_tbl <- data.frame(
-         term      = covariates,
-         estimate  = as.numeric(beta_hat[, 1]),
-         std_error = se_all,
-         ci_lower  = as.numeric(beta_hat[, 1]) - 1.96 * se_all,
-         ci_upper  = as.numeric(beta_hat[, 1]) + 1.96 * se_all,
-         test_stat = z_vals,
-         p_value   = p_vals,
-         row.names = NULL,
-         stringsAsFactors = FALSE
-      )
-      trt_eff <- data.frame(
-         estimand  = "RMST Difference (additive)",
-         estimate  = beta_effect,
-         std_error = se_beta_n1 / sqrt(n_pilot),
-         ci_lower  = beta_effect - 1.96 * se_beta_n1 / sqrt(n_pilot),
-         ci_upper  = beta_effect + 1.96 * se_beta_n1 / sqrt(n_pilot),
-         stringsAsFactors = FALSE
-      )
-      strat_col <- mu0_hats[[strata_var]]
-      mu0_vec   <- mu0_hats$mu0_hat
-      arm_rmst <- do.call(rbind, c(
-         lapply(seq_along(strat_col), function(i)
-            data.frame(arm = 0, stratum = as.character(strat_col[i]),
-                       rmst_estimate = mu0_vec[i],
-                       std_error = NA_real_, ci_lower = NA_real_, ci_upper = NA_real_,
-                       scale = "original", stringsAsFactors = FALSE)),
-         lapply(seq_along(strat_col), function(i)
-            data.frame(arm = 1, stratum = as.character(strat_col[i]),
-                       rmst_estimate = mu0_vec[i] + beta_effect,
-                       std_error = NA_real_, ci_lower = NA_real_, ci_upper = NA_real_,
-                       scale = "original", stringsAsFactors = FALSE))
-      ))
-      capped_frac <- if (is.finite(weight_cap))
-         mean(df$weights[df$is_complete] >= weight_cap, na.rm = TRUE) else NA_real_
-      list(
-         coefficient_table   = coef_tbl,
-         treatment_effect    = trt_eff,
-         arm_specific_rmst   = arm_rmst,
-         variance_components = list(A_hat = A_hat, B_hat = B_hat,
-                                    V_hat_n = V_hat_n, se_effect_n1 = se_beta_n1),
-         censoring_weights   = list(
-            raw_summary     = stats::quantile(df$weights, c(0, .25, .5, .75, .99, 1), na.rm = TRUE),
-            cap_value       = weight_cap,
-            capped_fraction = capped_frac),
-         diagnostics         = list(n_used = sum(df$is_complete), n_events = sum(df$is_event),
-                                    n_complete = sum(df$is_complete),
-                                    convergence_ok = TRUE, singular_flag = FALSE),
-         simulation_draws    = NULL
-      )
-   })
-
    return(list(results_data = results_df, results_plot = p,
-               results_summary = results_summary, model_output = model_output))
+               results_summary = results_summary,
+               model_output = .additive_model_output(est, arm_var, strata_var)))
 }
-

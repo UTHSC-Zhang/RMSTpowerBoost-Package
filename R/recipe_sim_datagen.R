@@ -118,9 +118,6 @@ validate_recipe <- function(recipe) {
   list(model = m, baseline = baseline)
 }
 
-# null-coalescing helper
-`%||%` <- function(x, y) if (is.null(x)) y else x
-
 # ---------- Covariates ----------
 
 # Apply simple "center(a)" and "scale(b)" transforms

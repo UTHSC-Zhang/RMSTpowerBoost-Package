@@ -53,7 +53,10 @@ using a multiplicative model for RMST: \eqn{\mu_{ij} = \mu_{0j} \exp\{\beta'Z_i\
 The method uses IPCW with a stratified Cox model for the censoring distribution
 fit on the original time scale and weights of the form
 \eqn{\hat{W}_{ij}\Delta_i^Y}, where \eqn{\Delta_i^Y = 1} if the event occurs
-before \eqn{L} or follow-up reaches \eqn{L}.
+before \eqn{L} or follow-up reaches \eqn{L}. For numerical stability, the
+estimated IPCW weights are capped at their 99th percentile; the cap value and
+the fraction of weights affected are reported in
+\code{model_output$censoring_weights}.
 
 Formal estimation of \eqn{\beta} requires an iterative solver for the estimating
 equation given in Equation (8) of Wang et al. (2019). Because this is computationally
@@ -63,9 +66,12 @@ approximation. The approximation is consistent when the log-linear mean structur
 is well-specified but may differ from the formal estimator under strong misspecification.
 
 The power calculation relies on the asymptotic variance of the log-RMST ratio
-estimator, \eqn{\hat{\tau}}. The variance is derived from the robust variance-covariance
-matrix of the \code{lm} fit, which serves as a proxy for the formal sandwich estimator
-\eqn{A^{-1}B(A^{-1})'} described in Theorem 1 of Wang et al. (2019).
+estimator, \eqn{\hat{\tau}}. The variance is the robust sandwich estimator
+\eqn{A_n^{-1} B_n (A_n^{-1})'} of the weighted least-squares estimating
+equations, with \eqn{A_n = X'WX/n} and \eqn{B_n} the empirical second moment
+of the weighted residuals, mirroring the sandwich form described in Theorem 1
+of Wang et al. (2019). Coefficient standard errors reported in
+\code{model_output$coefficient_table} use this robust variance.
 }
 \examples{
 set.seed(123)

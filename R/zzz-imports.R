@@ -11,3 +11,7 @@ NULL
       message(..., appendLF = TRUE)
    }
 }
+
+# Null-coalescing operator shared across the package (single definition).
+# @noRd
+`%||%` <- function(x, y) if (is.null(x)) y else x

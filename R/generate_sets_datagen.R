@@ -2,8 +2,6 @@
 # R/generate_sets.R
 # Generate datasets to disk (CSV/TXT/RDS/RData) + manifest. No L/tau recorded.
 
-`%||%` <- function(x, y) if (is.null(x)) y else x
-
 .collect_metadata <- function(dat, recipe, files = list(),
                               seed, scenario_id, rep, sc_params = list()) {
   has_arm <- "arm" %in% names(dat)
@@ -80,7 +78,6 @@ generate_recipe_sets <- function(base_recipe,
   grids <- recipe_grid(base_recipe, vary)
   if (!length(grids)) grids <- list(base_recipe)
 
-  `%||%` <- function(x, y) if (is.null(x)) y else x
   sanitize <- function(x) { x <- gsub("[^A-Za-z0-9._-]+", "_", x); x <- gsub("_+", "_", x); x <- sub("^_", "", x); x <- sub("_$", "", x); x }
   get_by_path <- function(obj, path) { parts <- strsplit(path, ".", fixed = TRUE)[[1]]; cur <- obj; for (p in parts) cur <- cur[[p]]; cur }
   decl_levels <- function(recipe) {

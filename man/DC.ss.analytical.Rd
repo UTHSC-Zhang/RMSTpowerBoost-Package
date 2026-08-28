@@ -59,7 +59,8 @@ Uses a single censoring Cox model \code{Surv(time, status==0) ~ linear_terms} to
 IPCW weights \eqn{\Delta_i^Y/\hat G(Y_i\mid X_i)} and fits a weighted RMST regression
 among subjects whose truncated RMST outcome is observed. Treatment is excluded from
 the censoring model by default. Competing risks are not modeled. Variance ignores
-uncertainty in \eqn{\hat G}.
+uncertainty in \eqn{\hat G}. As in \code{DC.power.analytical}, the IPCW
+weights are capped at their 99th percentile for numerical stability.
 
 Note: This implementation models a single censoring process and does not
 handle competing risks.

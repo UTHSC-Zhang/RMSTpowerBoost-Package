@@ -12,15 +12,16 @@ Authors@R: c(
          email = "yzhang@uthsc.edu",
          comment = c(ORCID = "0000-0001-7626-9514"))
          )
-Description: Tools for Restricted Mean Survival Time based study design and 
-    analysis planning. Provides power and sample size calculations for two-arm studies using direct 
+Description: Tools for Restricted Mean Survival Time based study design and
+    analysis planning. Provides power and sample size calculations for two-arm studies using direct
     modeling approaches from the literature, including
-    semiparametric additive models, 
-    linear Inverse Probability Weighting based models 
-    from Wei (2014) <doi:10.1093/biostatistics/kxt050>, 
-    multiplicative stratified models from 
+    stratified semiparametric additive models from
+    Zhang and Schaubel (2024) <doi:10.1002/bimj.202200371>,
+    linear Inverse Probability Weighting based models
+    from Tian, Zhao and Wei (2014) <doi:10.1093/biostatistics/kxt050>,
+    multiplicative stratified models from
     Wang (2019) <doi:10.1002/sim.8356>, and
-    covariate-dependent censoring methods from 
+    covariate-dependent censoring methods from
     Wang (2018) <doi:10.1007/s10985-017-9391-6>.
 License: GPL-3
 Encoding: UTF-8

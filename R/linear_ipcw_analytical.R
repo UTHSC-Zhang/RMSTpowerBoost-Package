@@ -18,7 +18,9 @@
 #' \eqn{\Delta_i^Y = 1} if the event occurs before \eqn{L} or follow-up reaches
 #' \eqn{L}. The weight is \eqn{w_i = \Delta_i^Y / \hat{G}(Y_i)}, where
 #' \eqn{\hat{G}(t) = P(C > t)} is the Kaplan-Meier estimate of the censoring
-#' distribution fit on the original time scale.
+#' distribution fit on the original time scale. For numerical stability the
+#' weights are capped at their 99th percentile; the cap value and the fraction
+#' of weights affected are reported in \code{model_output$censoring_weights}.
 #'
 #' Power is calculated analytically based on the asymptotic properties of the
 #' coefficient estimators. The variance of the treatment effect estimator, \eqn{\hat{\tau}}, is derived from a
@@ -70,165 +72,36 @@ linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
                                     sample_sizes, linear_terms = NULL, L, alpha = 0.05,
                                     verbose = FALSE) {
 
-   # --- 1. Estimate Nuisance Parameters from Pilot Data ---
+   # --- 1. Estimate model parameters and sandwich variance from pilot data ---
    .rmst_verbose_message(verbose, "--- Estimating parameters from pilot data for analytic calculation... ---")
-
-   core_vars <- c(time_var, status_var, arm_var)
-   all_vars <- c(core_vars, linear_terms)
-   df <- pilot_data[stats::complete.cases(pilot_data[, all_vars]), ]
-   n_pilot <- nrow(df)
-
-   # Define model formulas
-   factor_arm_str <- paste0("factor(", arm_var, ")")
-   model_rhs <- paste(c(factor_arm_str, linear_terms), collapse = " + ")
-   model_formula <- stats::as.formula(paste("Y_rmst ~", model_rhs))
-   .rmst_verbose_message(verbose, "Model: Y_rmst ~ ", model_rhs)
-
-   # Prepare data for IPCW
-   df$Y_rmst <- pmin(df[[time_var]], L)
-   df$is_censored <- df[[status_var]] == 0
-   df$is_event <- df[[status_var]] == 1
-   df$is_complete <- df$is_event | df[[time_var]] >= L
-
-   # Fit censoring model (Kaplan-Meier for G(t))
-   cens_formula <- stats::as.formula(paste0("survival::Surv(", time_var, ", is_censored) ~ 1"))
-   cens_fit <- survival::survfit(cens_formula, data = df)
-   cens_surv_prob <- stats::stepfun(cens_fit$time, c(1, cens_fit$surv))(df$Y_rmst)
-   df$weights <- df$is_complete / cens_surv_prob
-
-   # Stabilize weights
-   weight_cap <- NA_real_
-   finite_weights <- df$weights[is.finite(df$weights) & df$weights > 0]
-   if (length(finite_weights) > 0) {
-      weight_cap <- stats::quantile(finite_weights, probs = 0.99, na.rm = TRUE)
-      df$weights[df$weights > weight_cap] <- weight_cap
-   }
-   df$weights[!is.finite(df$weights)] <- 0
-
-   # Filter for model fitting
-   fit_data <- df[df$weights > 0, ]
-   fit_weights <- fit_data$weights
-
-   if (length(unique(fit_data[[arm_var]])) < 2) {
-      stop("Pilot data contains events in only one arm after filtering.", call. = FALSE)
-   }
-
-   # Fit the primary linear model
-   fit_lm <- stats::lm(model_formula, data = fit_data, weights = fit_weights)
-   beta_hat <- stats::coef(fit_lm)
-
-   arm_pattern <- paste0("^factor\\(", arm_var, "\\)1$")
-   arm_coeff_name <- names(beta_hat)[grep(arm_pattern, names(beta_hat))]
-   if (length(arm_coeff_name) == 0) stop("Could not find treatment effect coefficient.")
-   beta_effect <- beta_hat[arm_coeff_name]
-
-   # --- 2. Calculate Asymptotic Sandwich Variance Components ---
+   est <- .estimate_linear_params(pilot_data, time_var, status_var, arm_var,
+                                  linear_terms, L, verbose)
    .rmst_verbose_message(verbose, "--- Calculating asymptotic variance... ---")
-   X <- stats::model.matrix(model_formula, data = df)
 
-   A_hat <- crossprod(X * sqrt(df$weights), X * sqrt(df$weights)) / n_pilot
-
-   A_hat_inv <- tryCatch({
-      solve(A_hat)
-   }, error = function(e) {
-      stop("The design matrix (A_hat) is singular. This can happen with small pilot datasets or perfect separation.", call. = FALSE)
-   })
-
-   df$predicted_rmst <- predict(fit_lm, newdata = df)
-   residuals <- df$Y_rmst - df$predicted_rmst
-
-   epsilon <- X * residuals * df$weights
-   epsilon[is.na(epsilon)] <- 0
-   B_hat <- crossprod(epsilon) / n_pilot
-
-   V_hat_n <- A_hat_inv %*% B_hat %*% t(A_hat_inv)
-
-   # Scale to get the variance for n=1
-   var_beta_n1 <- V_hat_n[arm_coeff_name, arm_coeff_name]
-   se_beta_n1 <- sqrt(var_beta_n1)
-
-   # --- 4. Calculate Power for Each Sample Size ---
+   # --- 2. Calculate Power for Each Sample Size ---
    .rmst_verbose_message(verbose, "--- Calculating power for specified sample sizes... ---")
    z_alpha <- stats::qnorm(1 - alpha / 2)
    power_values <- sapply(sample_sizes, function(n_per_arm) {
-      total_n <- n_per_arm * 2
-      se_final <- se_beta_n1 / sqrt(total_n)
-      power <- stats::pnorm( (abs(beta_effect) / se_final) - z_alpha )
-      return(power)
+      .rmst_wald_power(est$beta_effect, est$se_beta_n1, n_per_arm * 2, z_alpha)
    })
 
    results_df <- data.frame(N_per_Arm = sample_sizes, Power = power_values)
 
-   # --- CORRECTED: Add the summary object to the return list ---
    results_summary <- data.frame(
       Statistic = "Assumed RMST Difference (from pilot)",
-      Value = beta_effect
+      Value = est$beta_effect
    )
 
-   # --- 5. Create Plot and Return ---
-   p <- ggplot2::ggplot(results_df, ggplot2::aes(x = N_per_Arm, y = Power)) +
-      ggplot2::geom_line(color = "#D55E00", linewidth = 1) +
-      ggplot2::geom_point(color = "#D55E00", size = 3) +
-      ggplot2::labs(
-         title = "Analytic Power Curve: Linear IPCW RMST Model",
-         subtitle = "Based on the asymptotic variance from Tian et al. (2014).",
-         x = "Sample Size Per Arm", y = "Estimated Power"
-      ) +
-      ggplot2::ylim(0, 1) + ggplot2::theme_minimal()
-
-   model_output <- local({
-      cs <- summary(fit_lm)$coefficients
-      coef_tbl <- data.frame(
-         term      = rownames(cs),
-         estimate  = cs[, 1L],
-         std_error = cs[, 2L],
-         ci_lower  = cs[, 1L] - 1.96 * cs[, 2L],
-         ci_upper  = cs[, 1L] + 1.96 * cs[, 2L],
-         test_stat = cs[, 3L],
-         p_value   = cs[, 4L],
-         row.names = NULL,
-         stringsAsFactors = FALSE
-      )
-      se_arm_pilot <- se_beta_n1 / sqrt(n_pilot)
-      trt_eff <- data.frame(
-         estimand  = "RMST Difference",
-         estimate  = beta_effect,
-         std_error = se_arm_pilot,
-         ci_lower  = beta_effect - 1.96 * se_arm_pilot,
-         ci_upper  = beta_effect + 1.96 * se_arm_pilot,
-         stringsAsFactors = FALSE
-      )
-      arms <- sort(unique(fit_data[[arm_var]]))
-      arm_rmst <- do.call(rbind, lapply(arms, function(a) {
-         idx   <- fit_data[[arm_var]] == a
-         sub_w <- fit_weights[idx]
-         sub_y <- fit_data$Y_rmst[idx]
-         mu    <- if (sum(sub_w) > 0) stats::weighted.mean(sub_y, sub_w) else mean(sub_y)
-         data.frame(arm = a, rmst_estimate = mu, std_error = NA_real_,
-                    ci_lower = NA_real_, ci_upper = NA_real_,
-                    scale = "original", stringsAsFactors = FALSE)
-      }))
-      capped_frac <- if (is.finite(weight_cap))
-         mean(df$weights[df$is_complete] >= weight_cap, na.rm = TRUE) else NA_real_
-      list(
-         coefficient_table   = coef_tbl,
-         treatment_effect    = trt_eff,
-         arm_specific_rmst   = arm_rmst,
-         variance_components = list(A_hat = A_hat, B_hat = B_hat,
-                                    V_hat_n = V_hat_n, se_effect_n1 = se_beta_n1),
-         censoring_weights   = list(
-            raw_summary     = stats::quantile(df$weights, c(0, .25, .5, .75, .99, 1), na.rm = TRUE),
-            cap_value       = weight_cap,
-            capped_fraction = capped_frac),
-         diagnostics         = list(n_used = nrow(fit_data), n_events = sum(df$is_event),
-                                    n_complete = sum(df$is_complete),
-                                    convergence_ok = TRUE, singular_flag = FALSE),
-         simulation_draws    = NULL
-      )
-   })
+   # --- 3. Create Plot and Return ---
+   p <- .rmst_power_curve_plot(
+      results_df, "N_per_Arm", "#D55E00",
+      title = "Analytic Power Curve: Linear IPCW RMST Model",
+      subtitle = "Based on the asymptotic variance from Tian et al. (2014).",
+      xlab = "Sample Size Per Arm")
 
    return(list(results_data = results_df, results_plot = p,
-               results_summary = results_summary, model_output = model_output))
+               results_summary = results_summary,
+               model_output = .linear_model_output(est, arm_var)))
 }
 
 # Sample Size Search ------------------------------------------------------
@@ -241,7 +114,8 @@ linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
 #' @details
 #' This function performs an iterative search to find the sample size needed to
 #' achieve a specified `target_power`. It uses the same underlying theory as
-#' `linear.power.analytical`. First, it estimates the treatment effect size and its
+#' `linear.power.analytical`, including the 99th-percentile IPCW weight cap
+#' described there. First, it estimates the treatment effect size and its
 #' asymptotic variance from the pilot data. Then, it iteratively calculates the
 #' power for increasing sample sizes using the analytic formula until the
 #' target power is achieved.
@@ -293,165 +167,34 @@ linear.ss.analytical <- function(pilot_data, time_var, status_var, arm_var,
 
    # --- 1. Estimate Parameters and Variance from Pilot Data (One Time) ---
    .rmst_verbose_message(verbose, "--- Estimating parameters from pilot data for analytic search... ---")
-   # This part is identical to the power function above
-   core_vars <- c(time_var, status_var, arm_var)
-   all_vars <- c(core_vars, linear_terms)
-   df <- pilot_data[stats::complete.cases(pilot_data[, all_vars]), ]
-   n_pilot <- nrow(df)
-
-   factor_arm_str <- paste0("factor(", arm_var, ")")
-   model_rhs <- paste(c(factor_arm_str, linear_terms), collapse = " + ")
-   model_formula <- stats::as.formula(paste("Y_rmst ~", model_rhs))
-   .rmst_verbose_message(verbose, "Model: Y_rmst ~ ", model_rhs)
-
-   df$Y_rmst <- pmin(df[[time_var]], L)
-   df$is_censored <- df[[status_var]] == 0
-   df$is_event <- df[[status_var]] == 1
-   df$is_complete <- df$is_event | df[[time_var]] >= L
-
-   cens_formula <- stats::as.formula(paste0("survival::Surv(", time_var, ", is_censored) ~ 1"))
-   cens_fit <- survival::survfit(cens_formula, data = df)
-   cens_surv_prob <- stats::stepfun(cens_fit$time, c(1, cens_fit$surv))(df$Y_rmst)
-   df$weights <- df$is_complete / cens_surv_prob
-   weight_cap <- NA_real_
-   finite_weights <- df$weights[is.finite(df$weights) & df$weights > 0]
-   if (length(finite_weights) > 0) {
-      weight_cap <- stats::quantile(finite_weights, probs = 0.99, na.rm = TRUE)
-      df$weights[df$weights > weight_cap] <- weight_cap
-   }
-   df$weights[!is.finite(df$weights)] <- 0
-
-   fit_data <- df[df$weights > 0, ]
-   fit_weights <- fit_data$weights
-   if (length(unique(fit_data[[arm_var]])) < 2) stop("Pilot data events in only one arm.")
-
-   fit_lm <- stats::lm(model_formula, data = fit_data, weights = fit_weights)
-   beta_hat <- stats::coef(fit_lm)
-   arm_pattern <- paste0("^factor\\(", arm_var, "\\)1$")
-   arm_coeff_name <- names(beta_hat)[grep(arm_pattern, names(beta_hat))]
-   if (length(arm_coeff_name) == 0) stop("Could not find treatment effect coefficient.")
-   beta_effect <- beta_hat[arm_coeff_name]
-
-   X <- stats::model.matrix(model_formula, data = df)
-   A_hat <- crossprod(X * sqrt(df$weights), X * sqrt(df$weights)) / n_pilot
-
-   A_hat_inv <- tryCatch({
-      solve(A_hat)
-   }, error = function(e) {
-      stop("The design matrix (A_hat) is singular. This can happen with small pilot datasets or perfect separation.", call. = FALSE)
-   })
-
-   df$predicted_rmst <- predict(fit_lm, newdata = df)
-   residuals <- df$Y_rmst - df$predicted_rmst
-   epsilon <- X * residuals * df$weights
-   epsilon[is.na(epsilon)] <- 0
-   B_hat <- crossprod(epsilon) / n_pilot
-
-   V_hat_n <- A_hat_inv %*% B_hat %*% t(A_hat_inv)
-   var_beta_n1 <- V_hat_n[arm_coeff_name, arm_coeff_name]
-   se_beta_n1 <- sqrt(var_beta_n1)
+   est <- .estimate_linear_params(pilot_data, time_var, status_var, arm_var,
+                                  linear_terms, L, verbose)
 
    # --- 2. Iterative Search for Sample Size using Analytic Formula ---
    .rmst_verbose_message(verbose, "--- Searching for Sample Size (Method: Analytic) ---")
-   current_n <- n_start
-   search_path <- list()
-   final_n <- NA_integer_
-   z_alpha <- stats::qnorm(1 - alpha / 2)
-
-   while (current_n <= max_n_per_arm) {
-      total_n <- current_n * 2
-      se_final <- se_beta_n1 / sqrt(total_n)
-      calculated_power <- stats::pnorm((abs(beta_effect) / se_final) - z_alpha)
-      if (!is.finite(calculated_power)) calculated_power <- 0
-
-      search_path[[as.character(current_n)]] <- calculated_power
-      .rmst_verbose_message(verbose, "  N = ", current_n, "/arm, calculated power = ", round(calculated_power, 3))
-
-      if (calculated_power >= target_power) {
-         final_n <- current_n
-         break
-      }
-      current_n <- current_n + n_step
-   }
-
-   if (is.na(final_n)) {
-      warning(paste("Target power", target_power, "not achieved by max N of", max_n_per_arm), call. = FALSE)
-      final_n <- max_n_per_arm
-   }
+   search <- .rmst_analytic_ss_search(est$beta_effect, est$se_beta_n1, 2,
+                                      target_power, alpha, n_start, n_step,
+                                      max_n_per_arm, "/arm", verbose)
+   final_n <- search$final_n
 
    # --- 3. Finalize and Return Results ---
    results_summary <- data.frame(
       Statistic = "Assumed RMST Difference (from pilot)",
-      Value = beta_effect
+      Value = est$beta_effect
    )
    results_df <- data.frame(Target_Power = target_power, Required_N_per_Arm = final_n)
-   search_path_df <- data.frame(N_per_Arm = as.integer(names(search_path)), Power = unlist(search_path))
+   search_path_df <- search$search_path_df
+   names(search_path_df) <- c("N_per_Arm", "Power")
 
-   p <- ggplot2::ggplot(na.omit(search_path_df), ggplot2::aes(x = N_per_Arm, y = Power)) +
-      ggplot2::geom_line(color = "#009E73", linewidth = 1) +
-      ggplot2::geom_point(color = "#009E73", size = 3) +
-      ggplot2::geom_hline(yintercept = target_power, linetype = "dashed", color = "red") +
-      ggplot2::geom_vline(xintercept = final_n, linetype = "dotted", color = "blue") +
-      ggplot2::labs(
-         title = "Analytic Sample Size Search: Linear IPCW RMST Model",
-         subtitle = "Power calculated from formula at each step.",
-         x = "Sample Size Per Arm", y = "Calculated Power"
-      ) + ggplot2::theme_minimal()
+   p <- .rmst_ss_search_plot(
+      search_path_df, "N_per_Arm", final_n, target_power,
+      title = "Analytic Sample Size Search: Linear IPCW RMST Model",
+      subtitle = "Power calculated from formula at each step.",
+      xlab = "Sample Size Per Arm")
 
    .rmst_verbose_message(verbose, "Calculation summary available in returned results_data.")
 
-   model_output <- local({
-      cs <- summary(fit_lm)$coefficients
-      coef_tbl <- data.frame(
-         term      = rownames(cs),
-         estimate  = cs[, 1L],
-         std_error = cs[, 2L],
-         ci_lower  = cs[, 1L] - 1.96 * cs[, 2L],
-         ci_upper  = cs[, 1L] + 1.96 * cs[, 2L],
-         test_stat = cs[, 3L],
-         p_value   = cs[, 4L],
-         row.names = NULL,
-         stringsAsFactors = FALSE
-      )
-      se_arm_pilot <- se_beta_n1 / sqrt(n_pilot)
-      trt_eff <- data.frame(
-         estimand  = "RMST Difference",
-         estimate  = beta_effect,
-         std_error = se_arm_pilot,
-         ci_lower  = beta_effect - 1.96 * se_arm_pilot,
-         ci_upper  = beta_effect + 1.96 * se_arm_pilot,
-         stringsAsFactors = FALSE
-      )
-      arms <- sort(unique(fit_data[[arm_var]]))
-      arm_rmst <- do.call(rbind, lapply(arms, function(a) {
-         idx   <- fit_data[[arm_var]] == a
-         sub_w <- fit_weights[idx]
-         sub_y <- fit_data$Y_rmst[idx]
-         mu    <- if (sum(sub_w) > 0) stats::weighted.mean(sub_y, sub_w) else mean(sub_y)
-         data.frame(arm = a, rmst_estimate = mu, std_error = NA_real_,
-                    ci_lower = NA_real_, ci_upper = NA_real_,
-                    scale = "original", stringsAsFactors = FALSE)
-      }))
-      capped_frac <- if (is.finite(weight_cap))
-         mean(df$weights[df$is_complete] >= weight_cap, na.rm = TRUE) else NA_real_
-      list(
-         coefficient_table   = coef_tbl,
-         treatment_effect    = trt_eff,
-         arm_specific_rmst   = arm_rmst,
-         variance_components = list(A_hat = A_hat, B_hat = B_hat,
-                                    V_hat_n = V_hat_n, se_effect_n1 = se_beta_n1),
-         censoring_weights   = list(
-            raw_summary     = stats::quantile(df$weights, c(0, .25, .5, .75, .99, 1), na.rm = TRUE),
-            cap_value       = weight_cap,
-            capped_fraction = capped_frac),
-         diagnostics         = list(n_used = nrow(fit_data), n_events = sum(df$is_event),
-                                    n_complete = sum(df$is_complete),
-                                    convergence_ok = TRUE, singular_flag = FALSE),
-         simulation_draws    = NULL
-      )
-   })
-
    return(list(results_data = results_df, results_plot = p,
-               results_summary = results_summary, model_output = model_output))
+               results_summary = results_summary,
+               model_output = .linear_model_output(est, arm_var)))
 }
-

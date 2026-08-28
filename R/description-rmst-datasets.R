@@ -40,8 +40,6 @@
 #' spec$covariates
 #' spec$files
 describe_generation <- function(set) {
-   `%||%` <- function(x, y) if (is.null(x)) y else x
-
    .pretty_model <- function(m) {
       switch(tolower(m),
              "cox_pwexp"       = "PH piecewise-exponential",

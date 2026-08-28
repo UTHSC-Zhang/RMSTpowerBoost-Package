@@ -11,7 +11,9 @@
 #' using \code{Surv(time, status==0) ~ linear\_terms}, then forms inverse-probability-of-censoring
 #' weights (IPCW) \eqn{w_i = \Delta_i^Y/\hat G(Y_i\mid X_i)} evaluated at
 #' \eqn{Y_i=\min(T_i,L)}, where \eqn{\Delta_i^Y=1} if the event is observed before
-#' \eqn{L} or follow-up reaches \eqn{L}.
+#' \eqn{L} or follow-up reaches \eqn{L}. For numerical stability the weights are
+#' capped at their 99th percentile; the cap value and the fraction of weights
+#' affected are reported in \code{model_output$censoring_weights}.
 #' The RMST regression \eqn{E[Y_i \mid A_i,X_i]} is then fit by weighted least squares,
 #' and power is derived from a sandwich variance that ignores uncertainty from
 #' estimating \eqn{\hat G}.
@@ -47,71 +49,14 @@ DC.power.analytical <- function(pilot_data,
                                 alpha = 0.05,
                                 verbose = FALSE) {
 
-   # --- 1) Prep & outcome ---
-   covariates <- c(arm_var, linear_terms)
-   all_vars <- unique(c(time_var, status_var, covariates))
-   df <- pilot_data[stats::complete.cases(pilot_data[, all_vars, drop = FALSE]), ]
-   n_pilot <- nrow(df)
-   if (n_pilot < 10) stop("Too few complete cases after filtering.", call. = FALSE)
+   # --- 1. Estimate model parameters and sandwich variance from pilot data ---
+   est <- .estimate_dc_params(pilot_data, time_var, status_var, arm_var,
+                              linear_terms, L)
 
-   df$Y_rmst <- pmin(df[[time_var]], L)
-   df$is_event <- df[[status_var]] == 1
-   df$is_complete <- df$is_event | df[[time_var]] >= L
-
-   # --- 2) Censoring model: covariate-dependent only (no arm, no competing risks) ---
-   cens_rhs <- if (is.null(linear_terms) || length(linear_terms) == 0) "1" else paste(linear_terms, collapse = " + ")
-   cens_formula <- stats::as.formula(
-      paste0("survival::Surv(", time_var, ", ", status_var, "==0) ~ ", cens_rhs)
-   )
-   fit_cens <- survival::coxph(cens_formula, data = df, ties = "breslow")
-
-   bh <- survival::basehaz(fit_cens, centered = FALSE)
-   H0_step <- stats::stepfun(bh$time, c(0, bh$hazard))
-   lp <- if (cens_rhs == "1") 0 else stats::predict(fit_cens, newdata = df, type = "lp")
-   Hc <- H0_step(df$Y_rmst) * exp(lp)
-   Ghat <- exp(-Hc)
-
-   # IPCW for subjects whose truncated RMST outcome is observed (stabilize)
-   eps <- 1e-6
-   w <- df$is_complete / pmax(Ghat, eps)
-   w[!is.finite(w)] <- 0
-   cap <- NA_real_
-   if (any(is.finite(w) & w > 0)) {
-      cap <- stats::quantile(w[is.finite(w) & w > 0], 0.99, na.rm = TRUE)
-      w[w > cap] <- cap
-   }
-   df$w <- w
-
-   # --- 3) Weighted RMST regression ---
-   model_rhs <- paste(c(arm_var, linear_terms), collapse = " + ")
-   model_formula <- stats::as.formula(paste("Y_rmst ~", model_rhs))
-   fit_data <- df[df$w > 0, ]
-   fit_wls <- stats::lm(model_formula, data = fit_data, weights = fit_data$w)
-   beta <- stats::coef(fit_wls)
-   if (!(arm_var %in% names(beta))) stop("Arm coefficient not found in model.", call. = FALSE)
-   beta_arm <- beta[arm_var]
-
-   # --- 4) Sandwich variance (A=X'WX/n, B = X'(w*r)^2 X / n) ---
-   X <- stats::model.matrix(model_formula, data = df)
-   r <- df$Y_rmst - as.numeric(X %*% beta)
-   W <- df$w
-
-   A_hat <- crossprod(X, X * W) / n_pilot
-   meat <- X * (W * r)
-   B_hat <- crossprod(meat) / n_pilot
-
-   Ainv <- solve(A_hat)
-   Vn <- Ainv %*% B_hat %*% Ainv
-   var_beta_pilot <- Vn[colnames(X) == arm_var, colnames(X) == arm_var] / n_pilot
-   var_beta_n1 <- as.numeric(var_beta_pilot * n_pilot)
-   se_beta_n1 <- sqrt(var_beta_n1)
-
-   # --- 5) Power across N ---
-   z_alpha <- stats::qnorm(1 - alpha/2)
+   # --- 2. Power across N ---
+   z_alpha <- stats::qnorm(1 - alpha / 2)
    power_values <- sapply(sample_sizes, function(n_per_arm) {
-      N <- 2 * n_per_arm
-      seN <- se_beta_n1 / sqrt(N)
-      stats::pnorm((abs(beta_arm) / seN) - z_alpha)
+      .rmst_wald_power(est$beta_effect, est$se_beta_n1, 2 * n_per_arm, z_alpha)
    })
 
    results_df <- data.frame(N_per_Arm = sample_sizes, Power = power_values)
@@ -129,62 +74,12 @@ DC.power.analytical <- function(pilot_data,
 
    results_summary <- data.frame(
       Statistic = "Assumed RMST Difference (from pilot)",
-      Value = beta_arm
+      Value = est$beta_effect
    )
 
-   model_output <- local({
-      cs <- summary(fit_wls)$coefficients
-      coef_tbl <- data.frame(
-         term      = rownames(cs),
-         estimate  = cs[, 1L],
-         std_error = cs[, 2L],
-         ci_lower  = cs[, 1L] - 1.96 * cs[, 2L],
-         ci_upper  = cs[, 1L] + 1.96 * cs[, 2L],
-         test_stat = cs[, 3L],
-         p_value   = cs[, 4L],
-         row.names = NULL,
-         stringsAsFactors = FALSE
-      )
-      se_arm_pilot <- se_beta_n1 / sqrt(n_pilot)
-      trt_eff <- data.frame(
-         estimand  = "RMST Difference (DC-IPCW)",
-         estimate  = beta_arm,
-         std_error = se_arm_pilot,
-         ci_lower  = beta_arm - 1.96 * se_arm_pilot,
-         ci_upper  = beta_arm + 1.96 * se_arm_pilot,
-         stringsAsFactors = FALSE
-      )
-      arms <- sort(unique(df[[arm_var]]))
-      arm_rmst <- do.call(rbind, lapply(arms, function(a) {
-         idx <- df[[arm_var]] == a
-         w_a <- df$w[idx]
-         y_a <- df$Y_rmst[idx]
-         mu  <- if (sum(w_a) > 0) stats::weighted.mean(y_a, w_a) else mean(y_a)
-         data.frame(arm = a, rmst_estimate = mu, std_error = NA_real_,
-                    ci_lower = NA_real_, ci_upper = NA_real_,
-                    scale = "original", stringsAsFactors = FALSE)
-      }))
-      capped_frac <- if (is.finite(cap))
-         mean(df$w[df$w > 0] >= cap, na.rm = TRUE) else NA_real_
-      list(
-         coefficient_table   = coef_tbl,
-         treatment_effect    = trt_eff,
-         arm_specific_rmst   = arm_rmst,
-         variance_components = list(A_hat = A_hat, B_hat = B_hat,
-                                    V_hat_n = Vn, se_effect_n1 = se_beta_n1),
-         censoring_weights   = list(
-            raw_summary     = stats::quantile(df$w, c(0, .25, .5, .75, .99, 1), na.rm = TRUE),
-            cap_value       = cap,
-            capped_fraction = capped_frac),
-         diagnostics         = list(n_used = nrow(fit_data), n_events = sum(df$is_event),
-                                    n_complete = sum(df$is_complete),
-                                    convergence_ok = TRUE, singular_flag = FALSE),
-         simulation_draws    = NULL
-      )
-   })
-
    list(results_data = results_df, results_plot = p,
-        results_summary = results_summary, model_output = model_output)
+        results_summary = results_summary,
+        model_output = .dc_model_output(est, arm_var))
 }
 
 
@@ -200,7 +95,8 @@ DC.power.analytical <- function(pilot_data,
 #' IPCW weights \eqn{\Delta_i^Y/\hat G(Y_i\mid X_i)} and fits a weighted RMST regression
 #' among subjects whose truncated RMST outcome is observed. Treatment is excluded from
 #' the censoring model by default. Competing risks are not modeled. Variance ignores
-#' uncertainty in \eqn{\hat G}.
+#' uncertainty in \eqn{\hat G}. As in \code{DC.power.analytical}, the IPCW
+#' weights are capped at their 99th percentile for numerical stability.
 #'
 #' Note: This implementation models a single censoring process and does not
 #' handle competing risks.
@@ -241,86 +137,20 @@ DC.ss.analytical <- function(pilot_data,
                              verbose = FALSE) {
 
    # --- One-time estimation identical to DC.power.analytical ---
-   covariates <- c(arm_var, linear_terms)
-   all_vars <- unique(c(time_var, status_var, covariates))
-   df <- pilot_data[stats::complete.cases(pilot_data[, all_vars, drop = FALSE]), ]
-   n_pilot <- nrow(df)
-   if (n_pilot < 10) stop("Too few complete cases after filtering.", call. = FALSE)
-
-   df$Y_rmst <- pmin(df[[time_var]], L)
-   df$is_event <- df[[status_var]] == 1
-   df$is_complete <- df$is_event | df[[time_var]] >= L
-
-   cens_rhs <- if (is.null(linear_terms) || length(linear_terms) == 0) "1" else paste(linear_terms, collapse = " + ")
-   cens_formula <- stats::as.formula(
-      paste0("survival::Surv(", time_var, ", ", status_var, "==0) ~ ", cens_rhs)
-   )
-   fit_cens <- survival::coxph(cens_formula, data = df, ties = "breslow")
-
-   bh <- survival::basehaz(fit_cens, centered = FALSE)
-   H0_step <- stats::stepfun(bh$time, c(0, bh$hazard))
-   lp <- if (cens_rhs == "1") 0 else stats::predict(fit_cens, newdata = df, type = "lp")
-   Hc <- H0_step(df$Y_rmst) * exp(lp)
-   Ghat <- exp(-Hc)
-
-   eps <- 1e-6
-   w <- df$is_complete / pmax(Ghat, eps)
-   w[!is.finite(w)] <- 0
-   cap <- NA_real_
-   if (any(is.finite(w) & w > 0)) {
-      cap <- stats::quantile(w[is.finite(w) & w > 0], 0.99, na.rm = TRUE)
-      w[w > cap] <- cap
-   }
-   df$w <- w
-
-   model_rhs <- paste(c(arm_var, linear_terms), collapse = " + ")
-   model_formula <- stats::as.formula(paste("Y_rmst ~", model_rhs))
-   fit_data <- df[df$w > 0, ]
-   fit_wls <- stats::lm(model_formula, data = fit_data, weights = fit_data$w)
-   beta <- stats::coef(fit_wls)
-   if (!(arm_var %in% names(beta))) stop("Arm coefficient not found in model.", call. = FALSE)
-   beta_arm <- beta[arm_var]
-
-   X <- stats::model.matrix(model_formula, data = df)
-   r <- df$Y_rmst - as.numeric(X %*% beta)
-   W <- df$w
-
-   A_hat <- crossprod(X, X * W) / n_pilot
-   meat <- X * (W * r)
-   B_hat <- crossprod(meat) / n_pilot
-
-   Ainv <- solve(A_hat)
-   Vn <- Ainv %*% B_hat %*% Ainv
-   var_beta_pilot <- Vn[colnames(X) == arm_var, colnames(X) == arm_var] / n_pilot
-   var_beta_n1 <- as.numeric(var_beta_pilot * n_pilot)
-   se_beta_n1 <- sqrt(var_beta_n1)
+   est <- .estimate_dc_params(pilot_data, time_var, status_var, arm_var,
+                              linear_terms, L)
 
    # --- Iterative search ---
-   z_alpha <- stats::qnorm(1 - alpha / 2)
-   current_n <- n_start
-   path <- list()
-   final_n <- NA_integer_
-
-   while (current_n <= max_n_per_arm) {
-      N <- 2 * current_n
-      seN <- se_beta_n1 / sqrt(N)
-      pw <- stats::pnorm((abs(beta_arm) / seN) - z_alpha)
-      path[[as.character(current_n)]] <- pw
-      if (pw >= target_power) { final_n <- current_n; break }
-      current_n <- current_n + n_step
-   }
-   if (is.na(final_n)) {
-      warning(paste("Target power", target_power, "not achieved by max N of", max_n_per_arm), call. = FALSE)
-      final_n <- max_n_per_arm
-   }
+   search <- .rmst_analytic_ss_search(est$beta_effect, est$se_beta_n1, 2,
+                                      target_power, alpha, n_start, n_step,
+                                      max_n_per_arm, "/arm", verbose)
+   final_n <- search$final_n
 
    results_df <- data.frame(Target_Power = target_power, Required_N_per_Arm = final_n)
-   search_path_df <- data.frame(
-      N_per_Arm = as.integer(names(path)),
-      Power = as.numeric(unlist(path))
-   )
+   search_path_df <- search$search_path_df
+   names(search_path_df) <- c("N_per_Arm", "Power")
 
-   p <- ggplot2::ggplot(na.omit(search_path_df), ggplot2::aes(x = N_per_Arm, y = Power)) +
+   p <- ggplot2::ggplot(stats::na.omit(search_path_df), ggplot2::aes(x = N_per_Arm, y = Power)) +
       ggplot2::geom_line(linewidth = 1) +
       ggplot2::geom_point(size = 3) +
       ggplot2::geom_hline(yintercept = target_power, linetype = "dashed", color = "red") +
@@ -335,59 +165,9 @@ DC.ss.analytical <- function(pilot_data,
    .rmst_verbose_message(verbose, "Calculation summary available in returned results_data.")
 
    results_summary_ss <- data.frame(
-      Statistic = "Assumed RMST Difference (from pilot)", Value = beta_arm)
-
-   model_output <- local({
-      cs <- summary(fit_wls)$coefficients
-      coef_tbl <- data.frame(
-         term      = rownames(cs),
-         estimate  = cs[, 1L],
-         std_error = cs[, 2L],
-         ci_lower  = cs[, 1L] - 1.96 * cs[, 2L],
-         ci_upper  = cs[, 1L] + 1.96 * cs[, 2L],
-         test_stat = cs[, 3L],
-         p_value   = cs[, 4L],
-         row.names = NULL,
-         stringsAsFactors = FALSE
-      )
-      se_arm_pilot <- se_beta_n1 / sqrt(n_pilot)
-      trt_eff <- data.frame(
-         estimand  = "RMST Difference (DC-IPCW)",
-         estimate  = beta_arm,
-         std_error = se_arm_pilot,
-         ci_lower  = beta_arm - 1.96 * se_arm_pilot,
-         ci_upper  = beta_arm + 1.96 * se_arm_pilot,
-         stringsAsFactors = FALSE
-      )
-      arms <- sort(unique(df[[arm_var]]))
-      arm_rmst <- do.call(rbind, lapply(arms, function(a) {
-         idx <- df[[arm_var]] == a
-         w_a <- df$w[idx]
-         y_a <- df$Y_rmst[idx]
-         mu  <- if (sum(w_a) > 0) stats::weighted.mean(y_a, w_a) else mean(y_a)
-         data.frame(arm = a, rmst_estimate = mu, std_error = NA_real_,
-                    ci_lower = NA_real_, ci_upper = NA_real_,
-                    scale = "original", stringsAsFactors = FALSE)
-      }))
-      capped_frac <- if (is.finite(cap))
-         mean(df$w[df$w > 0] >= cap, na.rm = TRUE) else NA_real_
-      list(
-         coefficient_table   = coef_tbl,
-         treatment_effect    = trt_eff,
-         arm_specific_rmst   = arm_rmst,
-         variance_components = list(A_hat = A_hat, B_hat = B_hat,
-                                    V_hat_n = Vn, se_effect_n1 = se_beta_n1),
-         censoring_weights   = list(
-            raw_summary     = stats::quantile(df$w, c(0, .25, .5, .75, .99, 1), na.rm = TRUE),
-            cap_value       = cap,
-            capped_fraction = capped_frac),
-         diagnostics         = list(n_used = nrow(fit_data), n_events = sum(df$is_event),
-                                    n_complete = sum(df$is_complete),
-                                    convergence_ok = TRUE, singular_flag = FALSE),
-         simulation_draws    = NULL
-      )
-   })
+      Statistic = "Assumed RMST Difference (from pilot)", Value = est$beta_effect)
 
    list(results_data = results_df, results_plot = p,
-        results_summary = results_summary_ss, model_output = model_output)
+        results_summary = results_summary_ss,
+        model_output = .dc_model_output(est, arm_var))
 }

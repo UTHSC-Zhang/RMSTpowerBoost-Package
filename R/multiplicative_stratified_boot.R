@@ -27,24 +27,8 @@
    .rmst_verbose_message(verbose, "Model: log(pseudo_obs) ~ ", model_rhs)
    test_term_pattern <- paste0("^", arm_var, "1$")
 
-   # --- Helper to calculate jackknife pseudo-observations ---
-   get_pseudo_obs <- function(time, status, L_val) {
-      n <- length(time)
-      if (n == 0) return(numeric(0))
-      km_fit_full <- survival::survfit(survival::Surv(time, status) ~ 1)
-      km_step_full <- stats::stepfun(km_fit_full$time, c(1, km_fit_full$surv))
-      rmst_full <- tryCatch(stats::integrate(km_step_full, 0, L_val, subdivisions = 2000, stop.on.error = FALSE)$value, error = function(e) 0)
-
-      rmst_loo <- vapply(seq_len(n), function(i) {
-         if (n > 1) {
-            km_fit_loo <- survival::survfit(survival::Surv(time[-i], status[-i]) ~ 1)
-            km_step_loo <- stats::stepfun(km_fit_loo$time, c(1, km_fit_loo$surv))
-            tryCatch(stats::integrate(km_step_loo, 0, L_val, subdivisions = 2000, stop.on.error = FALSE)$value, error = function(e) 0)
-         } else { 0 }
-      }, FUN.VALUE = numeric(1))
-
-      return(n * rmst_full - (n - 1) * rmst_loo)
-   }
+   # --- Jackknife pseudo-observations (shared helper) ---
+   get_pseudo_obs <- .rmst_jackknife_pseudo_obs
 
    # --- The actual simulation function that will be returned ---
    run_power_sim <- function(n_per_stratum) {

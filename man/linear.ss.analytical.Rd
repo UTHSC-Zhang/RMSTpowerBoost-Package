@@ -57,7 +57,8 @@ analytic formula based on the methods of Tian et al. (2014).
 \details{
 This function performs an iterative search to find the sample size needed to
 achieve a specified \code{target_power}. It uses the same underlying theory as
-\code{linear.power.analytical}. First, it estimates the treatment effect size and its
+\code{linear.power.analytical}, including the 99th-percentile IPCW weight cap
+described there. First, it estimates the treatment effect size and its
 asymptotic variance from the pilot data. Then, it iteratively calculates the
 power for increasing sample sizes using the analytic formula until the
 target power is achieved.

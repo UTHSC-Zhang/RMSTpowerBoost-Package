@@ -58,7 +58,9 @@ Weighting (IPCW). Let \eqn{Y_i = \min(T_i, L)} and
 \eqn{\Delta_i^Y = 1} if the event occurs before \eqn{L} or follow-up reaches
 \eqn{L}. The weight is \eqn{w_i = \Delta_i^Y / \hat{G}(Y_i)}, where
 \eqn{\hat{G}(t) = P(C > t)} is the Kaplan-Meier estimate of the censoring
-distribution fit on the original time scale.
+distribution fit on the original time scale. For numerical stability the
+weights are capped at their 99th percentile; the cap value and the fraction
+of weights affected are reported in \code{model_output$censoring_weights}.
 
 Power is calculated analytically based on the asymptotic properties of the
 coefficient estimators. The variance of the treatment effect estimator, \eqn{\hat{\tau}}, is derived from a

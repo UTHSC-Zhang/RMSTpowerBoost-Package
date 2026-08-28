@@ -52,7 +52,9 @@ This function assumes a single censoring process whose hazard depends on covaria
 using \code{Surv(time, status==0) ~ linear\_terms}, then forms inverse-probability-of-censoring
 weights (IPCW) \eqn{w_i = \Delta_i^Y/\hat G(Y_i\mid X_i)} evaluated at
 \eqn{Y_i=\min(T_i,L)}, where \eqn{\Delta_i^Y=1} if the event is observed before
-\eqn{L} or follow-up reaches \eqn{L}.
+\eqn{L} or follow-up reaches \eqn{L}. For numerical stability the weights are
+capped at their 99th percentile; the cap value and the fraction of weights
+affected are reported in \code{model_output$censoring_weights}.
 The RMST regression \eqn{E[Y_i \mid A_i,X_i]} is then fit by weighted least squares,
 and power is derived from a sandwich variance that ignores uncertainty from
 estimating \eqn{\hat G}.

@@ -60,6 +60,12 @@ the censoring times fit on the original time scale. Here
 centering the covariates and RMST values within each stratum and then solving
 the resulting estimating equations in closed form.
 
+For numerical stability, the estimated IPCW weights are capped at their
+99th percentile before estimation. This is a practical stabilization step
+that is not part of the Zhang & Schaubel (2024) theory; the cap value and
+the fraction of weights affected are reported in
+\code{model_output$censoring_weights}.
+
 Power is obtained from the asymptotic sandwich variance of \eqn{\hat{\beta}}.
 This implementation uses the robust variance estimator
 \eqn{A_n^{-1} B_n (A_n^{-1})'}, where \eqn{A_n} and \eqn{B_n} are empirical
@@ -88,4 +94,9 @@ power_results <- additive.power.analytical(
 print(power_results$results_data)
 print(power_results$results_plot)
 
+}
+\references{
+Zhang, Y. and Schaubel, D. E. (2024). Semiparametric Additive Modeling of
+the Restricted Mean Survival Time. \emph{Biometrical Journal}, 66:e202200371.
+\doi{10.1002/bimj.202200371}
 }

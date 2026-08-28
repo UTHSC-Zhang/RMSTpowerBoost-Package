@@ -61,7 +61,9 @@ Calculates the required sample size for a target power using the analytic
 This function estimates the log-RMST ratio and its asymptotic variance once
 from the pilot data, then increases the per-stratum sample size until the
 target power is reached or the search limit is hit. It uses the same
-log-linear approximation as \code{MS.power.analytical}.
+log-linear approximation and robust sandwich variance as
+\code{MS.power.analytical}, including the 99th-percentile IPCW weight cap
+described there.
 }
 \examples{
 set.seed(456)

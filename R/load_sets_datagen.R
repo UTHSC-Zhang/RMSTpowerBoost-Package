@@ -76,7 +76,6 @@ load_recipe_sets <- function(manifest_path) {
 #' @export
 rebuild_manifest <- function(base_recipe, vary, out_dir,
                              filename_template = "sc{scenario_id}_r{rep}") {
-  `%||%` <- function(x, y) if (is.null(x)) y else x
   sanitize <- function(x) {
     x <- gsub("[^A-Za-z0-9._-]+", "_", x)
     x <- gsub("_+", "_", x)

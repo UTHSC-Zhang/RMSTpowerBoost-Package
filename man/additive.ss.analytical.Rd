@@ -61,7 +61,8 @@ method for a stratified, additive RMST model.
 This function estimates the additive treatment effect and its asymptotic
 variance once from the pilot data, then increases the per-stratum sample
 size until the target power is reached or the search limit is hit. It uses
-the same stratum-centering framework as \code{additive.power.analytical}.
+the same stratum-centering framework as \code{additive.power.analytical},
+including the 99th-percentile IPCW weight cap described there.
 }
 \examples{
 set.seed(123)
@@ -89,4 +90,9 @@ pilot_df_strat$time[pilot_df_strat$arm == 1] <-
   )
   print(ss_results$results_data)
   print(ss_results$results_plot)
+}
+\references{
+Zhang, Y. and Schaubel, D. E. (2024). Semiparametric Additive Modeling of
+the Restricted Mean Survival Time. \emph{Biometrical Journal}, 66:e202200371.
+\doi{10.1002/bimj.202200371}
 }
