@@ -1,3 +1,44 @@
+# Development version
+
+* The four linear IPCW power and sample-size functions now use conditional Cox
+  censoring survival with treatment and `linear_terms` as predictors and Breslow
+  ties, replacing pooled Kaplan-Meier weights. The model is fit on original
+  follow-up and evaluated at each subject's truncated outcome. Bootstrap samples
+  refit the model. No-censoring data retain unit weights. Analytical sandwich and
+  bootstrap WLS inference are unchanged; the analytical sandwich does not
+  incorporate Cox fitting uncertainty.
+* Weight capping has been removed from the four linear IPCW functions entirely,
+  with no opt-in fallback. The weights are used exactly as fitted, so that the
+  estimator and its simplified sandwich variance reproduce Equations (11)-(12) of
+  Zhang & Schaubel (2024), and so that the analytical and bootstrap engines weight
+  identically. The former 99th-percentile cap fired unconditionally rather than
+  only on unstable weights, and compressed the upper tail that IPCW exists to
+  up-weight. `model_output$censoring_weights` now reports only `raw_summary`;
+  the `cap_value` and `capped_fraction` entries are gone, as are the internal
+  `.linear_cox_weights(cap =)` and `.estimate_linear_params(cap_weights =)`
+  arguments. `.linear_cox_weights()` now returns a plain numeric vector. Point
+  estimates and standard errors shift slightly; in the reference pilot the
+  treatment-effect SE moved by well under 1%. The additive, multiplicative, and
+  dependent-censoring engines are unchanged and still cap.
+
+* `linear.power.analytical()` and `linear.ss.analytical()` gain a `test` argument
+  selecting which hypothesis test the reported power refers to. The default,
+  `test = "wls"`, is the weighted-least-squares t-test that `linear.power.boot()`
+  simulates and that external reference implementations use: the estimate's
+  sampling distribution is taken from the sandwich variance and the rejection
+  threshold from the model-based WLS standard error, which is not consistent here
+  because IPCW weights are sampling weights rather than inverse-variance weights.
+  On a 4000-subject pilot the WLS standard error ran about 20% above the measured
+  bootstrap standard deviation of the estimate, and the analytic and simulated
+  power now agree within Monte Carlo error (0.125 vs 0.110 at 500/arm, 0.247 vs
+  0.263 at 1000/arm, 0.491 vs 0.515 at 2000/arm, B = 400). `test = "sandwich"`
+  restores the previous behavior, the power of the sandwich Wald test of Zhang &
+  Schaubel (2024), which is the more efficient test but not the one the bootstrap
+  engine runs. `model_output$treatment_effect$std_error` and
+  `variance_components$se_effect_n1` follow the selected test; both standard errors
+  are always returned in `variance_components`. The other analytical engines are
+  unchanged.
+
 # RMSTpowerBoost 1.0.3
 
 ## Statistical corrections

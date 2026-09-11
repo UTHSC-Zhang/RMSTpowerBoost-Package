@@ -17,18 +17,50 @@
 #' Weighting (IPCW). Let \eqn{Y_i = \min(T_i, L)} and
 #' \eqn{\Delta_i^Y = 1} if the event occurs before \eqn{L} or follow-up reaches
 #' \eqn{L}. The weight is \eqn{w_i = \Delta_i^Y / \hat{G}(Y_i)}, where
-#' \eqn{\hat{G}(t) = P(C > t)} is the Kaplan-Meier estimate of the censoring
-#' distribution fit on the original time scale. For numerical stability the
-#' weights are capped at their 99th percentile; the cap value and the fraction
-#' of weights affected are reported in \code{model_output$censoring_weights}.
+#' \eqn{\hat{G}(t)} estimates censoring survival conditional on treatment and
+#' \code{linear_terms}, using a Cox proportional hazards model with Breslow
+#' ties fit on the original time scale and evaluated at each subject's
+#' truncated outcome. The weights are used as fitted, without capping or
+#' truncation, so that the estimator and its variance reproduce the published
+#' formulas exactly; their distribution is reported in
+#' \code{model_output$censoring_weights$raw_summary}.
 #'
 #' Power is calculated analytically based on the asymptotic properties of the
 #' coefficient estimators. The variance of the treatment effect estimator, \eqn{\hat{\tau}}, is derived from a
-#' robust sandwich variance estimator of the form \eqn{A^{-1}B(A^{-1})'}. In this implementation,
-#' `A` is the scaled information matrix \eqn{(X'WX)/n}, and `B` is the empirical second moment of the
-#' influence functions, \eqn{(\sum \epsilon_i \epsilon_i')/n}, where \eqn{\epsilon_i} is the influence curve
-#' for observation `i`. The resulting variance is used to calculate the standard error for a
-#' given sample size, which in turn is used in the power formula.
+#' robust sandwich variance estimator of the form \eqn{A^{-1}B(A^{-1})'}. This is the
+#' simplified sandwich variance of Zhang and Schaubel (2024, Equations 11-12), which
+#' treats the fitted IPCW weights as fixed: `A` is the weighted information matrix
+#' \eqn{(X'WX)/n}, with the weights entering linearly, and `B` is the empirical second
+#' moment of the weighted score contributions,
+#' \eqn{(\sum \epsilon_i \epsilon_i')/n} with \eqn{\epsilon_i = w_i x_i (Y_i - x_i'\hat{\beta})}.
+#' The intercept-plus-slopes parameterization used here is, for a single stratum,
+#' algebraically equivalent to the weighted-centered-covariate form without intercept
+#' used in the paper. As in the paper's simulations and data analysis, the additional
+#' influence-function terms for estimation of the Cox censoring model given in their
+#' Theorem 3.1 are not included.
+#'
+#' The `test` argument selects which hypothesis test the reported power refers to, and
+#' this matters because the two candidates do not use the same variance. The sandwich
+#' above is consistent for the sampling variability of the estimator. The ordinary
+#' weighted-least-squares standard error reported by `summary(lm(...))`, which is the
+#' test that `linear.power.boot()` simulates, is not, because IPCW weights are sampling
+#' weights rather than inverse-variance weights. In a representative pilot the WLS
+#' standard error runs about 20 percent above the true sampling standard deviation of
+#' the estimate, which pushes the rejection threshold out and costs power.
+#'
+#' With `test = "wls"` (the default) the power refers to the weighted least-squares
+#' t-test. The sampling distribution of the estimate is taken from the sandwich
+#' variance \eqn{\sigma_{SW}} and the rejection threshold from the WLS standard error
+#' \eqn{\sigma_{WLS}}, giving
+#' \deqn{\Phi\left(\frac{|\tau| - z_{1-\alpha/2}\,\sigma_{WLS}}{\sigma_{SW}}\right) +
+#'       \Phi\left(\frac{-|\tau| - z_{1-\alpha/2}\,\sigma_{WLS}}{\sigma_{SW}}\right).}
+#' This is the analysis that `linear.power.boot()` performs, so the analytic and
+#' bootstrap engines then describe the same test.
+#'
+#' With `test = "sandwich"` the power refers to the sandwich Wald test, in which one
+#' variance sets both the sampling distribution and the threshold, giving the usual
+#' \eqn{\Phi(|\tau|/\sigma_{SW} - z_{1-\alpha/2})}. That is the more efficient test and
+#' the one matching the paper's inference, but it is not what the bootstrap simulates.
 #'
 #' @param pilot_data A `data.frame` containing pilot study data.
 #' @param time_var A character string specifying the name of the time-to-event variable.
@@ -39,6 +71,9 @@
 #' @param L The numeric value for the RMST truncation time.
 #' @param alpha The significance level for the power calculation (Type I error rate).
 #' @param verbose Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.
+#' @param test Which test the reported power refers to. `"wls"` (default) is the
+#'   weighted least-squares t-test, matching `linear.power.boot`. `"sandwich"` is
+#'   the sandwich Wald test of Zhang and Schaubel (2024). See Details.
 #'
 #' @return A `list` containing:
 #' \item{results_data}{A `data.frame` with the specified sample sizes and their corresponding calculated power.}
@@ -70,7 +105,8 @@
 #' print(power_results$results_plot)
 linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
                                     sample_sizes, linear_terms = NULL, L, alpha = 0.05,
-                                    verbose = FALSE) {
+                                    verbose = FALSE, test = c("wls", "sandwich")) {
+   test <- match.arg(test)
 
    # --- 1. Estimate model parameters and sandwich variance from pilot data ---
    .rmst_verbose_message(verbose, "--- Estimating parameters from pilot data for analytic calculation... ---")
@@ -81,8 +117,10 @@ linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
    # --- 2. Calculate Power for Each Sample Size ---
    .rmst_verbose_message(verbose, "--- Calculating power for specified sample sizes... ---")
    z_alpha <- stats::qnorm(1 - alpha / 2)
+   se_test_n1 <- if (test == "wls") est$se_beta_model_n1 else NULL
    power_values <- sapply(sample_sizes, function(n_per_arm) {
-      .rmst_wald_power(est$beta_effect, est$se_beta_n1, n_per_arm * 2, z_alpha)
+      .rmst_wald_power(est$beta_effect, est$se_beta_n1, n_per_arm * 2, z_alpha,
+                       se_test_n1)
    })
 
    results_df <- data.frame(N_per_Arm = sample_sizes, Power = power_values)
@@ -96,12 +134,14 @@ linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
    p <- .rmst_power_curve_plot(
       results_df, "N_per_Arm", "#D55E00",
       title = "Analytic Power Curve: Linear IPCW RMST Model",
-      subtitle = "Based on the asymptotic variance from Tian et al. (2014).",
+      subtitle = if (test == "wls")
+         "Weighted least-squares t-test; sandwich sampling variance."
+      else "Simplified sandwich test (Zhang & Schaubel, 2024).",
       xlab = "Sample Size Per Arm")
 
    return(list(results_data = results_df, results_plot = p,
                results_summary = results_summary,
-               model_output = .linear_model_output(est, arm_var)))
+               model_output = .linear_model_output(est, arm_var, test)))
 }
 
 # Sample Size Search ------------------------------------------------------
@@ -114,8 +154,8 @@ linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
 #' @details
 #' This function performs an iterative search to find the sample size needed to
 #' achieve a specified `target_power`. It uses the same underlying theory as
-#' `linear.power.analytical`, including the 99th-percentile IPCW weight cap
-#' described there. First, it estimates the treatment effect size and its
+#' `linear.power.analytical`, including the uncapped IPCW weights, the
+#' simplified sandwich variance, and the `test` argument described there. First, it estimates the treatment effect size and its
 #' asymptotic variance from the pilot data. Then, it iteratively calculates the
 #' power for increasing sample sizes using the analytic formula until the
 #' target power is achieved.
@@ -131,6 +171,9 @@ linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
 #' @param n_start The starting sample size *per arm* for the search.
 #' @param n_step The increment in sample size at each step of the search.
 #' @param max_n_per_arm The maximum sample size *per arm* to search up to.
+#' @param test Which test the required sample size refers to. `"wls"` (default)
+#'   is the weighted least-squares t-test, matching `linear.ss.boot`.
+#'   `"sandwich"` is the sandwich Wald test. See `linear.power.analytical`.
 #' @param verbose Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.
 #'
 #' @return A `list` containing:
@@ -163,7 +206,8 @@ linear.power.analytical <- function(pilot_data, time_var, status_var, arm_var,
 linear.ss.analytical <- function(pilot_data, time_var, status_var, arm_var,
                                  target_power, linear_terms = NULL, L, alpha = 0.05,
                                  n_start = 50, n_step = 25, max_n_per_arm = 2000,
-                                 verbose = FALSE) {
+                                 verbose = FALSE, test = c("wls", "sandwich")) {
+   test <- match.arg(test)
 
    # --- 1. Estimate Parameters and Variance from Pilot Data (One Time) ---
    .rmst_verbose_message(verbose, "--- Estimating parameters from pilot data for analytic search... ---")
@@ -174,7 +218,8 @@ linear.ss.analytical <- function(pilot_data, time_var, status_var, arm_var,
    .rmst_verbose_message(verbose, "--- Searching for Sample Size (Method: Analytic) ---")
    search <- .rmst_analytic_ss_search(est$beta_effect, est$se_beta_n1, 2,
                                       target_power, alpha, n_start, n_step,
-                                      max_n_per_arm, "/arm", verbose)
+                                      max_n_per_arm, "/arm", verbose,
+                                      if (test == "wls") est$se_beta_model_n1 else NULL)
    final_n <- search$final_n
 
    # --- 3. Finalize and Return Results ---
@@ -196,5 +241,5 @@ linear.ss.analytical <- function(pilot_data, time_var, status_var, arm_var,
 
    return(list(results_data = results_df, results_plot = p,
                results_summary = results_summary,
-               model_output = .linear_model_output(est, arm_var)))
+               model_output = .linear_model_output(est, arm_var, test)))
 }

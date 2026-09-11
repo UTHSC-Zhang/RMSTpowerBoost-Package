@@ -42,61 +42,75 @@ export(rmst.ss)
 export(run_app)
 export(simulate_from_recipe)
 export(validate_recipe)
-importFrom(dplyr,across)
-importFrom(dplyr,all_of)
-importFrom(dplyr,group_by)
-importFrom(dplyr,left_join)
-importFrom(dplyr,mutate)
-importFrom(dplyr,select)
-importFrom(dplyr,summarise)
-importFrom(future,multisession)
-importFrom(future,plan)
-importFrom(future,sequential)
+importFrom(dplyr,
+  across,
+  all_of,
+  group_by,
+  left_join,
+  mutate,
+  select,
+  summarise
+)
+importFrom(future,
+  multisession,
+  plan,
+  sequential
+)
 importFrom(future.apply,future_lapply)
-importFrom(ggplot2,aes)
-importFrom(ggplot2,geom_hline)
-importFrom(ggplot2,geom_line)
-importFrom(ggplot2,geom_point)
-importFrom(ggplot2,geom_vline)
-importFrom(ggplot2,ggplot)
-importFrom(ggplot2,labs)
-importFrom(ggplot2,theme_minimal)
-importFrom(ggplot2,ylim)
+importFrom(ggplot2,
+  aes,
+  geom_hline,
+  geom_line,
+  geom_point,
+  geom_vline,
+  ggplot,
+  labs,
+  theme_minimal,
+  ylim
+)
 importFrom(knitr,kable)
 importFrom(magrittr,"%>%")
-importFrom(mgcv,gam)
-importFrom(mgcv,summary.gam)
-importFrom(stats,as.formula)
-importFrom(stats,coef)
-importFrom(stats,complete.cases)
-importFrom(stats,integrate)
-importFrom(stats,lm)
-importFrom(stats,model.matrix)
-importFrom(stats,na.omit)
-importFrom(stats,plogis)
-importFrom(stats,pnorm)
-importFrom(stats,predict)
-importFrom(stats,qnorm)
-importFrom(stats,quantile)
-importFrom(stats,rbeta)
-importFrom(stats,rbinom)
-importFrom(stats,residuals)
-importFrom(stats,rexp)
-importFrom(stats,rgamma)
-importFrom(stats,rlnorm)
-importFrom(stats,rnorm)
-importFrom(stats,rt)
-importFrom(stats,runif)
-importFrom(stats,rweibull)
-importFrom(stats,sd)
-importFrom(stats,setNames)
-importFrom(stats,stepfun)
-importFrom(stats,uniroot)
-importFrom(stats,vcov)
-importFrom(stats,weighted.mean)
-importFrom(survival,Surv)
-importFrom(survival,basehaz)
-importFrom(survival,coxph)
-importFrom(survival,survfit)
-importFrom(utils,head)
-importFrom(utils,tail)
+importFrom(mgcv,
+  gam,
+  summary.gam
+)
+importFrom(stats,
+  as.formula,
+  coef,
+  complete.cases,
+  integrate,
+  lm,
+  model.matrix,
+  na.omit,
+  plogis,
+  pnorm,
+  predict,
+  qnorm,
+  quantile,
+  rbeta,
+  rbinom,
+  residuals,
+  rexp,
+  rgamma,
+  rlnorm,
+  rnorm,
+  rt,
+  runif,
+  rweibull,
+  sd,
+  setNames,
+  stepfun,
+  uniroot,
+  vcov,
+  weighted.mean
+)
+importFrom(survival,
+  Surv,
+  basehaz,
+  coxph,
+  survfit
+)
+importFrom(utils,
+  head,
+  tail
+)

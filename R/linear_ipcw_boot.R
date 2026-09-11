@@ -8,11 +8,14 @@
 #' This function estimates power by generating a number of bootstrap
 #' samples (`n_sim`) from the provided pilot data by resampling with replacement.
 #' For each bootstrap sample, it performs the following steps:
-#' 1.  Estimates the censoring distribution using the Kaplan-Meier method (`survival::survfit`).
+#' 1.  Estimates conditional censoring survival using a Cox model with treatment
+#'     and `linear_terms` as predictors (`survival::coxph`, Breslow ties).
 #' 2.  Calculates Inverse Probability of Censoring Weights (IPCW) for each
 #'     observation using \eqn{w_i = \Delta_i^Y / \hat{G}(Y_i)}, where
 #'     \eqn{\Delta_i^Y = 1} if the event occurs before \eqn{L} or follow-up
-#'     reaches \eqn{L}.
+#'     reaches \eqn{L}. Here \eqn{\hat{G}} is conditional on those predictors.
+#'     The weights are used as fitted, without capping, with the censoring model
+#'     refitted in each bootstrap sample.
 #' 3.  Fits a weighted linear model (`stats::lm`) to the truncated RMST outcome
 #'     among subjects with observed \eqn{\Delta_i^Y = 1}.
 #' 4.  Extracts the p-value for the treatment `arm_var` coefficient.
@@ -113,20 +116,10 @@ linear.power.boot <- function(pilot_data, time_var, status_var, arm_var,
          boot_data[[arm_var]] <- factor(boot_data[[arm_var]], levels = c(0, 1))
 
          boot_data$Y_rmst <- pmin(boot_data[[time_var]], L)
-         is_censored <- boot_data[[status_var]] == 0
-         is_complete <- boot_data[[status_var]] == 1 | boot_data[[time_var]] >= L
-         cens_fit <- tryCatch(survival::survfit(Surv(boot_data[[time_var]], is_censored) ~ 1), error = function(e) NULL)
-         if (is.null(cens_fit)) next
-         surv_summary <- tryCatch(summary(cens_fit, times = boot_data$Y_rmst, extend = TRUE), error = function(e) NULL)
-         if (is.null(surv_summary)) next
-
-         weights <- is_complete / surv_summary$surv
-         finite_weights <- weights[is.finite(weights) & weights > 0]
-         if (length(finite_weights) > 0) {
-            weight_cap <- stats::quantile(finite_weights, probs = 0.99, na.rm = TRUE)
-            weights[weights > weight_cap] <- weight_cap
-         }
-         weights[!is.finite(weights) | !is_complete] <- 0
+         weights <- tryCatch(
+            .linear_cox_weights(boot_data, time_var, status_var, arm_var, linear_terms, L),
+            error = function(e) NULL)
+         if (is.null(weights)) next
 
          fit_data <- boot_data[weights > 0, ]
          fit_weights <- weights[weights > 0]
@@ -311,19 +304,10 @@ linear.ss.boot <- function(pilot_data, time_var, status_var, arm_var,
          boot_data <- do.call(rbind, boot_list)
          boot_data[[arm_var]] <- factor(boot_data[[arm_var]], levels = c(0, 1))
          boot_data$Y_rmst <- pmin(boot_data[[time_var]], L)
-         is_censored <- boot_data[[status_var]] == 0
-         is_complete <- boot_data[[status_var]] == 1 | boot_data[[time_var]] >= L
-         cens_fit <- tryCatch(survival::survfit(Surv(boot_data[[time_var]], is_censored) ~ 1), error = function(e) NULL)
-         if (is.null(cens_fit)) next
-         surv_summary <- tryCatch(summary(cens_fit, times = boot_data$Y_rmst, extend = TRUE), error = function(e) NULL)
-         if (is.null(surv_summary)) next
-         weights <- is_complete / surv_summary$surv
-         finite_weights <- weights[is.finite(weights) & weights > 0]
-         if (length(finite_weights) > 0) {
-            weight_cap <- stats::quantile(finite_weights, probs = 0.99, na.rm = TRUE)
-            weights[weights > weight_cap] <- weight_cap
-         }
-         weights[!is.finite(weights) | !is_complete] <- 0
+         weights <- tryCatch(
+            .linear_cox_weights(boot_data, time_var, status_var, arm_var, linear_terms, L),
+            error = function(e) NULL)
+         if (is.null(weights)) next
          fit_data <- boot_data[weights > 0, ]
          fit_weights <- weights[weights > 0]
 

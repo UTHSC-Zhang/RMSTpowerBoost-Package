@@ -13,7 +13,8 @@ linear.power.analytical(
   linear_terms = NULL,
   L,
   alpha = 0.05,
-  verbose = FALSE
+  verbose = FALSE,
+  test = c("wls", "sandwich")
 )
 }
 \arguments{
@@ -34,6 +35,10 @@ linear.power.analytical(
 \item{alpha}{The significance level for the power calculation (Type I error rate).}
 
 \item{verbose}{Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.}
+
+\item{test}{Which test the reported power refers to. \code{"wls"} (default) is the
+weighted least-squares t-test, matching \code{linear.power.boot}. \code{"sandwich"} is
+the sandwich Wald test of Zhang and Schaubel (2024). See Details.}
 }
 \value{
 A \code{list} containing:
@@ -57,18 +62,50 @@ To handle right-censoring, the method uses Inverse Probability of Censoring
 Weighting (IPCW). Let \eqn{Y_i = \min(T_i, L)} and
 \eqn{\Delta_i^Y = 1} if the event occurs before \eqn{L} or follow-up reaches
 \eqn{L}. The weight is \eqn{w_i = \Delta_i^Y / \hat{G}(Y_i)}, where
-\eqn{\hat{G}(t) = P(C > t)} is the Kaplan-Meier estimate of the censoring
-distribution fit on the original time scale. For numerical stability the
-weights are capped at their 99th percentile; the cap value and the fraction
-of weights affected are reported in \code{model_output$censoring_weights}.
+\eqn{\hat{G}(t)} estimates censoring survival conditional on treatment and
+\code{linear_terms}, using a Cox proportional hazards model with Breslow
+ties fit on the original time scale and evaluated at each subject's
+truncated outcome. The weights are used as fitted, without capping or
+truncation, so that the estimator and its variance reproduce the published
+formulas exactly; their distribution is reported in
+\code{model_output$censoring_weights$raw_summary}.
 
 Power is calculated analytically based on the asymptotic properties of the
 coefficient estimators. The variance of the treatment effect estimator, \eqn{\hat{\tau}}, is derived from a
-robust sandwich variance estimator of the form \eqn{A^{-1}B(A^{-1})'}. In this implementation,
-\code{A} is the scaled information matrix \eqn{(X'WX)/n}, and \code{B} is the empirical second moment of the
-influence functions, \eqn{(\sum \epsilon_i \epsilon_i')/n}, where \eqn{\epsilon_i} is the influence curve
-for observation \code{i}. The resulting variance is used to calculate the standard error for a
-given sample size, which in turn is used in the power formula.
+robust sandwich variance estimator of the form \eqn{A^{-1}B(A^{-1})'}. This is the
+simplified sandwich variance of Zhang and Schaubel (2024, Equations 11-12), which
+treats the fitted IPCW weights as fixed: \code{A} is the weighted information matrix
+\eqn{(X'WX)/n}, with the weights entering linearly, and \code{B} is the empirical second
+moment of the weighted score contributions,
+\eqn{(\sum \epsilon_i \epsilon_i')/n} with \eqn{\epsilon_i = w_i x_i (Y_i - x_i'\hat{\beta})}.
+The intercept-plus-slopes parameterization used here is, for a single stratum,
+algebraically equivalent to the weighted-centered-covariate form without intercept
+used in the paper. As in the paper's simulations and data analysis, the additional
+influence-function terms for estimation of the Cox censoring model given in their
+Theorem 3.1 are not included.
+
+The \code{test} argument selects which hypothesis test the reported power refers to, and
+this matters because the two candidates do not use the same variance. The sandwich
+above is consistent for the sampling variability of the estimator. The ordinary
+weighted-least-squares standard error reported by \code{summary(lm(...))}, which is the
+test that \code{linear.power.boot()} simulates, is not, because IPCW weights are sampling
+weights rather than inverse-variance weights. In a representative pilot the WLS
+standard error runs about 20 percent above the true sampling standard deviation of
+the estimate, which pushes the rejection threshold out and costs power.
+
+With \code{test = "wls"} (the default) the power refers to the weighted least-squares
+t-test. The sampling distribution of the estimate is taken from the sandwich
+variance \eqn{\sigma_{SW}} and the rejection threshold from the WLS standard error
+\eqn{\sigma_{WLS}}, giving
+\deqn{\Phi\left(\frac{|\tau| - z_{1-\alpha/2}\,\sigma_{WLS}}{\sigma_{SW}}\right) +
+      \Phi\left(\frac{-|\tau| - z_{1-\alpha/2}\,\sigma_{WLS}}{\sigma_{SW}}\right).}
+This is the analysis that \code{linear.power.boot()} performs, so the analytic and
+bootstrap engines then describe the same test.
+
+With \code{test = "sandwich"} the power refers to the sandwich Wald test, in which one
+variance sets both the sampling distribution and the threshold, giving the usual
+\eqn{\Phi(|\tau|/\sigma_{SW} - z_{1-\alpha/2})}. That is the more efficient test and
+the one matching the paper's inference, but it is not what the bootstrap simulates.
 }
 \examples{
 pilot_df <- data.frame(

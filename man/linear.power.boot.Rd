@@ -53,11 +53,14 @@ This function estimates power by generating a number of bootstrap
 samples (\code{n_sim}) from the provided pilot data by resampling with replacement.
 For each bootstrap sample, it performs the following steps:
 \enumerate{
-\item Estimates the censoring distribution using the Kaplan-Meier method (\code{survival::survfit}).
+\item Estimates conditional censoring survival using a Cox model with treatment
+and \code{linear_terms} as predictors (\code{survival::coxph}, Breslow ties).
 \item Calculates Inverse Probability of Censoring Weights (IPCW) for each
 observation using \eqn{w_i = \Delta_i^Y / \hat{G}(Y_i)}, where
 \eqn{\Delta_i^Y = 1} if the event occurs before \eqn{L} or follow-up
-reaches \eqn{L}.
+reaches \eqn{L}. Here \eqn{\hat{G}} is conditional on those predictors.
+The weights are used as fitted, without capping, with the censoring model
+refitted in each bootstrap sample.
 \item Fits a weighted linear model (\code{stats::lm}) to the truncated RMST outcome
 among subjects with observed \eqn{\Delta_i^Y = 1}.
 \item Extracts the p-value for the treatment \code{arm_var} coefficient.

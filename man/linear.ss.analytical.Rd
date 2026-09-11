@@ -16,7 +16,8 @@ linear.ss.analytical(
   n_start = 50,
   n_step = 25,
   max_n_per_arm = 2000,
-  verbose = FALSE
+  verbose = FALSE,
+  test = c("wls", "sandwich")
 )
 }
 \arguments{
@@ -43,6 +44,10 @@ linear.ss.analytical(
 \item{max_n_per_arm}{The maximum sample size \emph{per arm} to search up to.}
 
 \item{verbose}{Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.}
+
+\item{test}{Which test the required sample size refers to. \code{"wls"} (default)
+is the weighted least-squares t-test, matching \code{linear.ss.boot}.
+\code{"sandwich"} is the sandwich Wald test. See \code{linear.power.analytical}.}
 }
 \value{
 A \code{list} containing:
@@ -57,8 +62,8 @@ analytic formula based on the methods of Tian et al. (2014).
 \details{
 This function performs an iterative search to find the sample size needed to
 achieve a specified \code{target_power}. It uses the same underlying theory as
-\code{linear.power.analytical}, including the 99th-percentile IPCW weight cap
-described there. First, it estimates the treatment effect size and its
+\code{linear.power.analytical}, including the uncapped IPCW weights, the
+simplified sandwich variance, and the \code{test} argument described there. First, it estimates the treatment effect size and its
 asymptotic variance from the pilot data. Then, it iteratively calculates the
 power for increasing sample sizes using the analytic formula until the
 target power is achieved.

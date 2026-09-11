@@ -17,24 +17,42 @@
 }
 
 #' Wald power at a given total sample size
+#'
+#' `se_beta_n1` is the n = 1 standard deviation of the estimator and always sets
+#' the distribution of the statistic. `se_test_n1` is the n = 1 standard error the
+#' planned test uses to build its rejection threshold. When the planned test uses
+#' a different variance estimator from the one that actually describes the
+#' estimator's variability -- as the weighted-least-squares t-test does, since
+#' IPCW weights are sampling weights rather than inverse-variance weights -- the
+#' two differ, and the rejection region must be computed from `se_test_n1` while
+#' the sampling distribution is computed from `se_beta_n1`. Passing `NULL` (the
+#' default) makes the two coincide and recovers the usual one-sided-tail formula.
 #' @noRd
-.rmst_wald_power <- function(beta_effect, se_beta_n1, total_n, z_alpha) {
+.rmst_wald_power <- function(beta_effect, se_beta_n1, total_n, z_alpha,
+                             se_test_n1 = NULL) {
    se_final <- se_beta_n1 / sqrt(total_n)
-   stats::pnorm((abs(beta_effect) / se_final) - z_alpha)
+   if (is.null(se_test_n1)) {
+      return(stats::pnorm((abs(beta_effect) / se_final) - z_alpha))
+   }
+   critical_value <- z_alpha * se_test_n1 / sqrt(total_n)
+   stats::pnorm((abs(beta_effect) - critical_value) / se_final) +
+      stats::pnorm((-abs(beta_effect) - critical_value) / se_final)
 }
 
 #' Iterative sample-size search on the analytic power formula
 #' @noRd
 .rmst_analytic_ss_search <- function(beta_effect, se_beta_n1, group_multiplier,
                                      target_power, alpha, n_start, n_step,
-                                     max_n, group_label, verbose) {
+                                     max_n, group_label, verbose,
+                                     se_test_n1 = NULL) {
    z_alpha <- stats::qnorm(1 - alpha / 2)
    current_n <- n_start
    search_path <- list()
    final_n <- NA_integer_
    while (current_n <= max_n) {
       calculated_power <- .rmst_wald_power(beta_effect, se_beta_n1,
-                                           current_n * group_multiplier, z_alpha)
+                                           current_n * group_multiplier, z_alpha,
+                                           se_test_n1)
       if (!is.finite(calculated_power)) calculated_power <- 0
       search_path[[as.character(current_n)]] <- calculated_power
       .rmst_verbose_message(verbose, "  N = ", current_n, group_label,
@@ -420,6 +438,41 @@
 
 # --- Linear IPCW engine (Tian et al. 2014) -----------------------------------
 
+#' Cox censoring weights shared by all linear IPCW engines
+#'
+#' @return A numeric vector of IPCW weights, zero for subjects whose truncated
+#'   outcome is not observed.
+#' @noRd
+.linear_cox_weights <- function(df, time_var, status_var, arm_var, linear_terms, L) {
+   y <- pmin(df[[time_var]], L)
+   complete <- df[[status_var]] == 1 | df[[time_var]] >= L
+   # With no observed censoring, G is identically one and no Cox fit is needed.
+   if (all(df[[status_var]] == 1)) {
+      g <- rep(1, nrow(df))
+   } else {
+      cens_formula <- stats::as.formula(paste0(
+         "survival::Surv(", time_var, ", ", status_var, " == 0) ~ ",
+         paste(unique(c(arm_var, linear_terms)), collapse = " + ")))
+      fit <- .fit_ms_censoring_model(cens_formula, df)
+      # Fit on original follow-up; evaluate each subject at their RMST horizon.
+      # predict(type = "survival") keeps the baseline/linear-predictor centering
+      # consistent and returns probabilities in newdata row order.
+      newdata <- df
+      newdata[[time_var]] <- y
+      g <- as.numeric(stats::predict(fit, newdata = newdata, type = "survival"))
+      if (any(!is.finite(g) | g <= 0 | g > 1)) {
+         stop("Invalid Cox censoring survival probabilities; IPCW weights cannot be computed.",
+              call. = FALSE)
+      }
+   }
+   w <- as.numeric(complete) / g
+   # Weights are used exactly as fitted. Zhang & Schaubel (2024), Eqs. (11)-(12),
+   # derive the estimator and its simplified sandwich under the fitted weights,
+   # so any capping would break the correspondence with the published formulas.
+   w[!is.finite(w)] <- 0
+   w
+}
+
 #' Estimate the linear IPCW RMST model from pilot data
 #' @noRd
 .estimate_linear_params <- function(pilot_data, time_var, status_var, arm_var,
@@ -436,15 +489,7 @@
 
    df$is_censored <- df[[status_var]] == 0
 
-   # Censoring model: marginal Kaplan-Meier for G(t)
-   cens_formula <- stats::as.formula(paste0("survival::Surv(", time_var, ", is_censored) ~ 1"))
-   cens_fit <- survival::survfit(cens_formula, data = df)
-   cens_surv_prob <- stats::stepfun(cens_fit$time, c(1, cens_fit$surv))(df$Y_rmst)
-   df$weights <- df$is_complete / cens_surv_prob
-
-   capped <- .cap_weights(df$weights, positive_only = TRUE)
-   df$weights <- capped$weights
-   weight_cap <- capped$cap
+   df$weights <- .linear_cox_weights(df, time_var, status_var, arm_var, linear_terms, L)
 
    fit_data <- df[df$weights > 0, ]
    fit_weights <- fit_data$weights
@@ -459,6 +504,12 @@
    if (length(arm_coeff_name) == 0) stop("Could not find treatment effect coefficient.")
    beta_effect <- beta_hat[arm_coeff_name]
 
+   # Simplified sandwich of Zhang & Schaubel (2024, Biom. J.), Eqs. (11)-(12),
+   # with the IPCW weights treated as fixed. A_n enters the weights linearly,
+   # A_n = X'WX / n; B_n squares the weighted score, sum_i (x_i w_i r_i)^{ox2} / n.
+   # The intercept-plus-slopes parameterization used here is algebraically
+   # equivalent, for a single stratum, to the paper's weighted-centered-covariate
+   # form without intercept.
    X <- stats::model.matrix(model_formula, data = df)
    A_hat <- crossprod(X * sqrt(df$weights), X * sqrt(df$weights)) / n_pilot
    A_hat_inv <- tryCatch({
@@ -475,16 +526,24 @@
 
    V_hat_n <- A_hat_inv %*% B_hat %*% t(A_hat_inv)
 
+   # Model-based weighted-least-squares variance, sigma^2 A^{-1}, on the same
+   # n = 1 scale. This is what summary(fit_lm) reports and what the WLS t-test
+   # uses for its rejection threshold. It is not consistent for the sampling
+   # variability of beta_hat here, because IPCW weights are sampling weights and
+   # not inverse-variance weights, but the planned analysis may still use it.
+   V_model_n <- summary(fit_lm)$sigma^2 * A_hat_inv
+
    list(df = df, fit_data = fit_data, fit_weights = fit_weights, fit_lm = fit_lm,
         n_pilot = n_pilot, arm_coeff_name = arm_coeff_name, beta_effect = beta_effect,
-        A_hat = A_hat, B_hat = B_hat, V_hat_n = V_hat_n,
+        A_hat = A_hat, B_hat = B_hat, V_hat_n = V_hat_n, V_model_n = V_model_n,
         se_beta_n1 = sqrt(V_hat_n[arm_coeff_name, arm_coeff_name]),
-        weight_cap = weight_cap)
+        se_beta_model_n1 = sqrt(V_model_n[arm_coeff_name, arm_coeff_name]))
 }
 
 #' Model-output summary for the linear IPCW engine
 #' @noRd
-.linear_model_output <- function(est, arm_var) {
+.linear_model_output <- function(est, arm_var, test = c("wls", "sandwich")) {
+   test <- match.arg(test)
    cs <- summary(est$fit_lm)$coefficients
    coef_tbl <- data.frame(
       term      = rownames(cs),
@@ -497,7 +556,8 @@
       row.names = NULL,
       stringsAsFactors = FALSE
    )
-   se_arm_pilot <- est$se_beta_n1 / sqrt(est$n_pilot)
+   se_beta_n1 <- if (test == "wls") est$se_beta_model_n1 else est$se_beta_n1
+   se_arm_pilot <- se_beta_n1 / sqrt(est$n_pilot)
    trt_eff <- data.frame(
       estimand  = "RMST Difference",
       estimate  = est$beta_effect,
@@ -516,18 +576,18 @@
                  ci_lower = NA_real_, ci_upper = NA_real_,
                  scale = "original", stringsAsFactors = FALSE)
    }))
-   capped_frac <- if (is.finite(est$weight_cap))
-      mean(est$df$weights[est$df$is_complete] >= est$weight_cap, na.rm = TRUE) else NA_real_
    list(
       coefficient_table   = coef_tbl,
       treatment_effect    = trt_eff,
       arm_specific_rmst   = arm_rmst,
       variance_components = list(A_hat = est$A_hat, B_hat = est$B_hat,
-                                 V_hat_n = est$V_hat_n, se_effect_n1 = est$se_beta_n1),
+                                 V_hat_n = est$V_hat_n, V_model_n = est$V_model_n,
+                                 se_effect_n1 = se_beta_n1,
+                                 se_effect_sandwich_n1 = est$se_beta_n1,
+                                 se_effect_wls_n1 = est$se_beta_model_n1,
+                                 test = test),
       censoring_weights   = list(
-         raw_summary     = stats::quantile(est$df$weights, c(0, .25, .5, .75, .99, 1), na.rm = TRUE),
-         cap_value       = est$weight_cap,
-         capped_fraction = capped_frac),
+         raw_summary = stats::quantile(est$df$weights, c(0, .25, .5, .75, .99, 1), na.rm = TRUE)),
       diagnostics         = list(n_used = nrow(est$fit_data), n_events = sum(est$df$is_event),
                                  n_complete = sum(est$df$is_complete),
                                  convergence_ok = TRUE, singular_flag = FALSE),

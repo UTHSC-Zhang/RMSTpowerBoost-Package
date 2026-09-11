@@ -605,7 +605,9 @@ summary.rmst_ss <- function(object, ...) {
       print(round(cw$raw_summary, 4L))
     }
     if (!is.null(cw$cap_value))
-      cat("  Cap value       :", round(cw$cap_value, 4L), "\n")
+      cat("  Cap value       :",
+          if (is.na(cw$cap_value)) "none (uncapped)" else round(cw$cap_value, 4L),
+          "\n")
     if (!is.null(cw$capped_fraction) && !is.na(cw$capped_fraction))
       cat("  Capped fraction :", round(cw$capped_fraction, 4L), "\n")
   }
