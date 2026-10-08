@@ -146,33 +146,48 @@
    H_cens
 }
 
-#' Raw IPCW weights W = exp(Lambda_C(Y)) from a stratified Cox censoring model
+#' IPCW weights Delta_Y / G(Y) from a stratified Cox censoring model
+#'
+#' Mirrors `.linear_cox_weights()`: the weights are returned already multiplied
+#' by Delta_Y, so they are zero for subjects whose truncated outcome is not
+#' observed, and they are used exactly as fitted. Zhang & Schaubel (2024),
+#' Eqs. (11)-(12), derive the estimator and its simplified sandwich under the
+#' fitted weights, so any capping would break the correspondence with the
+#' published formulas.
+#'
+#' Requires `df` to have been through `.rmst_prepare_df()`, which supplies the
+#' `Y_rmst` horizon that `.strat_cum_hazard()` evaluates at and the
+#' `is_complete` indicator.
+#'
+#' @return A numeric vector of IPCW weights, zero for subjects whose truncated
+#'   outcome is not observed.
 #' @noRd
 .ipcw_stratified_cox_weights <- function(df, time_var, status_var, covariates,
-                                         strata_var, strict = FALSE) {
-   cens_formula <- stats::as.formula(paste0(
-      "survival::Surv(", time_var, ", ", status_var, " == 0) ~ ",
-      paste(covariates, collapse = " + "),
-      " + survival::strata(", strata_var, ")"))
-   fit_cens <- if (strict) .fit_ms_censoring_model(cens_formula, df)
-               else survival::coxph(cens_formula, data = df, ties = "breslow")
-   bh_cens <- survival::basehaz(fit_cens, centered = FALSE)
-   H_cens <- .strat_cum_hazard(df, bh_cens, strata_var)
-   exp(H_cens * exp(stats::predict(fit_cens, newdata = df, type = "lp", reference = "zero")))
-}
-
-#' Cap weights at their 99th percentile and zero out non-finite values
-#' @noRd
-.cap_weights <- function(weights, positive_only = TRUE) {
-   weight_cap <- NA_real_
-   keep <- if (positive_only) is.finite(weights) & weights > 0 else is.finite(weights)
-   finite_weights <- weights[keep]
-   if (length(finite_weights) > 0) {
-      weight_cap <- stats::quantile(finite_weights, probs = 0.99, na.rm = TRUE)
-      weights[weights > weight_cap] <- weight_cap
+                                         strata_var) {
+   # With no observed censoring, G is identically one and no Cox fit is needed.
+   if (all(df[[status_var]] == 1)) {
+      g <- rep(1, nrow(df))
+   } else {
+      cens_formula <- stats::as.formula(paste0(
+         "survival::Surv(", time_var, ", ", status_var, " == 0) ~ ",
+         paste(covariates, collapse = " + "),
+         " + survival::strata(", strata_var, ")"))
+      fit_cens <- .fit_ms_censoring_model(cens_formula, df)
+      # Uncentered baseline hazard with an uncentered linear predictor: the two
+      # centerings must match, and basehaz() is evaluated at each subject's RMST
+      # horizon by stratum.
+      bh_cens <- survival::basehaz(fit_cens, centered = FALSE)
+      H_cens <- .strat_cum_hazard(df, bh_cens, strata_var)
+      lp <- stats::predict(fit_cens, newdata = df, type = "lp", reference = "zero")
+      g <- exp(-H_cens * exp(lp))
+      if (any(!is.finite(g) | g <= 0 | g > 1)) {
+         stop("Invalid Cox censoring survival probabilities; IPCW weights cannot be computed.",
+              call. = FALSE)
+      }
    }
-   weights[!is.finite(weights)] <- 0
-   list(weights = weights, cap = weight_cap)
+   w <- as.numeric(df$is_complete) / g
+   w[!is.finite(w)] <- 0
+   w
 }
 
 # --- Additive stratified engine (Zhang & Schaubel 2024) ----------------------
@@ -188,10 +203,6 @@
 
    df$weights <- .ipcw_stratified_cox_weights(df, time_var, status_var,
                                               covariates, strata_var)
-   df$weights[!df$is_complete] <- 0
-   capped <- .cap_weights(df$weights, positive_only = TRUE)
-   df$weights <- capped$weights
-   weight_cap <- capped$cap
 
    # Stratum-centering: weighted (W * Delta_Y) means of the outcome and covariates
    vars_to_center <- c("Y_rmst", covariates)
@@ -251,8 +262,7 @@
         beta_hat = beta_hat, beta_effect = beta_effect,
         mu0_hats = mu0_hats,
         A_hat = A_hat, B_hat = B_hat, V_hat_n = V_hat_n,
-        se_beta_n1 = sqrt(V_hat_n[arm_var, arm_var]),
-        weight_cap = weight_cap)
+        se_beta_n1 = sqrt(V_hat_n[arm_var, arm_var]))
 }
 
 #' Model-output summary for the stratified additive engine
@@ -295,8 +305,6 @@
                     std_error = NA_real_, ci_lower = NA_real_, ci_upper = NA_real_,
                     scale = "original", stringsAsFactors = FALSE))
    ))
-   capped_frac <- if (is.finite(est$weight_cap))
-      mean(est$df$weights[est$df$is_complete] >= est$weight_cap, na.rm = TRUE) else NA_real_
    list(
       coefficient_table   = coef_tbl,
       treatment_effect    = trt_eff,
@@ -304,9 +312,7 @@
       variance_components = list(A_hat = est$A_hat, B_hat = est$B_hat,
                                  V_hat_n = est$V_hat_n, se_effect_n1 = est$se_beta_n1),
       censoring_weights   = list(
-         raw_summary     = stats::quantile(est$df$weights, c(0, .25, .5, .75, .99, 1), na.rm = TRUE),
-         cap_value       = est$weight_cap,
-         capped_fraction = capped_frac),
+         raw_summary = stats::quantile(est$df$weights, c(0, .25, .5, .75, .99, 1), na.rm = TRUE)),
       diagnostics         = list(n_used = sum(est$df$is_complete), n_events = sum(est$df$is_event),
                                  n_complete = sum(est$df$is_complete),
                                  convergence_ok = TRUE, singular_flag = FALSE),
@@ -325,17 +331,13 @@
    df <- .rmst_prepare_df(pilot_data, all_vars, time_var, status_var, L)
    n_pilot <- nrow(df)
 
+   # Already Delta_Y * W_hat, uncapped.
    df$weights <- .ipcw_stratified_cox_weights(df, time_var, status_var,
-                                              covariates, strata_var, strict = TRUE)
-   capped <- .cap_weights(df$weights, positive_only = FALSE)
-   df$weights <- capped$weights
-   weight_cap <- capped$cap
-   df$w_delta <- df$weights * df$is_complete
-   df$w_delta[is.na(df$w_delta)] <- 0
+                                              covariates, strata_var)
 
    # Log-linear working model fitted by weighted least squares
-   fit_data <- df[df$w_delta > 0 & df$Y_rmst > 0, ]
-   fit_weights <- fit_data$w_delta
+   fit_data <- df[df$weights > 0 & df$Y_rmst > 0, ]
+   fit_weights <- fit_data$weights
    log_model_formula <- stats::as.formula(
       paste("log(Y_rmst) ~", paste(covariates, collapse = " + "), "+", strata_var))
    if (nrow(fit_data) < (length(covariates) + length(unique(fit_data[[strata_var]])))) {
@@ -364,33 +366,62 @@
    B_hat <- crossprod(epsilon) / n_pilot
    V_hat_n <- A_hat_inv %*% B_hat %*% t(A_hat_inv)
 
+   # Model-based weighted-least-squares variance, sigma^2 A^{-1}, on the same
+   # n = 1 scale. This is what summary(fit_log_lm) reports and what the WLS
+   # t-test uses for its rejection threshold. It is not consistent for the
+   # sampling variability of beta_hat here, because IPCW weights are sampling
+   # weights and not inverse-variance weights, but the planned analysis may
+   # still use it.
+   V_model_n <- summary(fit_log_lm)$sigma^2 * A_hat_inv
+
    list(df = df, fit_data = fit_data, fit_log_lm = fit_log_lm,
         covariates = covariates, n_pilot = n_pilot,
         n_strata = length(unique(df[[strata_var]])),
         beta_all = beta_all[ok], beta_effect = beta_effect,
-        A_hat = A_hat, B_hat = B_hat, V_hat_n = V_hat_n,
+        A_hat = A_hat, B_hat = B_hat, V_hat_n = V_hat_n, V_model_n = V_model_n,
         se_beta_n1 = sqrt(V_hat_n[arm_var, arm_var]),
-        weight_cap = weight_cap)
+        se_beta_model_n1 = sqrt(V_model_n[arm_var, arm_var]))
 }
 
-#' Model-output summary for the multiplicative engine (robust SEs)
+#' Model-output summary for the multiplicative engine
+#'
+#' The coefficient table follows the selected test: robust sandwich z-tests
+#' under `"sandwich"`, the weighted-least-squares t-table that
+#' `summary(fit_log_lm)` reports under `"wls"`.
 #' @noRd
-.ms_model_output <- function(est, arm_var) {
-   se_all <- sqrt(diag(est$V_hat_n) / est$n_pilot)
-   z_vals <- as.numeric(est$beta_all) / se_all
-   p_vals <- 2 * stats::pnorm(-abs(z_vals))
-   coef_tbl <- data.frame(
-      term      = names(est$beta_all),
-      estimate  = as.numeric(est$beta_all),
-      std_error = se_all,
-      ci_lower  = as.numeric(est$beta_all) - 1.96 * se_all,
-      ci_upper  = as.numeric(est$beta_all) + 1.96 * se_all,
-      test_stat = z_vals,
-      p_value   = p_vals,
-      row.names = NULL,
-      stringsAsFactors = FALSE
-   )
-   se_arm_pilot <- se_all[names(est$beta_all) == arm_var]
+.ms_model_output <- function(est, arm_var, test = c("sandwich", "wls")) {
+   test <- match.arg(test)
+   if (test == "wls") {
+      cs <- summary(est$fit_log_lm)$coefficients
+      coef_tbl <- data.frame(
+         term      = rownames(cs),
+         estimate  = cs[, 1L],
+         std_error = cs[, 2L],
+         ci_lower  = cs[, 1L] - 1.96 * cs[, 2L],
+         ci_upper  = cs[, 1L] + 1.96 * cs[, 2L],
+         test_stat = cs[, 3L],
+         p_value   = cs[, 4L],
+         row.names = NULL,
+         stringsAsFactors = FALSE
+      )
+   } else {
+      se_all <- sqrt(diag(est$V_hat_n) / est$n_pilot)
+      z_vals <- as.numeric(est$beta_all) / se_all
+      p_vals <- 2 * stats::pnorm(-abs(z_vals))
+      coef_tbl <- data.frame(
+         term      = names(est$beta_all),
+         estimate  = as.numeric(est$beta_all),
+         std_error = se_all,
+         ci_lower  = as.numeric(est$beta_all) - 1.96 * se_all,
+         ci_upper  = as.numeric(est$beta_all) + 1.96 * se_all,
+         test_stat = z_vals,
+         p_value   = p_vals,
+         row.names = NULL,
+         stringsAsFactors = FALSE
+      )
+   }
+   se_beta_n1 <- if (test == "wls") est$se_beta_model_n1 else est$se_beta_n1
+   se_arm_pilot <- unname(se_beta_n1 / sqrt(est$n_pilot))
    trt_eff <- data.frame(
       estimand  = c("log(RMST Ratio)", "RMST Ratio"),
       estimate  = c(est$beta_effect, exp(est$beta_effect)),
@@ -416,19 +447,19 @@
                     scale = "original", stringsAsFactors = FALSE)
       )
    }))
-   capped_frac <- if (is.finite(est$weight_cap))
-      mean(est$df$weights[est$df$is_complete] >= est$weight_cap, na.rm = TRUE) else NA_real_
    full_rank <- isTRUE(est$fit_log_lm$rank == length(stats::coef(est$fit_log_lm)))
    list(
       coefficient_table   = coef_tbl,
       treatment_effect    = trt_eff,
       arm_specific_rmst   = arm_rmst,
       variance_components = list(A_hat = est$A_hat, B_hat = est$B_hat,
-                                 V_hat_n = est$V_hat_n, se_effect_n1 = est$se_beta_n1),
+                                 V_hat_n = est$V_hat_n, V_model_n = est$V_model_n,
+                                 se_effect_n1 = se_beta_n1,
+                                 se_effect_sandwich_n1 = est$se_beta_n1,
+                                 se_effect_wls_n1 = est$se_beta_model_n1,
+                                 test = test),
       censoring_weights   = list(
-         raw_summary     = stats::quantile(est$df$weights, c(0, .25, .5, .75, .99, 1), na.rm = TRUE),
-         cap_value       = est$weight_cap,
-         capped_fraction = capped_frac),
+         raw_summary = stats::quantile(est$df$weights, c(0, .25, .5, .75, .99, 1), na.rm = TRUE)),
       diagnostics         = list(n_used = nrow(est$fit_data), n_events = sum(est$df$is_event),
                                  n_complete = sum(est$df$is_complete),
                                  convergence_ok = full_rank, singular_flag = !full_rank),
@@ -624,9 +655,17 @@
    eps <- 1e-6
    w <- df$is_complete / pmax(Ghat, eps)
    w[!is.finite(w)] <- 0
-   capped <- .cap_weights(w, positive_only = TRUE)
-   df$w <- capped$weights
-   cap <- capped$cap
+   # The DC engine retains the 99th-percentile cap that the linear and
+   # stratified engines dropped: its weights are additionally floored through
+   # pmax(Ghat, eps) above, so the two stabilizations go together here.
+   cap <- NA_real_
+   finite_w <- w[is.finite(w) & w > 0]
+   if (length(finite_w) > 0) {
+      cap <- stats::quantile(finite_w, probs = 0.99, na.rm = TRUE)
+      w[w > cap] <- cap
+   }
+   w[!is.finite(w)] <- 0
+   df$w <- w
 
    model_rhs <- paste(c(arm_var, linear_terms), collapse = " + ")
    model_formula <- stats::as.formula(paste("Y_rmst ~", model_rhs))

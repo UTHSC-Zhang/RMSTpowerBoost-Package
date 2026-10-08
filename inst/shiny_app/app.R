@@ -1112,9 +1112,14 @@ ui <- fluidPage(
 # Each replicate resamples the pilot data and tests the treatment effect on the
 # L-truncated RMST with an IPCW-weighted linear model: the complete-case
 # indicator is deltaY = 1 if the event occurs before L or follow-up reaches L,
-# and weights are deltaY / G(Y) with G the Kaplan-Meier estimate of the
-# censoring distribution. This matches the package's linear IPCW methodology;
-# strata (if any) enter as fixed effects with a common treatment effect.
+# and weights are deltaY / G(Y). G is the *conditional* censoring survival from
+# a Cox model with Breslow ties, fitted on the original follow-up and evaluated
+# at each subject's truncated outcome, with treatment as a covariate and the
+# stratum (if any) as a Cox stratum. This matches the package's IPCW
+# methodology; strata also enter the outcome model as fixed effects with a
+# common treatment effect. The weights are used exactly as fitted: capping
+# would break the correspondence with Equations (11)-(12) of Zhang & Schaubel
+# (2024) and compresses the upper tail that IPCW exists to up-weight.
 repeated_power_from_pilot <- function(pilot_df, time_var, status_var, arm_var,
                                       n_per_arm_vec, L, alpha = 0.05, R = 500,
                                       strata_var = NULL, seed = NULL,
@@ -1141,15 +1146,30 @@ repeated_power_from_pilot <- function(pilot_df, time_var, status_var, arm_var,
   rmst_test_p <- function(dat) {
     dat$Y <- pmin(dat$time, L)
     dat$deltaY <- as.numeric(dat$status == 1 | dat$time >= L)
-    cens_fit <- tryCatch(survfit(Surv(time, status == 0) ~ 1, data = dat),
-                         error = function(e) NULL)
-    if (is.null(cens_fit)) return(NA_real_)
-    G <- stats::stepfun(cens_fit$time, c(1, cens_fit$surv))(dat$Y)
-    w <- dat$deltaY / pmax(G, 1e-8)
-    pos <- is.finite(w) & w > 0
+    if (all(dat$status == 1)) {
+      # With no observed censoring, G is identically one and no Cox fit is needed.
+      G <- rep(1, nrow(dat))
+    } else {
+      cens_fml <- if ("stratum" %in% names(dat))
+        Surv(time, status == 0) ~ arm + strata(stratum)
+      else Surv(time, status == 0) ~ arm
+      cens_fit <- tryCatch(coxph(cens_fml, data = dat, ties = "breslow"),
+                           error = function(e) NULL)
+      if (is.null(cens_fit)) return(NA_real_)
+      # Fit on original follow-up; evaluate each subject at their RMST horizon.
+      newdata <- dat
+      newdata$time <- newdata$Y
+      G <- tryCatch(as.numeric(stats::predict(cens_fit, newdata = newdata,
+                                              type = "survival")),
+                    error = function(e) NULL)
+      # A degenerate censoring fit is skipped rather than rescued by a cap.
+      if (is.null(G) || length(G) != nrow(dat) ||
+          any(!is.finite(G) | G <= 0 | G > 1)) return(NA_real_)
+    }
+    w <- dat$deltaY / G
+    w[!is.finite(w)] <- 0
+    pos <- w > 0
     if (sum(pos) < 4L) return(NA_real_)
-    cap <- stats::quantile(w[pos], 0.99, na.rm = TRUE)
-    w[w > cap] <- cap
     fml <- if ("stratum" %in% names(dat)) Y ~ arm + stratum else Y ~ arm
     fit <- tryCatch(stats::lm(fml, data = dat[pos, , drop = FALSE], weights = w[pos]),
                     error = function(e) NULL)

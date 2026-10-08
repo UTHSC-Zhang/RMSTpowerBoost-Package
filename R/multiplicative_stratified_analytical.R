@@ -10,10 +10,12 @@
 #' The method uses IPCW with a stratified Cox model for the censoring distribution
 #' fit on the original time scale and weights of the form
 #' \eqn{\hat{W}_{ij}\Delta_i^Y}, where \eqn{\Delta_i^Y = 1} if the event occurs
-#' before \eqn{L} or follow-up reaches \eqn{L}. For numerical stability, the
-#' estimated IPCW weights are capped at their 99th percentile; the cap value and
-#' the fraction of weights affected are reported in
-#' \code{model_output$censoring_weights}.
+#' before \eqn{L} or follow-up reaches \eqn{L}. The stratified Cox model uses
+#' Breslow ties and is evaluated at each subject's truncated outcome. The
+#' weights are used as fitted, without capping or truncation, so that the
+#' estimator and its variance reproduce the published formulas exactly; their
+#' distribution is reported in
+#' \code{model_output$censoring_weights$raw_summary}.
 #'
 #' Formal estimation of \eqn{\beta} requires an iterative solver for the estimating
 #' equation given in Equation (8) of Wang et al. (2019). Because this is computationally
@@ -27,8 +29,37 @@
 #' \eqn{A_n^{-1} B_n (A_n^{-1})'} of the weighted least-squares estimating
 #' equations, with \eqn{A_n = X'WX/n} and \eqn{B_n} the empirical second moment
 #' of the weighted residuals, mirroring the sandwich form described in Theorem 1
-#' of Wang et al. (2019). Coefficient standard errors reported in
-#' \code{model_output$coefficient_table} use this robust variance.
+#' of Wang et al. (2019).
+#'
+#' The `test` argument selects which hypothesis test the reported power refers to,
+#' and this matters because the two candidates do not use the same variance. The
+#' sandwich above is consistent for the sampling variability of the estimator. The
+#' ordinary weighted-least-squares standard error reported by `summary(lm(...))` is
+#' not, because IPCW weights are sampling weights rather than inverse-variance
+#' weights, so it typically runs above the true sampling standard deviation of the
+#' estimate, which pushes the rejection threshold out and costs power.
+#'
+#' With `test = "sandwich"` (the default) the power refers to the sandwich Wald test,
+#' in which one variance sets both the sampling distribution and the threshold,
+#' giving the usual \eqn{\Phi(|\tau|/\sigma_{SW} - z_{1-\alpha/2})}. This is the
+#' inference of Wang et al. (2019), and coefficient standard errors in
+#' \code{model_output$coefficient_table} then use the robust variance.
+#'
+#' With `test = "wls"` the power refers to the weighted least-squares t-test: the
+#' sampling distribution of the estimate is taken from the sandwich variance
+#' \eqn{\sigma_{SW}} and the rejection threshold from the WLS standard error
+#' \eqn{\sigma_{WLS}}, giving
+#' \deqn{\Phi\left(\frac{|\tau| - z_{1-\alpha/2}\,\sigma_{WLS}}{\sigma_{SW}}\right) +
+#'       \Phi\left(\frac{-|\tau| - z_{1-\alpha/2}\,\sigma_{WLS}}{\sigma_{SW}}\right),}
+#' and \code{model_output$coefficient_table} becomes the t-table that
+#' `summary()` reports for the weighted fit. Both standard errors are always
+#' returned in \code{model_output$variance_components}.
+#'
+#' Note that the default differs from `linear.power.analytical()`, which defaults to
+#' `test = "wls"` because `linear.power.boot()` simulates exactly that test. No
+#' bootstrap engine in this package simulates the IPCW-weighted t-test for a
+#' stratified model: `MS.power.boot()` fits an unweighted model to jackknife
+#' pseudo-observations. `"sandwich"` is therefore the default here.
 #'
 #' @param pilot_data A `data.frame` with pilot study data.
 #' @param time_var A character string for the time-to-event variable.
@@ -40,6 +71,9 @@
 #' @param L The numeric value for the RMST truncation time.
 #' @param alpha The significance level (Type I error rate).
 #' @param verbose Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.
+#' @param test Which test the reported power refers to. `"sandwich"` (default) is
+#'   the robust sandwich Wald test of Wang et al. (2019). `"wls"` is the weighted
+#'   least-squares t-test. See Details.
 #'
 #' @return A `list` containing:
 #' \item{results_data}{A `data.frame` with sample sizes and corresponding powers.}
@@ -67,7 +101,9 @@
 #' print(power_results$results_data)
 MS.power.analytical <- function(pilot_data, time_var, status_var, arm_var, strata_var,
                                 sample_sizes, linear_terms = NULL, L, alpha = 0.05,
-                                verbose = FALSE) {
+                                verbose = FALSE, test = c("sandwich", "wls")) {
+   test <- match.arg(test)
+
    # --- 1. Estimate Parameters from Pilot Data ---
    .rmst_verbose_message(verbose, "--- Estimating parameters from pilot data (log-linear approximation)... ---")
    est <- .estimate_ms_params(pilot_data, time_var, status_var, arm_var,
@@ -76,9 +112,10 @@ MS.power.analytical <- function(pilot_data, time_var, status_var, arm_var, strat
    # --- 2. Calculate Power ---
    .rmst_verbose_message(verbose, "--- Calculating power for specified sample sizes... ---")
    z_alpha <- stats::qnorm(1 - alpha / 2)
+   se_test_n1 <- if (test == "wls") est$se_beta_model_n1 else NULL
    power_values <- sapply(sample_sizes, function(n_per_stratum) {
       .rmst_wald_power(est$beta_effect, est$se_beta_n1,
-                       n_per_stratum * est$n_strata, z_alpha)
+                       n_per_stratum * est$n_strata, z_alpha, se_test_n1)
    })
 
    results_df <- data.frame(N_per_Stratum = sample_sizes, Power = power_values)
@@ -87,12 +124,14 @@ MS.power.analytical <- function(pilot_data, time_var, status_var, arm_var, strat
    p <- .rmst_power_curve_plot(
       results_df, "N_per_Stratum", "#E69F00",
       title = "Analytic Power Curve: Multiplicative Stratified RMST Model",
-      subtitle = "Log-linear approximation with robust sandwich variance (Wang et al. 2019).",
+      subtitle = if (test == "wls")
+         "Weighted least-squares t-test; sandwich sampling variance."
+      else "Log-linear approximation with robust sandwich variance (Wang et al. 2019).",
       xlab = "Sample Size Per Stratum")
 
    return(list(results_data = results_df, results_plot = p,
                results_summary = NULL,
-               model_output = .ms_model_output(est, arm_var)))
+               model_output = .ms_model_output(est, arm_var, test)))
 }
 
 # Sample Size Search ------------------------------------------------------
@@ -106,8 +145,8 @@ MS.power.analytical <- function(pilot_data, time_var, status_var, arm_var, strat
 #' from the pilot data, then increases the per-stratum sample size until the
 #' target power is reached or the search limit is hit. It uses the same
 #' log-linear approximation and robust sandwich variance as
-#' `MS.power.analytical`, including the 99th-percentile IPCW weight cap
-#' described there.
+#' `MS.power.analytical`, including the uncapped IPCW weights and the `test`
+#' argument described there.
 #'
 #' @param pilot_data A `data.frame` containing pilot study data.
 #' @param time_var A character string for the time-to-event variable.
@@ -122,6 +161,9 @@ MS.power.analytical <- function(pilot_data, time_var, status_var, arm_var, strat
 #' @param n_step The increment in sample size at each step of the search.
 #' @param max_n_per_arm The maximum sample size *per stratum* to search up to.
 #' @param verbose Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.
+#' @param test Which test the required sample size refers to. `"sandwich"` (default)
+#'   is the robust sandwich Wald test; `"wls"` is the weighted least-squares t-test.
+#'   See `MS.power.analytical`.
 #'
 #' @return A `list` containing:
 #' \item{results_data}{A `data.frame` with the target power and required sample size.}
@@ -151,7 +193,8 @@ MS.power.analytical <- function(pilot_data, time_var, status_var, arm_var, strat
 MS.ss.analytical <- function(pilot_data, time_var, status_var, arm_var, strata_var,
                              target_power, linear_terms = NULL, L, alpha = 0.05,
                              n_start = 50, n_step = 25, max_n_per_arm = 2000,
-                             verbose = FALSE) {
+                             verbose = FALSE, test = c("sandwich", "wls")) {
+   test <- match.arg(test)
 
    # --- 1. Estimate Parameters and Variance from Pilot Data (One Time) ---
    .rmst_verbose_message(verbose, "--- Estimating parameters from pilot data (log-linear approximation)... ---")
@@ -162,7 +205,8 @@ MS.ss.analytical <- function(pilot_data, time_var, status_var, arm_var, strata_v
    .rmst_verbose_message(verbose, "--- Searching for Sample Size (Method: Analytic/Approximation) ---")
    search <- .rmst_analytic_ss_search(est$beta_effect, est$se_beta_n1, est$n_strata,
                                       target_power, alpha, n_start, n_step,
-                                      max_n_per_arm, "/stratum", verbose)
+                                      max_n_per_arm, "/stratum", verbose,
+                                      if (test == "wls") est$se_beta_model_n1 else NULL)
    final_n <- search$final_n
 
    # --- 3. Finalize and Return Results ---
@@ -181,5 +225,5 @@ MS.ss.analytical <- function(pilot_data, time_var, status_var, arm_var, strata_v
 
    return(list(results_data = results_df, results_plot = p,
                results_summary = results_summary,
-               model_output = .ms_model_output(est, arm_var)))
+               model_output = .ms_model_output(est, arm_var, test)))
 }

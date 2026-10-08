@@ -17,7 +17,8 @@ rmst.power(
   alpha = 0.05,
   n_sim = 1000L,
   parallel.cores = 1L,
-  verbose = FALSE
+  verbose = FALSE,
+  test = NULL
 )
 }
 \arguments{
@@ -51,6 +52,14 @@ when the requested type is unavailable for the chosen model.}
 
 \item{verbose}{Logical; if \code{TRUE}, emit progress messages from the underlying calculation.
 Default \code{FALSE}.}
+
+\item{test}{Which hypothesis test the reported power refers to: \code{"wls"} for
+the weighted least-squares t-test or \code{"sandwich"} for the robust sandwich
+Wald test. Only the linear and multiplicative analytical engines accept it, and
+a message is emitted if it is supplied for any other. Default \code{NULL}, which
+leaves each engine on its own default (\code{"wls"} for linear,
+\code{"sandwich"} for multiplicative). See \code{\link{linear.power.analytical}}
+and \code{\link{MS.power.analytical}}.}
 }
 \value{
 An object of class \code{c("rmst_power", "list")} with elements

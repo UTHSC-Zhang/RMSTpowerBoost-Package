@@ -1,6 +1,6 @@
 {
   "R": {
-    "Version": "4.6.1",
+    "Version": "4.5.2",
     "Repositories": [
       {
         "Name": "CRAN",
@@ -52,7 +52,7 @@
       "NeedsCompilation": "yes",
       "Author": "Douglas Bates [aut] (ORCID: <https://orcid.org/0000-0001-8316-9503>), Martin Maechler [aut, cre] (ORCID: <https://orcid.org/0000-0002-8685-9910>), Mikael Jagan [aut] (ORCID: <https://orcid.org/0000-0002-3542-2938>), Timothy A. Davis [ctb] (ORCID: <https://orcid.org/0000-0001-7614-6899>, SuiteSparse libraries, collaborators listed in dir(system.file(\"doc\", \"SuiteSparse\", package=\"Matrix\"), pattern=\"License\", full.names=TRUE, recursive=TRUE)), George Karypis [ctb] (ORCID: <https://orcid.org/0000-0003-2753-1437>, METIS library, Copyright: Regents of the University of Minnesota), Jason Riedy [ctb] (ORCID: <https://orcid.org/0000-0002-4345-4200>, GNU Octave's condest() and onenormest(), Copyright: Regents of the University of California), Jens Oehlschlägel [ctb] (initial nearPD()), R Core Team [ctb] (ROR: <https://ror.org/02zz1nj61>, base R's matrix implementation)",
       "Maintainer": "Martin Maechler <mmaechler+Matrix@gmail.com>",
-      "Repository": "CRAN"
+      "Repository": "https://packagemanager.posit.co/cran/latest"
     },
     "R6": {
       "Package": "R6",
@@ -95,7 +95,8 @@
       "Description": "Provides color schemes for maps (and other graphics) designed by Cynthia Brewer as described at http://colorbrewer2.org.",
       "License": "Apache License 2.0",
       "NeedsCompilation": "no",
-      "Repository": "CRAN"
+      "Repository": "RSPM",
+      "Encoding": "UTF-8"
     },
     "S7": {
       "Package": "S7",
@@ -134,7 +135,7 @@
       "NeedsCompilation": "yes",
       "Author": "Object-Oriented Programming Working Group [cph], Davis Vaughan [aut], Jim Hester [aut] (ORCID: <https://orcid.org/0000-0002-2739-7082>), Tomasz Kalinowski [aut], Will Landau [aut], Michael Lawrence [aut], Martin Maechler [aut] (ORCID: <https://orcid.org/0000-0002-8685-9910>), Luke Tierney [aut], Hadley Wickham [aut, cre] (ORCID: <https://orcid.org/0000-0003-4757-117X>)",
       "Maintainer": "Hadley Wickham <hadley@posit.co>",
-      "Repository": "CRAN"
+      "Repository": "https://packagemanager.posit.co/cran/latest"
     },
     "cli": {
       "Package": "cli",
@@ -334,7 +335,7 @@
       "NeedsCompilation": "yes",
       "Author": "Hadley Wickham [aut, cre] (ORCID: <https://orcid.org/0000-0003-4757-117X>), Romain François [aut] (ORCID: <https://orcid.org/0000-0002-2444-4226>), Lionel Henry [aut], Kirill Müller [aut] (ORCID: <https://orcid.org/0000-0002-1416-3412>), Davis Vaughan [aut] (ORCID: <https://orcid.org/0000-0003-4777-038X>), Posit Software, PBC [cph, fnd]",
       "Maintainer": "Hadley Wickham <hadley@posit.co>",
-      "Repository": "CRAN"
+      "Repository": "https://packagemanager.posit.co/cran/latest"
     },
     "evaluate": {
       "Package": "evaluate",
@@ -433,7 +434,7 @@
       "NeedsCompilation": "no",
       "Author": "Henrik Bengtsson [aut, cre, cph] (ORCID: <https://orcid.org/0000-0002-7579-5165>)",
       "Maintainer": "Henrik Bengtsson <henrikb@braju.com>",
-      "Repository": "CRAN"
+      "Repository": "https://packagemanager.posit.co/cran/latest"
     },
     "future.apply": {
       "Package": "future.apply",
@@ -575,7 +576,7 @@
       "NeedsCompilation": "no",
       "Author": "Hadley Wickham [aut] (ORCID: <https://orcid.org/0000-0003-4757-117X>), Winston Chang [aut] (ORCID: <https://orcid.org/0000-0002-1576-2126>), Lionel Henry [aut], Thomas Lin Pedersen [aut, cre] (ORCID: <https://orcid.org/0000-0002-5147-4711>), Kohske Takahashi [aut], Claus Wilke [aut] (ORCID: <https://orcid.org/0000-0002-7470-9261>), Kara Woo [aut] (ORCID: <https://orcid.org/0000-0002-5125-4188>), Hiroaki Yutani [aut] (ORCID: <https://orcid.org/0000-0002-3385-7233>), Dewey Dunnington [aut] (ORCID: <https://orcid.org/0000-0002-9415-4582>), Teun van den Brand [aut] (ORCID: <https://orcid.org/0000-0002-9335-7468>), Posit, PBC [cph, fnd] (ROR: <https://ror.org/03wc8by49>)",
       "Maintainer": "Thomas Lin Pedersen <thomas.pedersen@posit.co>",
-      "Repository": "CRAN"
+      "Repository": "https://packagemanager.posit.co/cran/latest"
     },
     "globals": {
       "Package": "globals",
@@ -837,7 +838,8 @@
         "stats",
         "graphics"
       ],
-      "Repository": "CRAN"
+      "Repository": "RSPM",
+      "Encoding": "UTF-8"
     },
     "lattice": {
       "Package": "lattice",
@@ -876,7 +878,8 @@
       "NeedsCompilation": "yes",
       "Author": "Deepayan Sarkar [aut, cre] (ORCID: <https://orcid.org/0000-0003-4107-1553>), Felix Andrews [ctb], Kevin Wright [ctb] (documentation), Neil Klepeis [ctb], Johan Larsson [ctb] (miscellaneous improvements), Zhijian (Jason) Wen [cph] (filled contour code), Paul Murrell [ctb], Stefan Eng [ctb] (violin plot improvements), Achim Zeileis [ctb] (modern colors), Alexandre Courtiol [ctb] (generics for larrows, lpolygon, lrect and lsegments)",
       "Maintainer": "Deepayan Sarkar <deepayan.sarkar@r-project.org>",
-      "Repository": "CRAN"
+      "Repository": "RSPM",
+      "Encoding": "UTF-8"
     },
     "lifecycle": {
       "Package": "lifecycle",
@@ -944,7 +947,7 @@
       "NeedsCompilation": "no",
       "Author": "Henrik Bengtsson [aut, cre, cph] (ORCID: <https://orcid.org/0000-0002-7579-5165>)",
       "Maintainer": "Henrik Bengtsson <henrikb@braju.com>",
-      "Repository": "CRAN"
+      "Repository": "https://packagemanager.posit.co/cran/latest"
     },
     "magrittr": {
       "Package": "magrittr",
@@ -1042,7 +1045,7 @@
       "NeedsCompilation": "yes",
       "Author": "José Pinheiro [aut] (S version), Douglas Bates [aut] (up to 2007), Saikat DebRoy [ctb] (up to 2002), Deepayan Sarkar [ctb] (up to 2005), EISPACK authors [ctb] (src/rs.f), Siem Heisterkamp [ctb] (Author fixed sigma), Bert Van Willigen [ctb] (Programmer fixed sigma), Johannes Ranke [ctb] (varConstProp()), R Core Team [aut, cre] (ROR: <https://ror.org/02zz1nj61>)",
       "Maintainer": "R Core Team <R-core@R-project.org>",
-      "Repository": "CRAN"
+      "Repository": "https://packagemanager.posit.co/cran/latest"
     },
     "parallelly": {
       "Package": "parallelly",
@@ -1073,7 +1076,7 @@
       "NeedsCompilation": "yes",
       "Author": "Henrik Bengtsson [aut, cre, cph] (ORCID: <https://orcid.org/0000-0002-7579-5165>), Mike Cheng [ctb]",
       "Maintainer": "Henrik Bengtsson <henrikb@braju.com>",
-      "Repository": "CRAN"
+      "Repository": "https://packagemanager.posit.co/cran/latest"
     },
     "pillar": {
       "Package": "pillar",
@@ -1158,7 +1161,7 @@
     },
     "renv": {
       "Package": "renv",
-      "Version": "1.1.5",
+      "Version": "1.3.1",
       "Source": "Repository",
       "Type": "Package",
       "Title": "Project Environments",
@@ -1176,6 +1179,7 @@
         "compiler",
         "covr",
         "cpp11",
+        "curl",
         "devtools",
         "generics",
         "gitcreds",
@@ -1186,6 +1190,7 @@
         "modules",
         "packrat",
         "pak",
+        "pkgload",
         "R6",
         "remotes",
         "reticulate",
@@ -1199,12 +1204,12 @@
         "webfakes"
       ],
       "Encoding": "UTF-8",
-      "RoxygenNote": "7.3.2",
       "VignetteBuilder": "knitr",
       "Config/Needs/website": "tidyverse/tidytemplate",
       "Config/testthat/edition": "3",
       "Config/testthat/parallel": "true",
       "Config/testthat/start-first": "bioconductor,python,install,restore,snapshot,retrieve,remotes",
+      "Config/roxygen2/version": "8.0.0",
       "NeedsCompilation": "no",
       "Author": "Kevin Ushey [aut, cre] (ORCID: <https://orcid.org/0000-0003-2880-7407>), Hadley Wickham [aut] (ORCID: <https://orcid.org/0000-0003-4757-117X>), Posit Software, PBC [cph, fnd]",
       "Maintainer": "Kevin Ushey <kevin@rstudio.com>",
@@ -1334,7 +1339,8 @@
       "NeedsCompilation": "yes",
       "Author": "Terry M Therneau [aut, cre], Thomas Lumley [ctb, trl] (original S->R port and R maintainer until 2009), Atkinson Elizabeth [ctb], Crowson Cynthia [ctb]",
       "Maintainer": "Terry M Therneau <therneau.terry@mayo.edu>",
-      "Repository": "CRAN"
+      "Repository": "RSPM",
+      "Encoding": "UTF-8"
     },
     "tibble": {
       "Package": "tibble",
@@ -1637,7 +1643,7 @@
       "NeedsCompilation": "yes",
       "Author": "Yihui Xie [aut, cre, cph] (ORCID: <https://orcid.org/0000-0003-0645-5666>, URL: https://yihui.org), Wush Wu [ctb], Daijiang Li [ctb], Xianying Tan [ctb], Salim Brüggemann [ctb] (ORCID: <https://orcid.org/0000-0002-5329-5987>), Christophe Dervieux [ctb]",
       "Maintainer": "Yihui Xie <xie@yihui.name>",
-      "Repository": "CRAN"
+      "Repository": "https://packagemanager.posit.co/cran/latest"
     },
     "yaml": {
       "Package": "yaml",

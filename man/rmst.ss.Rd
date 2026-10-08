@@ -21,7 +21,8 @@ rmst.ss(
   n_step = 25L,
   max_n = 2000L,
   patience = 5L,
-  verbose = FALSE
+  verbose = FALSE,
+  test = NULL
 )
 }
 \arguments{
@@ -59,6 +60,13 @@ rmst.ss(
 
 \item{verbose}{Logical; if \code{TRUE}, emit progress messages from the underlying calculation.
 Default \code{FALSE}.}
+
+\item{test}{Which hypothesis test the required sample size refers to: \code{"wls"}
+or \code{"sandwich"}. Only the linear and multiplicative analytical engines
+accept it, and a message is emitted if it is supplied for any other. Default
+\code{NULL}, which leaves each engine on its own default (\code{"wls"} for
+linear, \code{"sandwich"} for multiplicative). See
+\code{\link{linear.ss.analytical}} and \code{\link{MS.ss.analytical}}.}
 }
 \value{
 An object of class \code{c("rmst_ss", "list")} with elements

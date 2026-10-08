@@ -99,11 +99,31 @@
                 method_used = method_used))
 }
 
+#' Add `test` to an argument list, but only for the engines that accept it
+#'
+#' `test` is left NULL by default in rmst.power()/rmst.ss() rather than given a
+#' concrete default, because the engine defaults differ: the linear engine
+#' defaults to "wls" (matching linear.power.boot), the multiplicative engine to
+#' "sandwich". A default here would silently override whichever one applies.
+#' @noRd
+.apply_test_arg <- function(base, route, test) {
+  if (is.null(test)) return(base)
+  accepts <- route$model %in% c("linear", "multiplicative") &&
+             route$method_used == "analytical"
+  if (!accepts) {
+    message("`test` applies only to the linear and multiplicative analytical engines; ignoring it for the ",
+            route$model, " ", route$method_used, " engine.")
+    return(base)
+  }
+  base$test <- test
+  base
+}
+
 #' Build argument list for the underlying power function call
 #' @noRd
 .build_args_power <- function(parsed, arm, sample_sizes, L, strata_var, alpha,
                                n_sim, parallel.cores, route, data,
-                               strata_type, dep_cens, verbose) {
+                               strata_type, dep_cens, verbose, test = NULL) {
   base <- list(
     pilot_data   = data,
     time_var     = parsed$time_var,
@@ -135,14 +155,15 @@
     # linear.power.boot has no parallel.cores parameter
   }
   # DC analytical has no n_sim parameter
-  base
+  .apply_test_arg(base, route, test)
 }
 
 #' Build argument list for the underlying SS function call
 #' @noRd
 .build_args_ss <- function(parsed, arm, target_power, L, strata_var, alpha,
                             n_sim, parallel.cores, route, data,
-                            n_start, n_step, max_n, patience, verbose) {
+                            n_start, n_step, max_n, patience, verbose,
+                            test = NULL) {
   base <- list(
     pilot_data   = data,
     time_var     = parsed$time_var,
@@ -179,7 +200,7 @@
   base$n_step        <- n_step
   base$max_n_per_arm <- max_n
   if (mt == "boot") base$patience <- patience
-  base
+  .apply_test_arg(base, route, test)
 }
 
 # rmst.power
@@ -207,6 +228,13 @@
 #' @param parallel.cores Number of cores for parallel processing. Default \code{1}.
 #' @param verbose Logical; if \code{TRUE}, emit progress messages from the underlying calculation.
 #'   Default \code{FALSE}.
+#' @param test Which hypothesis test the reported power refers to: \code{"wls"} for
+#'   the weighted least-squares t-test or \code{"sandwich"} for the robust sandwich
+#'   Wald test. Only the linear and multiplicative analytical engines accept it, and
+#'   a message is emitted if it is supplied for any other. Default \code{NULL}, which
+#'   leaves each engine on its own default (\code{"wls"} for linear,
+#'   \code{"sandwich"} for multiplicative). See \code{\link{linear.power.analytical}}
+#'   and \code{\link{MS.power.analytical}}.
 #'
 #' @return An object of class \code{c("rmst_power", "list")} with elements
 #'   \code{results_data}, \code{results_plot}, \code{results_summary},
@@ -239,9 +267,11 @@ rmst.power <- function(formula,
                        alpha       = 0.05,
                        n_sim       = 1000L,
                        parallel.cores = 1L,
-                       verbose = FALSE) {
+                       verbose = FALSE,
+                       test        = NULL) {
   mc         <- match.call()
   type       <- match.arg(type)
+  if (!is.null(test)) test <- match.arg(test, c("wls", "sandwich"))
   strata_type <- match.arg(strata_type)
   parsed     <- .parse_rmst_formula(formula)
   strata_var <- .resolve_strata(strata)
@@ -250,7 +280,7 @@ rmst.power <- function(formula,
 
   args <- .build_args_power(parsed, arm, sample_sizes, L, strata_var, alpha,
                              n_sim, parallel.cores, route, data, strata_type, dep_cens,
-                             verbose)
+                             verbose, test)
   raw  <- do.call(route$fn_power, args)
 
   n_col <- if (route$model == "GAM") "N_per_Group"
@@ -307,6 +337,12 @@ rmst.power <- function(formula,
 #' @param patience Number of consecutive non-improving steps before stopping. Default \code{5}.
 #' @param verbose Logical; if \code{TRUE}, emit progress messages from the underlying calculation.
 #'   Default \code{FALSE}.
+#' @param test Which hypothesis test the required sample size refers to: \code{"wls"}
+#'   or \code{"sandwich"}. Only the linear and multiplicative analytical engines
+#'   accept it, and a message is emitted if it is supplied for any other. Default
+#'   \code{NULL}, which leaves each engine on its own default (\code{"wls"} for
+#'   linear, \code{"sandwich"} for multiplicative). See
+#'   \code{\link{linear.ss.analytical}} and \code{\link{MS.ss.analytical}}.
 #'
 #' @return An object of class \code{c("rmst_ss", "list")} with elements
 #'   \code{results_data}, \code{results_plot}, \code{results_summary},
@@ -341,9 +377,11 @@ rmst.ss <- function(formula,
                     n_step      = 25L,
                     max_n       = 2000L,
                     patience    = 5L,
-                    verbose = FALSE) {
+                    verbose = FALSE,
+                    test        = NULL) {
   mc          <- match.call()
   type        <- match.arg(type)
+  if (!is.null(test)) test <- match.arg(test, c("wls", "sandwich"))
   strata_type <- match.arg(strata_type)
   parsed      <- .parse_rmst_formula(formula)
   strata_var  <- .resolve_strata(strata)
@@ -352,7 +390,7 @@ rmst.ss <- function(formula,
 
   args <- .build_args_ss(parsed, arm, target_power, L, strata_var, alpha,
                           n_sim, parallel.cores, route, data,
-                          n_start, n_step, max_n, patience, verbose)
+                          n_start, n_step, max_n, patience, verbose, test)
   raw  <- do.call(route$fn_ss, args)
 
   n_col <- if (route$model == "GAM") "N_per_Group"
@@ -587,8 +625,14 @@ summary.rmst_ss <- function(object, ...) {
   if (!is.null(x$variance_components)) {
     cat("\n\u2500\u2500 Variance Components ", strrep("\u2500", 39L), "\n", sep = "")
     vc <- x$variance_components
+    if (!is.null(vc$test))
+      cat("  Test            :", vc$test, "\n")
     if (!is.null(vc$se_effect_n1))
       cat("  se_effect (n=1):", round(vc$se_effect_n1, 6L), "\n")
+    if (!is.null(vc$se_effect_sandwich_n1) && !is.null(vc$se_effect_wls_n1)) {
+      cat("  se_effect sandwich (n=1):", round(vc$se_effect_sandwich_n1, 6L), "\n")
+      cat("  se_effect WLS      (n=1):", round(vc$se_effect_wls_n1, 6L), "\n")
+    }
     if (!is.null(vc$A_hat))
       { cat("  A_hat :\n"); print(round(vc$A_hat, 6L)) }
     if (!is.null(vc$B_hat))

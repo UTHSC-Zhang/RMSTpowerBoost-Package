@@ -60,11 +60,14 @@ the censoring times fit on the original time scale. Here
 centering the covariates and RMST values within each stratum and then solving
 the resulting estimating equations in closed form.
 
-For numerical stability, the estimated IPCW weights are capped at their
-99th percentile before estimation. This is a practical stabilization step
-that is not part of the Zhang & Schaubel (2024) theory; the cap value and
-the fraction of weights affected are reported in
-\code{model_output$censoring_weights}.
+The censoring model uses Breslow ties and is evaluated at each subject's
+truncated outcome. The weights are used as fitted, without capping or
+truncation: Equations (11)-(12) of Zhang & Schaubel (2024) derive the
+estimator and its simplified sandwich variance under the fitted weights, so
+capping would break the correspondence with the published formulas, and it
+compresses exactly the upper tail that IPCW exists to up-weight. The weight
+distribution is reported in
+\code{model_output$censoring_weights$raw_summary}.
 
 Power is obtained from the asymptotic sandwich variance of \eqn{\hat{\beta}}.
 This implementation uses the robust variance estimator

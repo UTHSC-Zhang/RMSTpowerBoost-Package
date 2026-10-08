@@ -18,8 +18,7 @@
   `.linear_cox_weights(cap =)` and `.estimate_linear_params(cap_weights =)`
   arguments. `.linear_cox_weights()` now returns a plain numeric vector. Point
   estimates and standard errors shift slightly; in the reference pilot the
-  treatment-effect SE moved by well under 1%. The additive, multiplicative, and
-  dependent-censoring engines are unchanged and still cap.
+  treatment-effect SE moved by well under 1%.
 
 * `linear.power.analytical()` and `linear.ss.analytical()` gain a `test` argument
   selecting which hypothesis test the reported power refers to. The default,
@@ -36,8 +35,55 @@
   Schaubel (2024), which is the more efficient test but not the one the bootstrap
   engine runs. `model_output$treatment_effect$std_error` and
   `variance_components$se_effect_n1` follow the selected test; both standard errors
-  are always returned in `variance_components`. The other analytical engines are
-  unchanged.
+  are always returned in `variance_components`.
+
+* Weight capping has been removed from the two stratified analytical engines,
+  `additive.power.analytical()` / `additive.ss.analytical()` and
+  `MS.power.analytical()` / `MS.ss.analytical()`, for the same reasons it was
+  removed from the linear engine: the 99th-percentile cap fired unconditionally
+  rather than only on unstable weights, compressed exactly the upper tail that
+  IPCW exists to up-weight, and broke the correspondence with Equations (11)-(12)
+  of Zhang & Schaubel (2024), which derive the estimator and its simplified
+  sandwich under the fitted weights. `.ipcw_stratified_cox_weights()` now returns
+  `Delta_Y * W_hat` directly, so incomplete subjects weigh exactly zero in both
+  engines, and it fails loudly on invalid censoring survival probabilities
+  instead of letting the cap absorb an overflow. No-censoring data retain unit
+  weights without fitting a Cox model. `model_output$censoring_weights` now
+  reports only `raw_summary`; the `cap_value` and `capped_fraction` entries are
+  gone, as is the internal `.cap_weights()` helper. Point estimates, standard
+  errors, and power shift accordingly.
+
+  For the multiplicative engine, `censoring_weights$raw_summary` now includes the
+  zeros for subjects whose truncated outcome is unobserved, where it previously
+  summarised `1/G` across everyone. The additive engine also now reports a
+  non-convergent censoring model as an error, as the multiplicative engine
+  already did, rather than swallowing the warning from a bare `coxph()` call.
+
+* `MS.power.analytical()` and `MS.ss.analytical()` gain the same `test` argument
+  as their linear counterparts, but it defaults the other way, to
+  `test = "sandwich"`. That preserves the existing numbers and keeps the engine
+  aligned with the Wang et al. (2019) inference. The linear default is `"wls"`
+  because `linear.power.boot()` simulates exactly that test; no bootstrap engine
+  in this package simulates an IPCW-weighted t-test for a stratified model, since
+  `MS.power.boot()` fits an unweighted model to jackknife pseudo-observations and
+  the additive model routes to the GAM pseudo-observation bootstrap. Under
+  `test = "wls"` the rejection threshold comes from the model-based WLS standard
+  error while the sampling distribution stays on the sandwich; the coefficient
+  table, `treatment_effect$std_error` and `variance_components$se_effect_n1`
+  follow the selected test, and both standard errors are always returned in
+  `variance_components`. The additive engine gets no `test` argument: it solves
+  its estimating equation in closed form by stratum-centering, so there is no
+  weighted-least-squares fit and no second variance to choose between.
+
+* `rmst.power()` and `rmst.ss()` gain a `test` argument, which was previously
+  reachable only by calling the engine functions directly. It defaults to `NULL`,
+  leaving each engine on its own default, and emits a message when supplied for
+  an engine that does not accept it. `summary()` now prints the selected test and
+  both standard errors when the engine reports them.
+
+* The dependent-censoring engine is unchanged: `DC.power.analytical()` and
+  `DC.ss.analytical()` still cap at the 99th percentile and still floor the
+  censoring survival at `1e-6`, and they gain no `test` argument.
 
 # RMSTpowerBoost 1.0.3
 

@@ -14,7 +14,8 @@ MS.power.analytical(
   linear_terms = NULL,
   L,
   alpha = 0.05,
-  verbose = FALSE
+  verbose = FALSE,
+  test = c("sandwich", "wls")
 )
 }
 \arguments{
@@ -37,6 +38,10 @@ MS.power.analytical(
 \item{alpha}{The significance level (Type I error rate).}
 
 \item{verbose}{Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.}
+
+\item{test}{Which test the reported power refers to. \code{"sandwich"} (default) is
+the robust sandwich Wald test of Wang et al. (2019). \code{"wls"} is the weighted
+least-squares t-test. See Details.}
 }
 \value{
 A \code{list} containing:
@@ -53,10 +58,12 @@ using a multiplicative model for RMST: \eqn{\mu_{ij} = \mu_{0j} \exp\{\beta'Z_i\
 The method uses IPCW with a stratified Cox model for the censoring distribution
 fit on the original time scale and weights of the form
 \eqn{\hat{W}_{ij}\Delta_i^Y}, where \eqn{\Delta_i^Y = 1} if the event occurs
-before \eqn{L} or follow-up reaches \eqn{L}. For numerical stability, the
-estimated IPCW weights are capped at their 99th percentile; the cap value and
-the fraction of weights affected are reported in
-\code{model_output$censoring_weights}.
+before \eqn{L} or follow-up reaches \eqn{L}. The stratified Cox model uses
+Breslow ties and is evaluated at each subject's truncated outcome. The
+weights are used as fitted, without capping or truncation, so that the
+estimator and its variance reproduce the published formulas exactly; their
+distribution is reported in
+\code{model_output$censoring_weights$raw_summary}.
 
 Formal estimation of \eqn{\beta} requires an iterative solver for the estimating
 equation given in Equation (8) of Wang et al. (2019). Because this is computationally
@@ -70,8 +77,37 @@ estimator, \eqn{\hat{\tau}}. The variance is the robust sandwich estimator
 \eqn{A_n^{-1} B_n (A_n^{-1})'} of the weighted least-squares estimating
 equations, with \eqn{A_n = X'WX/n} and \eqn{B_n} the empirical second moment
 of the weighted residuals, mirroring the sandwich form described in Theorem 1
-of Wang et al. (2019). Coefficient standard errors reported in
-\code{model_output$coefficient_table} use this robust variance.
+of Wang et al. (2019).
+
+The \code{test} argument selects which hypothesis test the reported power refers to,
+and this matters because the two candidates do not use the same variance. The
+sandwich above is consistent for the sampling variability of the estimator. The
+ordinary weighted-least-squares standard error reported by \code{summary(lm(...))} is
+not, because IPCW weights are sampling weights rather than inverse-variance
+weights, so it typically runs above the true sampling standard deviation of the
+estimate, which pushes the rejection threshold out and costs power.
+
+With \code{test = "sandwich"} (the default) the power refers to the sandwich Wald test,
+in which one variance sets both the sampling distribution and the threshold,
+giving the usual \eqn{\Phi(|\tau|/\sigma_{SW} - z_{1-\alpha/2})}. This is the
+inference of Wang et al. (2019), and coefficient standard errors in
+\code{model_output$coefficient_table} then use the robust variance.
+
+With \code{test = "wls"} the power refers to the weighted least-squares t-test: the
+sampling distribution of the estimate is taken from the sandwich variance
+\eqn{\sigma_{SW}} and the rejection threshold from the WLS standard error
+\eqn{\sigma_{WLS}}, giving
+\deqn{\Phi\left(\frac{|\tau| - z_{1-\alpha/2}\,\sigma_{WLS}}{\sigma_{SW}}\right) +
+      \Phi\left(\frac{-|\tau| - z_{1-\alpha/2}\,\sigma_{WLS}}{\sigma_{SW}}\right),}
+and \code{model_output$coefficient_table} becomes the t-table that
+\code{summary()} reports for the weighted fit. Both standard errors are always
+returned in \code{model_output$variance_components}.
+
+Note that the default differs from \code{linear.power.analytical()}, which defaults to
+\code{test = "wls"} because \code{linear.power.boot()} simulates exactly that test. No
+bootstrap engine in this package simulates the IPCW-weighted t-test for a
+stratified model: \code{MS.power.boot()} fits an unweighted model to jackknife
+pseudo-observations. \code{"sandwich"} is therefore the default here.
 }
 \examples{
 set.seed(123)

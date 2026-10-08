@@ -62,7 +62,7 @@ This function estimates the additive treatment effect and its asymptotic
 variance once from the pilot data, then increases the per-stratum sample
 size until the target power is reached or the search limit is hit. It uses
 the same stratum-centering framework as \code{additive.power.analytical},
-including the 99th-percentile IPCW weight cap described there.
+including the uncapped IPCW weights described there.
 }
 \examples{
 set.seed(123)

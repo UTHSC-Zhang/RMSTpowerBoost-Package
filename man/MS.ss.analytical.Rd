@@ -17,7 +17,8 @@ MS.ss.analytical(
   n_start = 50,
   n_step = 25,
   max_n_per_arm = 2000,
-  verbose = FALSE
+  verbose = FALSE,
+  test = c("sandwich", "wls")
 )
 }
 \arguments{
@@ -46,6 +47,10 @@ MS.ss.analytical(
 \item{max_n_per_arm}{The maximum sample size \emph{per stratum} to search up to.}
 
 \item{verbose}{Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.}
+
+\item{test}{Which test the required sample size refers to. \code{"sandwich"} (default)
+is the robust sandwich Wald test; \code{"wls"} is the weighted least-squares t-test.
+See \code{MS.power.analytical}.}
 }
 \value{
 A \code{list} containing:
@@ -62,8 +67,8 @@ This function estimates the log-RMST ratio and its asymptotic variance once
 from the pilot data, then increases the per-stratum sample size until the
 target power is reached or the search limit is hit. It uses the same
 log-linear approximation and robust sandwich variance as
-\code{MS.power.analytical}, including the 99th-percentile IPCW weight cap
-described there.
+\code{MS.power.analytical}, including the uncapped IPCW weights and the \code{test}
+argument described there.
 }
 \examples{
 set.seed(456)

@@ -57,7 +57,8 @@ test_that("the default is wls, sandwich is opt-in, and other engines are unaffec
                                test = "sandwich")
   expect_gte(ss_w$results_data$Required_N_per_Arm, ss_s$results_data$Required_N_per_Arm)
   # Omitting se_test_n1 must reproduce the original one-tailed formula exactly,
-  # which is what the additive, multiplicative and DC engines still call.
+  # which is what the additive and DC engines, and the multiplicative engine
+  # under its default test = "sandwich", still call.
   expect_identical(RMSTpowerBoost:::.rmst_wald_power(.5, 3, 400, qnorm(.975)),
                    pnorm(.5 / (3 / sqrt(400)) - qnorm(.975)))
 })
