@@ -13,7 +13,8 @@ DC.power.analytical(
   linear_terms = NULL,
   L,
   alpha = 0.05,
-  verbose = FALSE
+  verbose = FALSE,
+  test = c("wls", "sandwich")
 )
 }
 \arguments{
@@ -34,6 +35,10 @@ DC.power.analytical(
 \item{alpha}{The significance level (Type I error rate).}
 
 \item{verbose}{Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.}
+
+\item{test}{Which test the reported power refers to. \code{"wls"} (default) is the
+weighted least-squares t-test. \code{"sandwich"} is the robust sandwich Wald test.
+See Details.}
 }
 \value{
 A \code{list} with:
@@ -52,12 +57,42 @@ This function assumes a single censoring process whose hazard depends on covaria
 using \code{Surv(time, status==0) ~ linear\_terms}, then forms inverse-probability-of-censoring
 weights (IPCW) \eqn{w_i = \Delta_i^Y/\hat G(Y_i\mid X_i)} evaluated at
 \eqn{Y_i=\min(T_i,L)}, where \eqn{\Delta_i^Y=1} if the event is observed before
-\eqn{L} or follow-up reaches \eqn{L}. For numerical stability the weights are
-capped at their 99th percentile; the cap value and the fraction of weights
-affected are reported in \code{model_output$censoring_weights}.
+\eqn{L} or follow-up reaches \eqn{L}. The censoring model uses Breslow ties, is fit
+on the original follow-up, and is evaluated at each subject's truncated outcome,
+with the uncentered baseline hazard paired with an uncentered linear predictor.
+The weights are used as fitted, without capping, truncation, or a floor on
+\eqn{\hat G}, so that the estimator and its variance reproduce the published
+formulas exactly; their distribution is reported in
+\code{model_output$censoring_weights$raw_summary}. With no observed censoring the
+weights are one and no censoring model is fit.
 The RMST regression \eqn{E[Y_i \mid A_i,X_i]} is then fit by weighted least squares,
-and power is derived from a sandwich variance that ignores uncertainty from
-estimating \eqn{\hat G}.
+and the sampling variance of the treatment effect is the sandwich
+\eqn{A^{-1}B(A^{-1})'} with the fitted weights treated as fixed, so it ignores
+uncertainty from estimating \eqn{\hat G}.
+
+The \code{test} argument selects which hypothesis test the reported power refers to,
+and this matters because the two candidates do not use the same variance. The
+sandwich above is consistent for the sampling variability of the estimator. The
+ordinary weighted-least-squares standard error reported by \code{summary(lm(...))} is
+not, because IPCW weights are sampling weights rather than inverse-variance
+weights, so it typically runs above the true sampling standard deviation of the
+estimate, which pushes the rejection threshold out and costs power.
+
+With \code{test = "wls"} (the default) the power refers to the weighted least-squares
+t-test that a standard \code{lm(..., weights = w)} analysis reports, as in
+\code{linear.power.analytical()}. The sampling distribution of the estimate is taken
+from the sandwich variance \eqn{\sigma_{SW}} and the rejection threshold from the
+WLS standard error \eqn{\sigma_{WLS}}, giving
+\deqn{\Phi\left(\frac{|\tau| - z_{1-\alpha/2}\,\sigma_{WLS}}{\sigma_{SW}}\right) +
+      \Phi\left(\frac{-|\tau| - z_{1-\alpha/2}\,\sigma_{WLS}}{\sigma_{SW}}\right),}
+and \code{model_output$coefficient_table} is the t-table that \code{summary()}
+reports for the weighted fit.
+
+With \code{test = "sandwich"} the power refers to the sandwich Wald test, in which one
+variance sets both the sampling distribution and the threshold, giving the usual
+\eqn{\Phi(|\tau|/\sigma_{SW} - z_{1-\alpha/2})}. That is the more efficient test,
+and \code{model_output$coefficient_table} then uses the robust variance. Both
+standard errors are always returned in \code{model_output$variance_components}.
 
 Note: This implementation models a single censoring process and does not
 handle competing risks.

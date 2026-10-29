@@ -628,6 +628,51 @@
 
 # --- Covariate-dependent censoring engine (Wang & Schaubel 2018) --------------
 
+#' IPCW weights Delta_Y / G(Y) from a covariate-only Cox censoring model
+#'
+#' Mirrors `.linear_cox_weights()`, except that the censoring model uses
+#' `linear_terms` only, without treatment, which is the DC engine's design. The
+#' weights are returned already multiplied by Delta_Y and are used exactly as
+#' fitted, with no cap and no floor on G.
+#'
+#' predict(type = "survival") cannot be used here, because it fails on the
+#' intercept-only model that `linear_terms = NULL` produces. The uncentered
+#' baseline hazard is therefore paired explicitly with an uncentered linear
+#' predictor; pairing it with the default (centered) predictor misstates G
+#' whenever a covariate has a non-zero mean.
+#'
+#' Requires `df` to have been through `.rmst_prepare_df()`, which supplies the
+#' `Y_rmst` horizon and the `is_complete` indicator.
+#'
+#' @return A numeric vector of IPCW weights, zero for subjects whose truncated
+#'   outcome is not observed.
+#' @noRd
+.dc_cox_weights <- function(df, time_var, status_var, linear_terms) {
+   # With no observed censoring, G is identically one and no Cox fit is needed.
+   if (all(df[[status_var]] == 1)) {
+      g <- rep(1, nrow(df))
+   } else {
+      has_covariates <- length(linear_terms) > 0
+      cens_rhs <- if (has_covariates) paste(linear_terms, collapse = " + ") else "1"
+      cens_formula <- stats::as.formula(paste0(
+         "survival::Surv(", time_var, ", ", status_var, " == 0) ~ ", cens_rhs))
+      fit_cens <- .fit_ms_censoring_model(cens_formula, df)
+      # Fit on original follow-up; evaluate each subject at their RMST horizon.
+      bh_cens <- survival::basehaz(fit_cens, centered = FALSE)
+      H_cens <- stats::stepfun(bh_cens$time, c(0, bh_cens$hazard))(df$Y_rmst)
+      lp <- if (has_covariates)
+         as.numeric(stats::predict(fit_cens, newdata = df, type = "lp", reference = "zero")) else 0
+      g <- exp(-H_cens * exp(lp))
+      if (any(!is.finite(g) | g <= 0 | g > 1)) {
+         stop("Invalid Cox censoring survival probabilities; IPCW weights cannot be computed.",
+              call. = FALSE)
+      }
+   }
+   w <- as.numeric(df$is_complete) / g
+   w[!is.finite(w)] <- 0
+   w
+}
+
 #' Estimate the DC-IPCW RMST model from pilot data
 #' @noRd
 .estimate_dc_params <- function(pilot_data, time_var, status_var, arm_var,
@@ -638,78 +683,89 @@
    n_pilot <- nrow(df)
    if (n_pilot < 10) stop("Too few complete cases after filtering.", call. = FALSE)
 
-   # Censoring model: covariate-dependent only (no arm, no competing risks)
-   cens_rhs <- if (is.null(linear_terms) || length(linear_terms) == 0) "1" else paste(linear_terms, collapse = " + ")
-   cens_formula <- stats::as.formula(
-      paste0("survival::Surv(", time_var, ", ", status_var, "==0) ~ ", cens_rhs)
-   )
-   fit_cens <- survival::coxph(cens_formula, data = df, ties = "breslow")
-
-   bh <- survival::basehaz(fit_cens, centered = FALSE)
-   H0_step <- stats::stepfun(bh$time, c(0, bh$hazard))
-   lp <- if (cens_rhs == "1") 0 else stats::predict(fit_cens, newdata = df, type = "lp")
-   Hc <- H0_step(df$Y_rmst) * exp(lp)
-   Ghat <- exp(-Hc)
-
-   # IPCW for subjects whose truncated RMST outcome is observed (stabilize)
-   eps <- 1e-6
-   w <- df$is_complete / pmax(Ghat, eps)
-   w[!is.finite(w)] <- 0
-   # The DC engine retains the 99th-percentile cap that the linear and
-   # stratified engines dropped: its weights are additionally floored through
-   # pmax(Ghat, eps) above, so the two stabilizations go together here.
-   cap <- NA_real_
-   finite_w <- w[is.finite(w) & w > 0]
-   if (length(finite_w) > 0) {
-      cap <- stats::quantile(finite_w, probs = 0.99, na.rm = TRUE)
-      w[w > cap] <- cap
-   }
-   w[!is.finite(w)] <- 0
-   df$w <- w
+   # Censoring model: covariate-dependent only (no arm, no competing risks).
+   # Already Delta_Y * W_hat, uncapped.
+   df$weights <- .dc_cox_weights(df, time_var, status_var, linear_terms)
 
    model_rhs <- paste(c(arm_var, linear_terms), collapse = " + ")
    model_formula <- stats::as.formula(paste("Y_rmst ~", model_rhs))
-   fit_data <- df[df$w > 0, ]
-   fit_wls <- stats::lm(model_formula, data = fit_data, weights = fit_data$w)
+   fit_data <- df[df$weights > 0, ]
+   fit_wls <- stats::lm(model_formula, data = fit_data, weights = fit_data$weights)
    beta <- stats::coef(fit_wls)
    if (!(arm_var %in% names(beta))) stop("Arm coefficient not found in model.", call. = FALSE)
    beta_arm <- beta[arm_var]
 
+   # Simplified sandwich A^-1 B A^-1 with the IPCW weights treated as fixed, as
+   # in the linear engine: A_n = X'WX / n, B_n = sum_i (x_i w_i r_i)^{ox2} / n.
    X <- stats::model.matrix(model_formula, data = df)
    r <- df$Y_rmst - as.numeric(X %*% beta)
-   W <- df$w
+   W <- df$weights
 
    A_hat <- crossprod(X, X * W) / n_pilot
+   A_hat_inv <- tryCatch({
+      solve(A_hat)
+   }, error = function(e) {
+      stop("The design matrix (A_hat) is singular. This can happen with small pilot datasets or perfect separation.", call. = FALSE)
+   })
    meat <- X * (W * r)
    B_hat <- crossprod(meat) / n_pilot
 
-   Ainv <- solve(A_hat)
-   Vn <- Ainv %*% B_hat %*% Ainv
-   var_beta_n1 <- as.numeric(Vn[colnames(X) == arm_var, colnames(X) == arm_var])
+   V_hat_n <- A_hat_inv %*% B_hat %*% t(A_hat_inv)
+
+   # Model-based weighted-least-squares variance, sigma^2 A^{-1}, on the same
+   # n = 1 scale. This is what summary(fit_wls) reports and what the WLS t-test
+   # uses for its rejection threshold. It is not consistent for the sampling
+   # variability of beta_hat here, because IPCW weights are sampling weights and
+   # not inverse-variance weights, but the planned analysis may still use it.
+   V_model_n <- summary(fit_wls)$sigma^2 * A_hat_inv
 
    list(df = df, fit_data = fit_data, fit_wls = fit_wls,
         n_pilot = n_pilot, beta_effect = beta_arm,
-        A_hat = A_hat, B_hat = B_hat, V_hat_n = Vn,
-        se_beta_n1 = sqrt(var_beta_n1),
-        weight_cap = cap)
+        A_hat = A_hat, B_hat = B_hat, V_hat_n = V_hat_n, V_model_n = V_model_n,
+        se_beta_n1 = sqrt(V_hat_n[arm_var, arm_var]),
+        se_beta_model_n1 = sqrt(V_model_n[arm_var, arm_var]))
 }
 
 #' Model-output summary for the DC-IPCW engine
+#'
+#' The coefficient table follows the selected test: the weighted-least-squares
+#' t-table that `summary(fit_wls)` reports under `"wls"`, robust sandwich
+#' z-tests under `"sandwich"`.
 #' @noRd
-.dc_model_output <- function(est, arm_var) {
-   cs <- summary(est$fit_wls)$coefficients
-   coef_tbl <- data.frame(
-      term      = rownames(cs),
-      estimate  = cs[, 1L],
-      std_error = cs[, 2L],
-      ci_lower  = cs[, 1L] - 1.96 * cs[, 2L],
-      ci_upper  = cs[, 1L] + 1.96 * cs[, 2L],
-      test_stat = cs[, 3L],
-      p_value   = cs[, 4L],
-      row.names = NULL,
-      stringsAsFactors = FALSE
-   )
-   se_arm_pilot <- est$se_beta_n1 / sqrt(est$n_pilot)
+.dc_model_output <- function(est, arm_var, test = c("wls", "sandwich")) {
+   test <- match.arg(test)
+   if (test == "wls") {
+      cs <- summary(est$fit_wls)$coefficients
+      coef_tbl <- data.frame(
+         term      = rownames(cs),
+         estimate  = cs[, 1L],
+         std_error = cs[, 2L],
+         ci_lower  = cs[, 1L] - 1.96 * cs[, 2L],
+         ci_upper  = cs[, 1L] + 1.96 * cs[, 2L],
+         test_stat = cs[, 3L],
+         p_value   = cs[, 4L],
+         row.names = NULL,
+         stringsAsFactors = FALSE
+      )
+   } else {
+      beta_all <- stats::coef(est$fit_wls)
+      se_all <- sqrt(diag(est$V_hat_n) / est$n_pilot)
+      z_vals <- as.numeric(beta_all) / se_all
+      p_vals <- 2 * stats::pnorm(-abs(z_vals))
+      coef_tbl <- data.frame(
+         term      = names(beta_all),
+         estimate  = as.numeric(beta_all),
+         std_error = se_all,
+         ci_lower  = as.numeric(beta_all) - 1.96 * se_all,
+         ci_upper  = as.numeric(beta_all) + 1.96 * se_all,
+         test_stat = z_vals,
+         p_value   = p_vals,
+         row.names = NULL,
+         stringsAsFactors = FALSE
+      )
+   }
+   se_beta_n1 <- if (test == "wls") est$se_beta_model_n1 else est$se_beta_n1
+   se_arm_pilot <- unname(se_beta_n1 / sqrt(est$n_pilot))
    trt_eff <- data.frame(
       estimand  = "RMST Difference (DC-IPCW)",
       estimate  = est$beta_effect,
@@ -721,25 +777,25 @@
    arms <- sort(unique(est$df[[arm_var]]))
    arm_rmst <- do.call(rbind, lapply(arms, function(a) {
       idx <- est$df[[arm_var]] == a
-      w_a <- est$df$w[idx]
+      w_a <- est$df$weights[idx]
       y_a <- est$df$Y_rmst[idx]
       mu  <- if (sum(w_a) > 0) stats::weighted.mean(y_a, w_a) else mean(y_a)
       data.frame(arm = a, rmst_estimate = mu, std_error = NA_real_,
                  ci_lower = NA_real_, ci_upper = NA_real_,
                  scale = "original", stringsAsFactors = FALSE)
    }))
-   capped_frac <- if (is.finite(est$weight_cap))
-      mean(est$df$w[est$df$w > 0] >= est$weight_cap, na.rm = TRUE) else NA_real_
    list(
       coefficient_table   = coef_tbl,
       treatment_effect    = trt_eff,
       arm_specific_rmst   = arm_rmst,
       variance_components = list(A_hat = est$A_hat, B_hat = est$B_hat,
-                                 V_hat_n = est$V_hat_n, se_effect_n1 = est$se_beta_n1),
+                                 V_hat_n = est$V_hat_n, V_model_n = est$V_model_n,
+                                 se_effect_n1 = se_beta_n1,
+                                 se_effect_sandwich_n1 = est$se_beta_n1,
+                                 se_effect_wls_n1 = est$se_beta_model_n1,
+                                 test = test),
       censoring_weights   = list(
-         raw_summary     = stats::quantile(est$df$w, c(0, .25, .5, .75, .99, 1), na.rm = TRUE),
-         cap_value       = est$weight_cap,
-         capped_fraction = capped_frac),
+         raw_summary = stats::quantile(est$df$weights, c(0, .25, .5, .75, .99, 1), na.rm = TRUE)),
       diagnostics         = list(n_used = nrow(est$fit_data), n_events = sum(est$df$is_event),
                                  n_complete = sum(est$df$is_complete),
                                  convergence_ok = TRUE, singular_flag = FALSE),
@@ -749,19 +805,27 @@
 
 # --- Jackknife pseudo-observations (shared by the bootstrap engines) ----------
 
+#' Area under a Kaplan-Meier step function from 0 to L
+#'
+#' Computed exactly as a sum of rectangles. Numerical quadrature is not good
+#' enough here: the jackknife multiplies any error in this integral by n, so
+#' the relative tolerance of stats::integrate() became a pseudo-observation
+#' error of several percent of their spread at bootstrap sample sizes.
+#' @noRd
+.km_rmst <- function(km_fit, L) {
+   before_L <- km_fit$time < L
+   sum(c(1, km_fit$surv[before_L]) * diff(c(0, km_fit$time[before_L], L)))
+}
+
 #' Leave-one-out jackknife pseudo-observations for the RMST at L
 #' @noRd
 .rmst_jackknife_pseudo_obs <- function(time, status, L) {
    n <- length(time)
    if (n == 0) return(numeric(0))
-   km_fit_full <- survival::survfit(survival::Surv(time, status) ~ 1)
-   km_step_full <- stats::stepfun(km_fit_full$time, c(1, km_fit_full$surv))
-   rmst_full <- tryCatch(stats::integrate(km_step_full, 0, L, subdivisions = 2000, stop.on.error = FALSE)$value, error = function(e) 0)
+   rmst_full <- .km_rmst(survival::survfit(survival::Surv(time, status) ~ 1), L)
    rmst_loo <- vapply(seq_len(n), function(i) {
       if (n > 1) {
-         km_fit_loo <- survival::survfit(survival::Surv(time[-i], status[-i]) ~ 1)
-         km_step_loo <- stats::stepfun(km_fit_loo$time, c(1, km_fit_loo$surv))
-         tryCatch(stats::integrate(km_step_loo, 0, L, subdivisions = 2000, stop.on.error = FALSE)$value, error = function(e) 0)
+         .km_rmst(survival::survfit(survival::Surv(time[-i], status[-i]) ~ 1), L)
       } else { 0 }
    }, FUN.VALUE = numeric(1))
    n * rmst_full - (n - 1) * rmst_loo

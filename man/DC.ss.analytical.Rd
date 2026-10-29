@@ -16,7 +16,8 @@ DC.ss.analytical(
   n_start = 50,
   n_step = 25,
   max_n_per_arm = 2000,
-  verbose = FALSE
+  verbose = FALSE,
+  test = c("wls", "sandwich")
 )
 }
 \arguments{
@@ -43,6 +44,10 @@ DC.ss.analytical(
 \item{max_n_per_arm}{The maximum sample size \emph{per arm} to search.}
 
 \item{verbose}{Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.}
+
+\item{test}{Which test the required sample size refers to. \code{"wls"} (default)
+is the weighted least-squares t-test; \code{"sandwich"} is the robust sandwich Wald
+test. See \code{DC.power.analytical}.}
 }
 \value{
 A \code{list} with:
@@ -59,8 +64,8 @@ Uses a single censoring Cox model \code{Surv(time, status==0) ~ linear_terms} to
 IPCW weights \eqn{\Delta_i^Y/\hat G(Y_i\mid X_i)} and fits a weighted RMST regression
 among subjects whose truncated RMST outcome is observed. Treatment is excluded from
 the censoring model by default. Competing risks are not modeled. Variance ignores
-uncertainty in \eqn{\hat G}. As in \code{DC.power.analytical}, the IPCW
-weights are capped at their 99th percentile for numerical stability.
+uncertainty in \eqn{\hat G}. It uses the same uncapped IPCW weights, sandwich
+sampling variance, and \code{test} argument as \code{DC.power.analytical}.
 
 Note: This implementation models a single censoring process and does not
 handle competing risks.

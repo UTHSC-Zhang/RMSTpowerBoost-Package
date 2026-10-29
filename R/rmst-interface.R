@@ -102,16 +102,18 @@
 #' Add `test` to an argument list, but only for the engines that accept it
 #'
 #' `test` is left NULL by default in rmst.power()/rmst.ss() rather than given a
-#' concrete default, because the engine defaults differ: the linear engine
-#' defaults to "wls" (matching linear.power.boot), the multiplicative engine to
-#' "sandwich". A default here would silently override whichever one applies.
+#' concrete default, because the engine defaults differ: the linear and
+#' dependent-censoring engines default to "wls" (the linear one matching
+#' linear.power.boot), the multiplicative engine to "sandwich". A default here
+#' would silently override whichever one applies.
 #' @noRd
 .apply_test_arg <- function(base, route, test) {
   if (is.null(test)) return(base)
-  accepts <- route$model %in% c("linear", "multiplicative") &&
+  accepts <- route$model %in% c("linear", "multiplicative", "DC") &&
              route$method_used == "analytical"
   if (!accepts) {
-    message("`test` applies only to the linear and multiplicative analytical engines; ignoring it for the ",
+    message("`test` applies only to the linear, multiplicative and dependent-censoring ",
+            "analytical engines; ignoring it for the ",
             route$model, " ", route$method_used, " engine.")
     return(base)
   }
@@ -230,11 +232,12 @@
 #'   Default \code{FALSE}.
 #' @param test Which hypothesis test the reported power refers to: \code{"wls"} for
 #'   the weighted least-squares t-test or \code{"sandwich"} for the robust sandwich
-#'   Wald test. Only the linear and multiplicative analytical engines accept it, and
-#'   a message is emitted if it is supplied for any other. Default \code{NULL}, which
-#'   leaves each engine on its own default (\code{"wls"} for linear,
-#'   \code{"sandwich"} for multiplicative). See \code{\link{linear.power.analytical}}
-#'   and \code{\link{MS.power.analytical}}.
+#'   Wald test. Only the linear, multiplicative and dependent-censoring analytical
+#'   engines accept it, and a message is emitted if it is supplied for any other.
+#'   Default \code{NULL}, which leaves each engine on its own default (\code{"wls"}
+#'   for linear and dependent censoring, \code{"sandwich"} for multiplicative). See
+#'   \code{\link{linear.power.analytical}}, \code{\link{MS.power.analytical}} and
+#'   \code{\link{DC.power.analytical}}.
 #'
 #' @return An object of class \code{c("rmst_power", "list")} with elements
 #'   \code{results_data}, \code{results_plot}, \code{results_summary},
@@ -338,11 +341,12 @@ rmst.power <- function(formula,
 #' @param verbose Logical; if \code{TRUE}, emit progress messages from the underlying calculation.
 #'   Default \code{FALSE}.
 #' @param test Which hypothesis test the required sample size refers to: \code{"wls"}
-#'   or \code{"sandwich"}. Only the linear and multiplicative analytical engines
-#'   accept it, and a message is emitted if it is supplied for any other. Default
-#'   \code{NULL}, which leaves each engine on its own default (\code{"wls"} for
-#'   linear, \code{"sandwich"} for multiplicative). See
-#'   \code{\link{linear.ss.analytical}} and \code{\link{MS.ss.analytical}}.
+#'   or \code{"sandwich"}. Only the linear, multiplicative and dependent-censoring
+#'   analytical engines accept it, and a message is emitted if it is supplied for
+#'   any other. Default \code{NULL}, which leaves each engine on its own default
+#'   (\code{"wls"} for linear and dependent censoring, \code{"sandwich"} for
+#'   multiplicative). See \code{\link{linear.ss.analytical}},
+#'   \code{\link{MS.ss.analytical}} and \code{\link{DC.ss.analytical}}.
 #'
 #' @return An object of class \code{c("rmst_ss", "list")} with elements
 #'   \code{results_data}, \code{results_plot}, \code{results_summary},
@@ -648,12 +652,6 @@ summary.rmst_ss <- function(object, ...) {
       cat("  Distribution:\n")
       print(round(cw$raw_summary, 4L))
     }
-    if (!is.null(cw$cap_value))
-      cat("  Cap value       :",
-          if (is.na(cw$cap_value)) "none (uncapped)" else round(cw$cap_value, 4L),
-          "\n")
-    if (!is.null(cw$capped_fraction) && !is.na(cw$capped_fraction))
-      cat("  Capped fraction :", round(cw$capped_fraction, 4L), "\n")
   }
 
   if (!is.null(x$diagnostics)) {

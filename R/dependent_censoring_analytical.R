@@ -11,12 +11,42 @@
 #' using \code{Surv(time, status==0) ~ linear\_terms}, then forms inverse-probability-of-censoring
 #' weights (IPCW) \eqn{w_i = \Delta_i^Y/\hat G(Y_i\mid X_i)} evaluated at
 #' \eqn{Y_i=\min(T_i,L)}, where \eqn{\Delta_i^Y=1} if the event is observed before
-#' \eqn{L} or follow-up reaches \eqn{L}. For numerical stability the weights are
-#' capped at their 99th percentile; the cap value and the fraction of weights
-#' affected are reported in \code{model_output$censoring_weights}.
+#' \eqn{L} or follow-up reaches \eqn{L}. The censoring model uses Breslow ties, is fit
+#' on the original follow-up, and is evaluated at each subject's truncated outcome,
+#' with the uncentered baseline hazard paired with an uncentered linear predictor.
+#' The weights are used as fitted, without capping, truncation, or a floor on
+#' \eqn{\hat G}, so that the estimator and its variance reproduce the published
+#' formulas exactly; their distribution is reported in
+#' \code{model_output$censoring_weights$raw_summary}. With no observed censoring the
+#' weights are one and no censoring model is fit.
 #' The RMST regression \eqn{E[Y_i \mid A_i,X_i]} is then fit by weighted least squares,
-#' and power is derived from a sandwich variance that ignores uncertainty from
-#' estimating \eqn{\hat G}.
+#' and the sampling variance of the treatment effect is the sandwich
+#' \eqn{A^{-1}B(A^{-1})'} with the fitted weights treated as fixed, so it ignores
+#' uncertainty from estimating \eqn{\hat G}.
+#'
+#' The `test` argument selects which hypothesis test the reported power refers to,
+#' and this matters because the two candidates do not use the same variance. The
+#' sandwich above is consistent for the sampling variability of the estimator. The
+#' ordinary weighted-least-squares standard error reported by `summary(lm(...))` is
+#' not, because IPCW weights are sampling weights rather than inverse-variance
+#' weights, so it typically runs above the true sampling standard deviation of the
+#' estimate, which pushes the rejection threshold out and costs power.
+#'
+#' With `test = "wls"` (the default) the power refers to the weighted least-squares
+#' t-test that a standard `lm(..., weights = w)` analysis reports, as in
+#' `linear.power.analytical()`. The sampling distribution of the estimate is taken
+#' from the sandwich variance \eqn{\sigma_{SW}} and the rejection threshold from the
+#' WLS standard error \eqn{\sigma_{WLS}}, giving
+#' \deqn{\Phi\left(\frac{|\tau| - z_{1-\alpha/2}\,\sigma_{WLS}}{\sigma_{SW}}\right) +
+#'       \Phi\left(\frac{-|\tau| - z_{1-\alpha/2}\,\sigma_{WLS}}{\sigma_{SW}}\right),}
+#' and \code{model_output$coefficient_table} is the t-table that `summary()`
+#' reports for the weighted fit.
+#'
+#' With `test = "sandwich"` the power refers to the sandwich Wald test, in which one
+#' variance sets both the sampling distribution and the threshold, giving the usual
+#' \eqn{\Phi(|\tau|/\sigma_{SW} - z_{1-\alpha/2})}. That is the more efficient test,
+#' and \code{model_output$coefficient_table} then uses the robust variance. Both
+#' standard errors are always returned in \code{model_output$variance_components}.
 #'
 #' Note: This implementation models a single censoring process and does not
 #' handle competing risks.
@@ -30,6 +60,9 @@
 #' @param L The numeric value for the RMST truncation time.
 #' @param alpha The significance level (Type I error rate).
 #' @param verbose Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.
+#' @param test Which test the reported power refers to. `"wls"` (default) is the
+#'   weighted least-squares t-test. `"sandwich"` is the robust sandwich Wald test.
+#'   See Details.
 #'
 #' @return A `list` with:
 #' \item{results_data}{A data.frame with \code{N_per_Arm} and \code{Power}.}
@@ -47,7 +80,9 @@ DC.power.analytical <- function(pilot_data,
                                 linear_terms = NULL,
                                 L,
                                 alpha = 0.05,
-                                verbose = FALSE) {
+                                verbose = FALSE,
+                                test = c("wls", "sandwich")) {
+   test <- match.arg(test)
 
    # --- 1. Estimate model parameters and sandwich variance from pilot data ---
    est <- .estimate_dc_params(pilot_data, time_var, status_var, arm_var,
@@ -55,8 +90,10 @@ DC.power.analytical <- function(pilot_data,
 
    # --- 2. Power across N ---
    z_alpha <- stats::qnorm(1 - alpha / 2)
+   se_test_n1 <- if (test == "wls") est$se_beta_model_n1 else NULL
    power_values <- sapply(sample_sizes, function(n_per_arm) {
-      .rmst_wald_power(est$beta_effect, est$se_beta_n1, 2 * n_per_arm, z_alpha)
+      .rmst_wald_power(est$beta_effect, est$se_beta_n1, 2 * n_per_arm, z_alpha,
+                       se_test_n1)
    })
 
    results_df <- data.frame(N_per_Arm = sample_sizes, Power = power_values)
@@ -66,7 +103,9 @@ DC.power.analytical <- function(pilot_data,
       ggplot2::geom_point(size = 3) +
       ggplot2::labs(
          title = "Analytic Power: Covariate-Dependent Censoring (IPCW)",
-         subtitle = "Single censoring mechanism; no competing risks.",
+         subtitle = if (test == "wls")
+            "Weighted least-squares t-test; sandwich sampling variance. Single censoring mechanism."
+         else "Sandwich Wald test. Single censoring mechanism; no competing risks.",
          x = "Sample Size Per Arm", y = "Estimated Power"
       ) +
       ggplot2::ylim(0, 1) +
@@ -79,7 +118,7 @@ DC.power.analytical <- function(pilot_data,
 
    list(results_data = results_df, results_plot = p,
         results_summary = results_summary,
-        model_output = .dc_model_output(est, arm_var))
+        model_output = .dc_model_output(est, arm_var, test))
 }
 
 
@@ -95,8 +134,8 @@ DC.power.analytical <- function(pilot_data,
 #' IPCW weights \eqn{\Delta_i^Y/\hat G(Y_i\mid X_i)} and fits a weighted RMST regression
 #' among subjects whose truncated RMST outcome is observed. Treatment is excluded from
 #' the censoring model by default. Competing risks are not modeled. Variance ignores
-#' uncertainty in \eqn{\hat G}. As in \code{DC.power.analytical}, the IPCW
-#' weights are capped at their 99th percentile for numerical stability.
+#' uncertainty in \eqn{\hat G}. It uses the same uncapped IPCW weights, sandwich
+#' sampling variance, and `test` argument as \code{DC.power.analytical}.
 #'
 #' Note: This implementation models a single censoring process and does not
 #' handle competing risks.
@@ -113,6 +152,9 @@ DC.power.analytical <- function(pilot_data,
 #' @param n_step The increment in sample size at each step of the search.
 #' @param max_n_per_arm The maximum sample size *per arm* to search.
 #' @param verbose Logical; if \code{TRUE}, emit progress messages. Default \code{FALSE}.
+#' @param test Which test the required sample size refers to. `"wls"` (default)
+#'   is the weighted least-squares t-test; `"sandwich"` is the robust sandwich Wald
+#'   test. See `DC.power.analytical`.
 #'
 #' @return A `list` with:
 #' \item{results_data}{data.frame with \code{Target_Power} and \code{Required_N_per_Arm}.}
@@ -134,7 +176,9 @@ DC.ss.analytical <- function(pilot_data,
                              n_start = 50,
                              n_step = 25,
                              max_n_per_arm = 2000,
-                             verbose = FALSE) {
+                             verbose = FALSE,
+                             test = c("wls", "sandwich")) {
+   test <- match.arg(test)
 
    # --- One-time estimation identical to DC.power.analytical ---
    est <- .estimate_dc_params(pilot_data, time_var, status_var, arm_var,
@@ -143,7 +187,8 @@ DC.ss.analytical <- function(pilot_data,
    # --- Iterative search ---
    search <- .rmst_analytic_ss_search(est$beta_effect, est$se_beta_n1, 2,
                                       target_power, alpha, n_start, n_step,
-                                      max_n_per_arm, "/arm", verbose)
+                                      max_n_per_arm, "/arm", verbose,
+                                      if (test == "wls") est$se_beta_model_n1 else NULL)
    final_n <- search$final_n
 
    results_df <- data.frame(Target_Power = target_power, Required_N_per_Arm = final_n)
@@ -169,5 +214,5 @@ DC.ss.analytical <- function(pilot_data,
 
    list(results_data = results_df, results_plot = p,
         results_summary = results_summary_ss,
-        model_output = .dc_model_output(est, arm_var))
+        model_output = .dc_model_output(est, arm_var, test))
 }

@@ -55,11 +55,12 @@ Default \code{FALSE}.}
 
 \item{test}{Which hypothesis test the reported power refers to: \code{"wls"} for
 the weighted least-squares t-test or \code{"sandwich"} for the robust sandwich
-Wald test. Only the linear and multiplicative analytical engines accept it, and
-a message is emitted if it is supplied for any other. Default \code{NULL}, which
-leaves each engine on its own default (\code{"wls"} for linear,
-\code{"sandwich"} for multiplicative). See \code{\link{linear.power.analytical}}
-and \code{\link{MS.power.analytical}}.}
+Wald test. Only the linear, multiplicative and dependent-censoring analytical
+engines accept it, and a message is emitted if it is supplied for any other.
+Default \code{NULL}, which leaves each engine on its own default (\code{"wls"}
+for linear and dependent censoring, \code{"sandwich"} for multiplicative). See
+\code{\link{linear.power.analytical}}, \code{\link{MS.power.analytical}} and
+\code{\link{DC.power.analytical}}.}
 }
 \value{
 An object of class \code{c("rmst_power", "list")} with elements

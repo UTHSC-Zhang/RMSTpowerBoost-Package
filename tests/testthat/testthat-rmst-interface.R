@@ -440,9 +440,7 @@ test_that("print.summary.rmst_power mock covers all optional output sections", {
         V_hat_n      = matrix(1, 1L, 1L)
       ),
       censoring_weights = list(
-        raw_summary     = stats::quantile(c(0.5, 0.8, 1.0), c(0.25, 0.5, 0.75)),
-        cap_value       = 2.0,
-        capped_fraction = 0.05
+        raw_summary = stats::quantile(c(0.5, 0.8, 1.0), c(0.25, 0.5, 0.75))
       ),
       diagnostics = list(n_used = 100L, n_events = 75L, n_sim = 10L,
                          convergence_ok = TRUE, singular_flag = FALSE),

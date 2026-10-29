@@ -64,11 +64,20 @@ and recording whether the treatment effect is significant. If \code{strata_var}
 is supplied, resampling is carried out within strata and the model includes
 stratum-specific intercepts with a common treatment effect (the same
 single-effect hypothesis tested by the analytical stratified models). The
-model formula can include linear terms and non-linear smooth terms (\code{s()}).
+stratification variable is treated as a factor, so a numeric stratum code
+still gives one intercept per stratum rather than a single slope. The model
+formula can include linear terms and non-linear smooth terms (\code{s()}).
+
+The jackknife pseudo-observations are computed from the Kaplan-Meier curve
+within each arm (within each stratum when \code{strata_var} is supplied), with the
+area under the curve up to \code{L} computed exactly as a sum of rectangles.
 
 Power is estimated as the proportion of simulations with a treatment-effect
-p-value below \code{alpha}. This pseudo-observation approach models RMST directly
-without using the IPCW estimating equations used elsewhere in the package.
+p-value below \code{alpha}. The treatment effect is the coefficient of \code{arm_var}
+coded as a 0/1 factor, selected by its exact name, so a covariate whose name
+begins with the arm variable's name is never mistaken for it. This
+pseudo-observation approach models RMST directly without using the IPCW
+estimating equations used elsewhere in the package.
 }
 \note{
 \code{status_var} should be \code{1} for an event, \code{0} for censored. \code{arm_var}

@@ -72,7 +72,9 @@ using a flexible, semiparametric additive model for the RMST.
 \details{
 This function increases the sample size step by step until the estimated
 power reaches \code{target_power} or a stopping rule is met. At each step it runs
-the same bootstrap procedure described in \code{GAM.power.boot}.
+the same bootstrap procedure described in \code{GAM.power.boot}, including the
+factor treatment of \code{strata_var}, the exact pseudo-observations, and the
+exact selection of the treatment coefficient.
 }
 \note{
 This function's methodology is bootstrap-based.

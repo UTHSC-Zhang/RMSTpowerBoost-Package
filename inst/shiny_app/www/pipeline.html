@@ -153,7 +153,8 @@
   <p class="pb-p">
     Once data exist, the “Model & Analysis” panel becomes available. First map the required columns:
     <strong>Time-to-Event</strong>, <strong>Status</strong>, and <strong>Treatment Arm</strong>. Some models require additional inputs:
-    stratified models need a <strong>Stratification Variable</strong>; dependent censoring needs covariates for the censoring Cox model.
+    stratified models need a <strong>Stratification Variable</strong>; dependent censoring needs covariates for the censoring Cox model;
+    the GAM model optionally takes smooth and linear covariates.
   </p>
 
   <div class="pb-mini-table-wrap">
@@ -184,13 +185,13 @@
         </tr>
         <tr>
           <td><strong>Semiparametric (GAM) Model</strong></td>
-          <td>nonlinear covariate effects are plausible and you want flexible adjustment</td>
-          <td>none</td>
+          <td>nonlinear covariate effects are plausible and you want flexible adjustment (Repeated method only)</td>
+          <td>optional <em>smooth</em> and <em>linear covariates</em></td>
         </tr>
         <tr>
           <td><strong>Dependent Censoring Model</strong></td>
           <td>censoring may depend on covariates and you want an explicit censoring model</td>
-          <td>choose <em>censoring model covariates</em></td>
+          <td>choose <em>censoring model covariates</em> (also adjusted for in the outcome model)</td>
         </tr>
       </tbody>
     </table>
@@ -219,7 +220,7 @@
     <div>
       <h4 class="pb-h4">Calculation method</h4>
       <ul class="pb-ul">
-        <li><strong>Analytical</strong>: fastest; best for iterative planning and sensitivity analysis.</li>
+        <li><strong>Analytical</strong>: fastest; best for iterative planning and sensitivity analysis. Not available for the GAM model.</li>
         <li><strong>Repeated</strong>: simulation-based; set replications <code>R</code> (≥ 500 recommended) and an optional seed.</li>
       </ul>
     </div>
@@ -229,12 +230,39 @@
     <summary>What “Repeated” does (high level)</summary>
     <div class="pb-details-body">
       <p class="pb-p">
-        For each candidate sample size, the app repeatedly simulates/bootstraps realizations under the pilot-data mechanism,
-        recomputes the test statistic, and estimates power as the rejection proportion at level α.
+        For each candidate sample size, the app resamples the pilot data within each arm, or within each stratum for the
+        stratified models, refits the selected model, and estimates power as the proportion of replicates in which the treatment
+        effect is significant at level α.
       </p>
+      <ul class="pb-ul">
+        <li><strong>Linear IPCW</strong> and <strong>Dependent Censoring</strong>: each replicate fits an IPCW-weighted RMST
+          regression and records the weighted least-squares t-test. Censoring weights come from a Cox model with treatment as the
+          predictor. For the Dependent Censoring Model they come from the chosen censoring covariates instead, without treatment,
+          and those covariates also enter the outcome model. Weights are used as fitted, with no cap.</li>
+        <li><strong>Multiplicative Stratified</strong>: runs the package's engine (<code>MS.power.boot()</code> /
+          <code>MS.ss.boot()</code>), which regresses the log of jackknife RMST pseudo-observations on treatment with stratum
+          intercepts.</li>
+        <li><strong>Additive Stratified</strong> and <strong>Semiparametric (GAM)</strong>: run the package's pseudo-observation
+          engine (<code>GAM.power.boot()</code> / <code>GAM.ss.boot()</code>), fitted with <code>mgcv::gam</code>. The additive
+          model has no dedicated resampling engine, so it uses this one with stratum intercepts, as <code>rmst.power()</code> does.</li>
+        <li>For the stratified models, <code>N</code> is the sample size per stratum, as in the analytical stratified engines.</li>
+      </ul>
       <ul class="pb-ul">
         <li>Higher <code>R</code> reduces Monte Carlo error (but increases runtime).</li>
         <li>Use a seed when you want reproducibility across runs or reports.</li>
+      </ul>
+    </div>
+  </details>
+
+  <details class="pb-details">
+    <summary>Which test the Analytical power refers to</summary>
+    <div class="pb-details-body">
+      <ul class="pb-ul">
+        <li><strong>Linear IPCW</strong> and <strong>Dependent Censoring</strong>: the weighted least-squares t-test that a standard
+          weighted <code>lm()</code> analysis reports, with the estimate's sampling variance taken from the sandwich. The Repeated
+          method simulates this same test, so the two should agree within Monte Carlo error.</li>
+        <li><strong>Multiplicative Stratified</strong>: the robust sandwich Wald test.</li>
+        <li><strong>Additive Stratified</strong>: the sandwich Wald test of the closed-form stratum-centered estimator.</li>
       </ul>
     </div>
   </details>
@@ -300,7 +328,9 @@
   <details class="pb-details">
     <summary>Dependent censoring model fails</summary>
     <div class="pb-details-body">
-      <p class="pb-p">Pick covariates for the censoring Cox model. Avoid including treatment; the app excludes it by design.</p>
+      <p class="pb-p">Pick covariates for the censoring Cox model. Avoid including treatment; the app excludes it by design.
+        With no covariates selected, censoring is modeled without predictors. An error saying the censoring model did not converge
+        usually means too few censored subjects, or a covariate that separates them; drop or coarsen that covariate.</p>
     </div>
   </details>
 
@@ -312,7 +342,7 @@
   </details>
 
   <div class="pb-footer-note">
-    Last updated: 2026-02-07. Reset Workflow is available from the left panel.
+    Last updated: 2026-10-28. Reset Workflow is available from the left panel.
   </div>
 </div>
 

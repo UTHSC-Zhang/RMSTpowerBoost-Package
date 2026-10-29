@@ -780,6 +780,10 @@ report_inputs_builder <- function(input) {
     arm_var         = input$arm_var,
     strata_var      = input$strata_var %||% "",
     dc_linear_terms = input$dc_linear_terms %||% character(0),  # added
+    gam_smooth_terms = if (identical(input$model_selection, "Semiparametric (GAM) Model"))
+      input$gam_smooth_terms %||% character(0) else character(0),
+    gam_linear_terms = if (identical(input$model_selection, "Semiparametric (GAM) Model"))
+      input$gam_linear_terms %||% character(0) else character(0),
     calc_method     = input$calc_method %||% "Analytical",
     full_truncation = input$L,
     alpha           = input$alpha,
@@ -1109,39 +1113,115 @@ ui <- fluidPage(
 )
 
 # ------------------ Repeated Power (RMST-based; no 'bootstrap' wording) ------------------
-# Each replicate resamples the pilot data and tests the treatment effect on the
-# L-truncated RMST with an IPCW-weighted linear model: the complete-case
-# indicator is deltaY = 1 if the event occurs before L or follow-up reaches L,
-# and weights are deltaY / G(Y). G is the *conditional* censoring survival from
-# a Cox model with Breslow ties, fitted on the original follow-up and evaluated
-# at each subject's truncated outcome, with treatment as a covariate and the
-# stratum (if any) as a Cox stratum. This matches the package's IPCW
-# methodology; strata also enter the outcome model as fixed effects with a
-# common treatment effect. The weights are used exactly as fitted: capping
-# would break the correspondence with Equations (11)-(12) of Zhang & Schaubel
-# (2024) and compresses the upper tail that IPCW exists to up-weight.
+# Used for the Linear IPCW and Dependent Censoring models. The stratified and
+# GAM models call the package's own resampling engines instead, routed as
+# rmst.power() / rmst.ss() route them (see the server).
+#
+# Each replicate resamples the pilot data within arm and tests the treatment
+# effect on the L-truncated RMST with an IPCW-weighted linear model, recording
+# the weighted-least-squares t-test that lm(..., weights = w) reports. The
+# complete-case indicator is deltaY = 1 if the event occurs before L or
+# follow-up reaches L, and the weights are deltaY / G(Y), with G the
+# *conditional* censoring survival from a Cox model with Breslow ties, fitted on
+# the original follow-up and evaluated at each subject's truncated outcome. The
+# censoring model follows the package engine for the selected model:
+#   * Linear IPCW: treatment as the censoring covariate, as in
+#     linear.power.boot(), so this is that engine's procedure.
+#   * Dependent Censoring: the selected censoring covariates only, without
+#     treatment, as in DC.power.analytical(), with the uncentered baseline hazard
+#     paired with an uncentered linear predictor. The same covariates enter the
+#     outcome model, Y ~ arm + covariates, so the simulated test is the one whose
+#     power DC.power.analytical(test = "wls") predicts.
+# The weights are used exactly as fitted: capping would break the
+# correspondence with Equations (11)-(12) of Zhang & Schaubel (2024) and
+# compresses the upper tail that IPCW exists to up-weight. A replicate whose
+# censoring model fails to converge or yields invalid survival probabilities is
+# skipped rather than rescued, mirroring the package, which treats such fits as
+# errors.
 repeated_power_from_pilot <- function(pilot_df, time_var, status_var, arm_var,
                                       n_per_arm_vec, L, alpha = 0.05, R = 500,
-                                      strata_var = NULL, seed = NULL,
-                                      point_cb = NULL) {
+                                      seed = NULL, point_cb = NULL,
+                                      model = "Linear IPCW Model",
+                                      cens_terms = NULL) {
   stopifnot(is.data.frame(pilot_df), is.numeric(L), length(L) == 1L, L > 0)
+  if (!model %in% c("Linear IPCW Model", "Dependent Censoring Model")) {
+    stop("The app's repeated resampler supports the Linear IPCW and Dependent Censoring models; ",
+         model, " uses the package's own resampling engine.", call. = FALSE)
+  }
   if (!is.null(seed)) set.seed(seed)
-  needed <- c(time_var, status_var, arm_var, strata_var)
-  needed <- needed[!is.null(needed)]
+  dep_cens <- identical(model, "Dependent Censoring Model")
+  # Censoring covariates apply only to the dependent-censoring model; treatment
+  # and the other mapped columns are never among them.
+  cens_terms <- if (dep_cens) {
+    setdiff(unique(as.character(cens_terms)), c(time_var, status_var, arm_var))
+  } else character(0)
+  needed <- c(time_var, status_var, arm_var, cens_terms)
   if (!all(needed %in% names(pilot_df))) stop("Required columns not found in pilot data.")
-  df <- pilot_df[, unique(c(time_var, status_var, arm_var, strata_var)), drop = FALSE]
+  df <- pilot_df[, unique(c(time_var, status_var, arm_var)), drop = FALSE]
   names(df)[match(c(time_var, status_var, arm_var), names(df))] <- c("time","status","arm")
+  # Covariates get internal syntactic names so that any column name works in a
+  # formula and none can collide with time/status/arm/Y/deltaY.
+  cov_names <- if (length(cens_terms)) paste0("cov__", seq_along(cens_terms)) else character(0)
+  for (k in seq_along(cens_terms)) {
+    x <- pilot_df[[cens_terms[k]]]
+    df[[cov_names[k]]] <- if (is.character(x)) factor(x) else x
+  }
+  if (length(cov_names)) {
+    # Complete cases on the censoring covariates, as the package engine filters.
+    df <- df[stats::complete.cases(df[, cov_names, drop = FALSE]), , drop = FALSE]
+  }
   df$arm <- as.factor(df$arm)
   if (nlevels(df$arm) != 2L) stop("Repeated method currently expects exactly 2 arms.")
+  split_by <- split(df, df$arm, drop = TRUE)
 
-  if (!is.null(strata_var)) {
-    names(df)[names(df) == strata_var] <- "stratum"
-    df$stratum <- as.factor(df$stratum)
-    split_stratum <- split(df, df$stratum, drop = TRUE)
-    split_by <- lapply(split_stratum, function(d) split(d, d$arm, drop = TRUE))
-  } else {
-    split_by <- split(df, df$arm, drop = TRUE)
+  # Cox censoring fit with Breslow ties; NULL when it errors or fails to
+  # converge (the package raises an error for both). Other warnings are muffled
+  # so that a long run does not flood the console.
+  fit_censoring_cox <- function(fml, dat) {
+    tryCatch(
+      withCallingHandlers(
+        coxph(fml, data = dat, ties = "breslow"),
+        warning = function(w) {
+          if (grepl("did not converge|ran out of iterations|infinite",
+                    conditionMessage(w), ignore.case = TRUE)) {
+            stop(conditionMessage(w), call. = FALSE)
+          }
+          invokeRestart("muffleWarning")
+        }
+      ),
+      error = function(e) NULL
+    )
   }
+
+  # Treatment-only censoring model, evaluated with predict(), which keeps the
+  # baseline and linear-predictor centering consistent.
+  ipcw_censoring_survival <- function(dat) {
+    fit <- fit_censoring_cox(Surv(time, status == 0) ~ arm, dat)
+    if (is.null(fit)) return(NULL)
+    newdata <- dat
+    newdata$time <- newdata$Y
+    tryCatch(as.numeric(stats::predict(fit, newdata = newdata, type = "survival")),
+             error = function(e) NULL)
+  }
+
+  # Covariate-only censoring model for dependent censoring: uncentered baseline
+  # hazard at each subject's horizon, paired with an uncentered linear predictor.
+  dc_censoring_survival <- function(dat) {
+    rhs <- if (length(cov_names)) paste(cov_names, collapse = " + ") else "1"
+    fit <- fit_censoring_cox(stats::as.formula(paste("Surv(time, status == 0) ~", rhs)), dat)
+    if (is.null(fit)) return(NULL)
+    bh <- tryCatch(survival::basehaz(fit, centered = FALSE), error = function(e) NULL)
+    if (is.null(bh) || !nrow(bh)) return(NULL)
+    H <- stats::stepfun(bh$time, c(0, bh$hazard))(dat$Y)
+    lp <- if (length(cov_names)) {
+      tryCatch(as.numeric(stats::predict(fit, newdata = dat, type = "lp", reference = "zero")),
+               error = function(e) NULL)
+    } else 0
+    if (is.null(lp)) return(NULL)
+    exp(-H * exp(lp))
+  }
+
+  outcome_rhs <- paste(c("arm", cov_names), collapse = " + ")
 
   rmst_test_p <- function(dat) {
     dat$Y <- pmin(dat$time, L)
@@ -1150,18 +1230,7 @@ repeated_power_from_pilot <- function(pilot_df, time_var, status_var, arm_var,
       # With no observed censoring, G is identically one and no Cox fit is needed.
       G <- rep(1, nrow(dat))
     } else {
-      cens_fml <- if ("stratum" %in% names(dat))
-        Surv(time, status == 0) ~ arm + strata(stratum)
-      else Surv(time, status == 0) ~ arm
-      cens_fit <- tryCatch(coxph(cens_fml, data = dat, ties = "breslow"),
-                           error = function(e) NULL)
-      if (is.null(cens_fit)) return(NA_real_)
-      # Fit on original follow-up; evaluate each subject at their RMST horizon.
-      newdata <- dat
-      newdata$time <- newdata$Y
-      G <- tryCatch(as.numeric(stats::predict(cens_fit, newdata = newdata,
-                                              type = "survival")),
-                    error = function(e) NULL)
+      G <- if (dep_cens) dc_censoring_survival(dat) else ipcw_censoring_survival(dat)
       # A degenerate censoring fit is skipped rather than rescued by a cap.
       if (is.null(G) || length(G) != nrow(dat) ||
           any(!is.finite(G) | G <= 0 | G > 1)) return(NA_real_)
@@ -1169,34 +1238,24 @@ repeated_power_from_pilot <- function(pilot_df, time_var, status_var, arm_var,
     w <- dat$deltaY / G
     w[!is.finite(w)] <- 0
     pos <- w > 0
-    if (sum(pos) < 4L) return(NA_real_)
-    fml <- if ("stratum" %in% names(dat)) Y ~ arm + stratum else Y ~ arm
+    if (sum(pos) < 4L + length(cov_names)) return(NA_real_)
+    fml <- stats::as.formula(paste("Y ~", outcome_rhs))
     fit <- tryCatch(stats::lm(fml, data = dat[pos, , drop = FALSE], weights = w[pos]),
                     error = function(e) NULL)
     if (is.null(fit)) return(NA_real_)
     cf <- summary(fit)$coefficients
-    arm_row <- grep("^arm", rownames(cf))[1]
-    if (is.na(arm_row)) return(NA_real_)
-    cf[arm_row, "Pr(>|t|)"]
+    # The treatment coefficient, named exactly (e.g. "arm1").
+    arm_term <- paste0("arm", levels(dat$arm)[2])
+    if (!arm_term %in% rownames(cf)) return(NA_real_)
+    cf[arm_term, "Pr(>|t|)"]
   }
 
   out <- lapply(n_per_arm_vec, function(n_arm){
     rej <- rep(NA, R)
     for (r in seq_len(R)) {
-      if (is.null(strata_var)) {
-        s0 <- split_by[[1]][sample.int(nrow(split_by[[1]]), n_arm, replace = TRUE), , drop = FALSE]
-        s1 <- split_by[[2]][sample.int(nrow(split_by[[2]]), n_arm, replace = TRUE), , drop = FALSE]
-        dat <- rbind(s0, s1)
-      } else {
-        blocks <- lapply(split_by, function(by_arm) {
-          a0 <- by_arm[[1]]; a1 <- by_arm[[2]]
-          s0 <- a0[sample.int(nrow(a0), n_arm, replace = TRUE), , drop = FALSE]
-          s1 <- a1[sample.int(nrow(a1), n_arm, replace = TRUE), , drop = FALSE]
-          rbind(s0, s1)
-        })
-        dat <- do.call(rbind, blocks)
-        dat$stratum <- factor(dat$stratum)
-      }
+      s0 <- split_by[[1]][sample.int(nrow(split_by[[1]]), n_arm, replace = TRUE), , drop = FALSE]
+      s1 <- split_by[[2]][sample.int(nrow(split_by[[2]]), n_arm, replace = TRUE), , drop = FALSE]
+      dat <- rbind(s0, s1)
       dat$arm <- factor(dat$arm)
       p <- rmst_test_p(dat)
       rej[r] <- if (is.finite(p)) (p < alpha) else NA
@@ -1651,6 +1710,16 @@ server <- function(input, output, session) {
   observe({
     shinyjs::toggleState("run_analysis", condition = isTRUE(analysis_checklist()$ready))
   })
+
+  # The package's GAM engine is simulation-only (GAM.power.boot / GAM.ss.boot).
+  observeEvent(list(input$model_selection, input$calc_method), {
+    if (identical(input$model_selection, "Semiparametric (GAM) Model") &&
+        identical(input$calc_method, "Analytical")) {
+      updateRadioButtons(session, "calc_method", selected = "Repeated")
+      showNotification("The Semiparametric (GAM) Model is available with the Repeated method only.",
+                       type = "message", duration = 6)
+    }
+  }, ignoreInit = TRUE)
   
   observe({
     ready_for_run <- !is.null(rv$data_df) && nrow(rv$data_df) > 0 &&
@@ -2300,6 +2369,7 @@ server <- function(input, output, session) {
     # Which models need extra fields?
     needs_strata <- (input$model_selection %in% c("Additive Stratified Model", "Multiplicative Stratified Model"))
     needs_dep    <- (input$model_selection %in% c("Dependent Censoring Model"))
+    needs_gam    <- (input$model_selection %in% c("Semiparametric (GAM) Model"))
     
     # Safe defaults for the core mappings
     default_time   <- if ("time"   %in% cn) "time"   else cn[1]
@@ -2367,9 +2437,52 @@ server <- function(input, output, session) {
               multiple = TRUE,
               options  = list(placeholder = "Choose 0+ covariates")
             ),
-            helpText("Censoring model: Surv(time, status == 0) ~ <selected terms>. Treatment is excluded.")
+            helpText("Censoring model: Surv(time, status == 0) ~ <selected terms>. Treatment is excluded. ",
+                     "The same terms enter the RMST outcome model alongside treatment.")
           )
         })
+      },
+
+      # Semiparametric (GAM): optional smooth and linear covariates
+      if (needs_gam) {
+        cand_gam <- setdiff(
+          cn,
+          unique(na.omit(c(input$time_var, input$status_var, input$arm_var)))
+        )
+        # s() needs a numeric covariate with enough distinct values for its basis.
+        cand_smooth <- cand_gam[vapply(cand_gam, function(v) {
+          x <- df[[v]]
+          is.numeric(x) && length(unique(stats::na.omit(x))) >= 10L
+        }, logical(1))]
+        fluidRow(
+          column(
+            6,
+            selectizeInput(
+              "gam_smooth_terms",
+              "Smooth covariates, s(x)",
+              choices  = cand_smooth,
+              selected = NULL,
+              multiple = TRUE,
+              options  = list(placeholder = "Choose 0+ numeric covariates")
+            )
+          ),
+          column(
+            6,
+            selectizeInput(
+              "gam_linear_terms",
+              "Linear covariates",
+              choices  = cand_gam,
+              selected = NULL,
+              multiple = TRUE,
+              options  = list(placeholder = "Choose 0+ covariates")
+            )
+          ),
+          column(
+            12,
+            helpText("Model: RMST pseudo-observations ~ treatment + s(smooth terms) + linear terms, fitted with mgcv::gam. ",
+                     "Available with the Repeated method only.")
+          )
+        )
       }
     )
   })
@@ -2833,16 +2946,121 @@ server <- function(input, output, session) {
         }
         
         
-        if (input$calc_method == "Repeated") {
+        pkg_repeated_models <- c("Semiparametric (GAM) Model", "Additive Stratified Model",
+                                 "Multiplicative Stratified Model")
+        if (input$calc_method == "Repeated" && input$model_selection %in% pkg_repeated_models) {
+          # ----- Pseudo-observation models: the package's own resampling engines -----
+          # Routed as rmst.power() / rmst.ss() route them: the multiplicative model
+          # to MS.*.boot(), the GAM model to GAM.*.boot(), and the additive
+          # stratified model, which has no dedicated engine, to GAM.*.boot() with
+          # strata. Stratified sample sizes are per stratum, as in the analytical
+          # stratified engines.
+          R <- input$R_reps %||% 500
+          is_ms  <- identical(input$model_selection, "Multiplicative Stratified Model")
+          is_gam <- identical(input$model_selection, "Semiparametric (GAM) Model")
+          pkg_strata <- if (is_gam) NULL else resolved_strata_var
+          gam_smooth <- if (is_gam) input$gam_smooth_terms %||% character(0) else character(0)
+          gam_linear <- if (is_gam) setdiff(input$gam_linear_terms %||% character(0), gam_smooth) else character(0)
+          if (!length(gam_smooth)) gam_smooth <- NULL
+          if (!length(gam_linear)) gam_linear <- NULL
+          cat(sprintf("Repeated method (package %s pseudo-observation engine): R=%d%s%s.\n",
+                      if (is_ms) "MS" else "GAM", R,
+                      if (!is.null(pkg_strata)) sprintf("; strata: %s", pkg_strata) else "",
+                      if (is_gam) sprintf("; smooth terms: %s; linear terms: %s",
+                                          paste(gam_smooth %||% "none", collapse = ", "),
+                                          paste(gam_linear %||% "none", collapse = ", ")) else ""))
+          if (identical(input$model_selection, "Additive Stratified Model")) {
+            cat("The additive stratified model has no dedicated resampling engine; using the GAM engine with strata, as rmst.power() does.\n")
+          }
+          # Both engines run sequentially here and draw from the seed set now
+          # (the GAM engine through future.apply with future.seed = TRUE).
+          set.seed(reps_seed)
+          log_warning <- function(w) {
+            cat("Warning:", conditionMessage(w), "\n")
+            invokeRestart("muffleWarning")
+          }
+          pkg_fit <- withCallingHandlers({
+            if (is_ms && input$analysis_type == "Power") {
+              RMSTpowerBoost::MS.power.boot(
+                pilot_data   = pilot_data_clean,
+                time_var     = resolved_time_var,
+                status_var   = resolved_status_var,
+                arm_var      = resolved_arm_var,
+                strata_var   = pkg_strata,
+                sample_sizes = as.integer(round(n_vec)),
+                L            = input$L,
+                n_sim        = R,
+                alpha        = input$alpha
+              )
+            } else if (is_ms) {
+              RMSTpowerBoost::MS.ss.boot(
+                pilot_data    = pilot_data_clean,
+                time_var      = resolved_time_var,
+                status_var    = resolved_status_var,
+                arm_var       = resolved_arm_var,
+                strata_var    = pkg_strata,
+                target_power  = target_power_input,
+                L             = input$L,
+                n_sim         = R,
+                alpha         = input$alpha,
+                n_start       = 50,
+                n_step        = 25,
+                max_n_per_arm = 1000
+              )
+            } else if (input$analysis_type == "Power") {
+              RMSTpowerBoost::GAM.power.boot(
+                pilot_data   = pilot_data_clean,
+                time_var     = resolved_time_var,
+                status_var   = resolved_status_var,
+                arm_var      = resolved_arm_var,
+                strata_var   = pkg_strata,
+                sample_sizes = as.integer(round(n_vec)),
+                linear_terms = gam_linear,
+                smooth_terms = gam_smooth,
+                L            = input$L,
+                n_sim        = R,
+                alpha        = input$alpha
+              )
+            } else {
+              RMSTpowerBoost::GAM.ss.boot(
+                pilot_data    = pilot_data_clean,
+                time_var      = resolved_time_var,
+                status_var    = resolved_status_var,
+                arm_var       = resolved_arm_var,
+                strata_var    = pkg_strata,
+                target_power  = target_power_input,
+                linear_terms  = gam_linear,
+                smooth_terms  = gam_smooth,
+                L             = input$L,
+                n_sim         = R,
+                alpha         = input$alpha,
+                n_start       = 50,
+                n_step        = 25,
+                max_n_per_arm = 1000
+              )
+            }
+          }, warning = log_warning)
+          results_plot <- pkg_fit$results_plot
+          results_data <- pkg_fit$results_data
+          # The engines return all points at once; stream them to the live plot.
+          path_df <- if (input$analysis_type == "Power") results_data else pkg_fit$results_plot$data
+          n_col_live <- if (is.data.frame(path_df)) intersect(c("N_per_Stratum", "N_per_Group"), names(path_df)) else character(0)
+          if (length(n_col_live) && "Power" %in% names(path_df)) {
+            for (i in seq_len(nrow(path_df))) {
+              try(point_cb(path_df[[n_col_live[1]]][i], path_df$Power[i]), silent = TRUE)
+            }
+          }
+        } else if (input$calc_method == "Repeated") {
           R <- input$R_reps %||% 500
           if (input$analysis_type == "Power") {
             cat(sprintf("Repeated method: estimating power at %d sample sizes with R=%d.\n", length(n_vec), R))
             power_df <- repeated_power_from_pilot(
               pilot_data_clean, resolved_time_var, resolved_status_var, resolved_arm_var,
               n_per_arm_vec = n_vec, L = input$L, alpha = input$alpha, R = R,
-              strata_var = if ("stratum" %in% names(analysis_data)) resolved_strata_var else NULL,
               seed = reps_seed,
-              point_cb = point_cb
+              point_cb = point_cb,
+              model = input$model_selection,
+              cens_terms = input$dc_linear_terms %||% character(0)
             )
             results_plot <- make_power_plot(power_df, "repeated")
             results_data <- power_df
@@ -2852,9 +3070,10 @@ server <- function(input, output, session) {
             power_df <- repeated_power_from_pilot(
               pilot_data_clean, resolved_time_var, resolved_status_var, resolved_arm_var,
               n_per_arm_vec = grid, L = input$L, alpha = input$alpha, R = R,
-              strata_var = if ("stratum" %in% names(analysis_data)) resolved_strata_var else NULL,
               seed = reps_seed,
-              point_cb = point_cb
+              point_cb = point_cb,
+              model = input$model_selection,
+              cens_terms = input$dc_linear_terms %||% character(0)
             )
             meet <- subset(power_df, Power >= target_power_input)
             n_star <- if (nrow(meet)) min(meet$N_per_arm) else NA
@@ -3008,7 +3227,7 @@ server <- function(input, output, session) {
             results_summary <- mul$results_summary
             
           } else if (input$model_selection == "Semiparametric (GAM) Model") {
-            stop("Analytical calculation is not implemented for Semiparametric (GAM) Model. Please use the Repeated method.", call. = FALSE)
+            stop("The Semiparametric (GAM) Model has no analytical engine in RMSTpowerBoost; select the Repeated method.", call. = FALSE)
 
           } else {
             stop(paste("Unsupported model selection:", input$model_selection), call. = FALSE)

@@ -81,9 +81,86 @@
   an engine that does not accept it. `summary()` now prints the selected test and
   both standard errors when the engine reports them.
 
-* The dependent-censoring engine is unchanged: `DC.power.analytical()` and
-  `DC.ss.analytical()` still cap at the 99th percentile and still floor the
-  censoring survival at `1e-6`, and they gain no `test` argument.
+* The dependent-censoring engine, `DC.power.analytical()` / `DC.ss.analytical()`,
+  now weights the same way as the linear and stratified engines. Its censoring
+  model, `Surv(time, status == 0) ~ linear_terms` with Breslow ties, previously
+  paired the uncentered baseline hazard from `basehaz(centered = FALSE)` with the
+  default, centered, linear predictor from `predict(type = "lp")`, so the censoring
+  survival was misstated whenever a covariate had a non-zero mean; on a pilot with
+  an age-like covariate it was off by up to 0.68. The two are now both uncentered,
+  and match `predict(type = "survival")` to machine precision. The weights are
+  used exactly as fitted: the 99th-percentile cap and the `1e-6` floor on the
+  censoring survival are both gone, and invalid censoring survival probabilities
+  are an error rather than something the floor absorbs. A non-convergent censoring
+  model is reported as an error rather than swallowed by a bare `coxph()` call, and
+  data with no censoring retain unit weights without fitting a Cox model.
+  `model_output$censoring_weights` now reports only `raw_summary`; `cap_value`,
+  `capped_fraction` and the internal `weight_cap` are gone, and the internal
+  weight column is `df$weights` as in the other engines. Point estimates shift
+  wherever the censoring model has covariates; without covariates the old cap
+  rarely bound and the numbers are essentially unchanged.
+
+* `DC.power.analytical()` and `DC.ss.analytical()` gain the same `test` argument
+  as their linear counterparts, with the same default, `test = "wls"`: the power of
+  the weighted-least-squares t-test that a standard `lm(..., weights = w)`
+  analysis reports, with the sampling distribution from the sandwich and the
+  rejection threshold from the model-based WLS standard error. **The default DC
+  power is therefore lower than before**, and the default required sample size
+  higher; `test = "sandwich"` gives the previous sandwich Wald test. The
+  coefficient table, `treatment_effect$std_error` and
+  `variance_components$se_effect_n1` follow the selected test, which also removes
+  the old mismatch in which the coefficient table showed WLS standard errors while
+  the power used the sandwich; both standard errors are always returned in
+  `variance_components`. `rmst.power()` and `rmst.ss()` now pass `test` through
+  to the DC engine.
+
+* `summary()` no longer prints a cap value or capped fraction, since no engine
+  reports one any more.
+
+* `GAM.power.boot()` / `GAM.ss.boot()` keep their jackknife pseudo-observations,
+  with three corrections:
+  * The treatment effect is now the coefficient of `arm_var` coded as a 0/1
+    factor, selected by its exact name. Previously every coefficient whose name
+    *began* with `arm_var` was matched and the smallest p-value among them taken,
+    so with an arm called `A` and a covariate `Age` the reported power was that
+    of the `Age` slope.
+  * A numeric `strata_var` is now treated as a factor, giving stratum-specific
+    intercepts as documented instead of a single linear slope in the stratum
+    code.
+  * The area under each Kaplan-Meier curve is computed exactly instead of with
+    `stats::integrate()`. The jackknife multiplies any error in that integral by
+    the sample size, and the quadrature error had reached about 10% of the
+    pseudo-observations' standard deviation at 80 subjects per arm, with rare
+    replicates far worse. The pseudo-observation helper is shared, so
+    `MS.power.boot()` / `MS.ss.boot()` also change slightly.
+
+  The power and sample-size functions now share one replicate runner, so the
+  procedure is written once; apart from these three corrections their draws are
+  unchanged.
+
+* The bundled Shiny app (`run_app()`) follows these changes:
+  * The Repeated method for the Dependent Censoring Model now puts the selected
+    censoring covariates, without treatment, in the censoring Cox model and adds
+    them to the outcome model, so it simulates the test whose power
+    `DC.power.analytical(test = "wls")` predicts. It previously ignored the
+    covariates and used a treatment-only censoring model.
+  * The Repeated method for the Semiparametric (GAM) Model now calls
+    `GAM.power.boot()` / `GAM.ss.boot()`, with optional smooth and linear
+    covariates. It previously ran the linear IPCW resampler, so the reported
+    power was not that of a GAM. Selecting the GAM model switches the method to
+    Repeated, since there is no analytical GAM engine.
+  * The Repeated method for the stratified models now uses the package's own
+    engines, routed as `rmst.power()` routes them: `MS.power.boot()` /
+    `MS.ss.boot()` for the multiplicative model, and `GAM.power.boot()` /
+    `GAM.ss.boot()` with strata for the additive model. It previously ran the
+    app's IPCW resampler with stratum fixed effects, which tested an additive
+    effect for both models and drew the requested sample size per arm within
+    each stratum, twice the per-stratum total that the analytical stratified
+    engines use. Stratified sample sizes are now per stratum throughout.
+  * In the app's own resampler, now used only for the Linear IPCW and
+    Dependent Censoring models, replicates whose censoring model fails to
+    converge are skipped, as the package treats such fits as errors, and the
+    treatment coefficient is selected by its exact name.
 
 # RMSTpowerBoost 1.0.3
 
