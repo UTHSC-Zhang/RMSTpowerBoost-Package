@@ -1,5 +1,9 @@
 # **RMSTpowerBoost: Power and Sample Size Calculations for RMST-Based Trials** 
+<a href="https://codecov.io/github/UTHSC-Zhang/RMSTpowerBoost-Package" > 
+ <img src="https://codecov.io/github/UTHSC-Zhang/RMSTpowerBoost-Package/branch/main/graph/badge.svg?token=MK7AIUQHBC"/> 
+ </a>
 
+ 
 ## Overview
 
 `RMSTpowerBoost` provides power and sample size tools for study designs that use restricted mean survival time (RMST) as a summary metric of time-to-event outcomes. The package supports covariate adjustment with analytical and simulation-based procedures for settings that include nonproportional hazards, stratification or multi-center effects, and dependent censoring.
@@ -68,3 +72,6 @@ remotes::install_github("UTHSC-Zhang/RMSTpowerBoost-Package")
 Interactive web application:
 
 [Launch the Shiny App](https://arnab96.shinyapps.io/uthsc-app/)
+
+
+
