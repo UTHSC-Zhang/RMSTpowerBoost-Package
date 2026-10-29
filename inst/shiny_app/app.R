@@ -3457,14 +3457,27 @@ server <- function(input, output, session) {
       }
       div(class = "alert alert-info", txt)
     } else {
-      req_row <- rd[1, , drop = FALSE]
-      req_col <- grep("Required_N", names(req_row), value = TRUE)[1]
-      if (!length(req_col)) return(div(class = "alert alert-warning", "Required sample size is not available in the current output table."))
       target_power <- suppressWarnings(as.numeric(input$target_power %||% 0.8))
       if (!is.finite(target_power)) target_power <- 0.8
+      req_col <- grep("Required_N", names(rd), value = TRUE)
+      n_col <- grep("^N_per_", names(rd), value = TRUE)
+      if (length(req_col)) {
+        req_n <- as.numeric(rd[1, req_col[1]])
+      } else if (length(n_col) && "Power" %in% names(rd)) {
+        # The app's own Repeated search returns its whole power grid: report the
+        # smallest searched N that reaches the target, the point the plot marks.
+        hit <- rd[[n_col[1]]][is.finite(rd$Power) & rd$Power >= target_power]
+        if (!length(hit)) {
+          return(div(class = "alert alert-warning", sprintf(
+            "No searched sample size reached target power %.3f.", target_power)))
+        }
+        req_n <- min(hit)
+      } else {
+        return(div(class = "alert alert-warning", "Required sample size is not available in the current output table."))
+      }
       div(class = "alert alert-info", sprintf(
         "Required sample size is %.3f at target power %.3f.",
-        as.numeric(req_row[[req_col]]),
+        req_n,
         target_power
       ))
     }

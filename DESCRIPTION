@@ -59,4 +59,4 @@ VignetteBuilder: knitr
 Depends: R (>= 4.1.0)
 URL: https://uthsc-zhang.github.io/RMSTpowerBoost-Package/,
 BugReports: https://github.com/UTHSC-Zhang/RMSTpowerBoost-Package/issues
-Config/roxygen2/version: 8.1.0
+Config/roxygen2/version: 8.1.1
