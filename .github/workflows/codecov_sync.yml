@@ -12,11 +12,42 @@ permissions:
 jobs:
   upload-coverage:
     runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+      # Dependencies come from DESCRIPTION below, so stop .Rprofile from
+      # activating the renv project library, which is empty on the runner.
+      RENV_CONFIG_AUTOLOADER_ENABLED: "false"
     steps:
       - name: Checkout
         uses: actions/checkout@v7
         with:
           fetch-depth: 0
+
+      - name: Set up R
+        uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - name: Install package dependencies
+        uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::covr, any::xml2
+          needs: coverage
+
+      # Codecov discards a report whose timestamp is more than 12 hours old, so
+      # re-uploading a committed coverage/cobertura.xml leaves every new commit
+      # at 0%. Measure coverage fresh for each commit instead.
+      - name: Generate coverage report
+        shell: Rscript {0}
+        run: |
+          dir.create("coverage", showWarnings = FALSE)
+          cov <- covr::package_coverage(
+            quiet = FALSE,
+            clean = FALSE,
+            install_path = file.path(normalizePath(Sys.getenv("RUNNER_TEMP"), winslash = "/"), "package")
+          )
+          covr::to_cobertura(cov, filename = "coverage/cobertura.xml")
+          message(sprintf("Line coverage: %.2f%%", covr::percent_coverage(cov)))
 
       - name: Check coverage report
         id: coverage_file
@@ -26,7 +57,8 @@ jobs:
             echo "Coverage file found: coverage/cobertura.xml"
           else
             echo "found=false" >> "$GITHUB_OUTPUT"
-            echo "coverage/cobertura.xml is missing; skipping Codecov upload."
+            echo "coverage/cobertura.xml was not generated."
+            exit 1
           fi
 
       - name: Coverage diagnostics
@@ -35,8 +67,6 @@ jobs:
           echo "## Coverage diagnostics" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "- found output: \`${{ steps.coverage_file.outputs.found }}\`" >> "$GITHUB_STEP_SUMMARY"
-          echo "- git tracked coverage files:" >> "$GITHUB_STEP_SUMMARY"
-          git ls-files coverage >> "$GITHUB_STEP_SUMMARY" || true
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Directory listing:" >> "$GITHUB_STEP_SUMMARY"
           ls -la coverage >> "$GITHUB_STEP_SUMMARY" 2>&1 || echo "coverage directory not present" >> "$GITHUB_STEP_SUMMARY"
@@ -68,7 +98,7 @@ jobs:
           for cls in classes:
               fn = (cls.get("filename") or "").replace("\\", "/")
               fn = re.sub(
-                  r"^[A-Za-z]:/.*/RMSTpowerBoost-Package/",
+                  r"^(?:[A-Za-z]:)?/.*/RMSTpowerBoost-Package/",
                   "",
                   fn,
                   flags=re.IGNORECASE,
@@ -94,23 +124,6 @@ jobs:
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Post-normalization XML preview:" >> "$GITHUB_STEP_SUMMARY"
           head -n 40 coverage/cobertura.xml >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Cobertura filenames not found in repo:" >> "$GITHUB_STEP_SUMMARY"
-          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
-          import os
-          import xml.etree.ElementTree as ET
-          root = ET.parse("coverage/cobertura.xml").getroot()
-          missing = sorted({
-              (c.get("filename") or "").replace("\\", "/")
-              for c in root.findall(".//class")
-              if (c.get("filename") or "") and not os.path.exists((c.get("filename") or "").replace("\\", "/"))
-          })
-          if not missing:
-              print("- none")
-          else:
-              for m in missing:
-                  print(f"- {m}")
-          PY
 
       - name: Upload to Codecov
         if: steps.coverage_file.outputs.found == 'true'
