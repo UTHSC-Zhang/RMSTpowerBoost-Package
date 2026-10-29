@@ -37,11 +37,17 @@ jobs:
       # Codecov discards a report whose timestamp is more than 12 hours old, so
       # re-uploading a committed coverage/cobertura.xml leaves every new commit
       # at 0%. Measure coverage fresh for each commit instead.
+      # Run only the testthat suite. tests/ also holds a manual validation
+      # script (excluded from R CMD check by .Rbuildignore) that needs
+      # truncnorm and devtools; covr does not read .Rbuildignore and would
+      # run it too.
       - name: Generate coverage report
         shell: Rscript {0}
         run: |
           dir.create("coverage", showWarnings = FALSE)
           cov <- covr::package_coverage(
+            type = "none",
+            code = "testthat::test_package('RMSTpowerBoost')",
             quiet = FALSE,
             clean = FALSE,
             install_path = file.path(normalizePath(Sys.getenv("RUNNER_TEMP"), winslash = "/"), "package")
